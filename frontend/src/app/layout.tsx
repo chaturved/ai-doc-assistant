@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 import { Inter } from "next/font/google";
 import AmbientBackground from "@/components/AmbientBackground";
-import Header from "@/components/Header";
+import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer";
 import SidebarLeft from "@/components/SidebarLeft/SidebarLeft";
 import SidebarRight from "@/components/SidebarRight/SidebarRight";
