@@ -1,32 +1,30 @@
-import { ChevronDown, FileCode, FileText } from "lucide-react";
+import { ChevronDown, FileCode, FileText, Link } from "lucide-react";
 
-type Source = {
+const iconMap = {
+  code: <FileCode className="h-4 w-4 text-indigo-300" />,
+  text: <FileText className="h-4 w-4 text-rose-300" />,
+  pdf: <FileText className="h-4 w-4 text-red-400" />,
+  doc: <FileText className="h-4 w-4 text-blue-400" />,
+  link: <Link className="h-4 w-4 text-green-400" />,
+} as const;
+
+export type Source = {
   name: string;
   quote: string;
-  icon: "code" | "text";
+  icon: keyof typeof iconMap;
 };
 
-const sources: Source[] = [
-  {
-    name: "api-reference.md",
-    quote:
-      "Use text/event-stream and flush lines prefixed by data:. Emit [DONE] when complete for cleanup.",
-    icon: "code",
-  },
-  {
-    name: "Onboarding Guide.pdf",
-    quote:
-      "The client should listen to message events and append text incrementally to the UI.",
-    icon: "text",
-  },
-];
+interface SourcesProps {
+  title?: string;
+  sources: Source[];
+}
 
-export default function Sources() {
+export default function Sources({ title = "Sources", sources }: SourcesProps) {
   return (
     <details className="rounded-xl bg-zinc-950/40 ring-1 ring-white/10 open:shadow-inner">
       <summary className="cursor-pointer flex pt-4 pr-5 pb-4 pl-5 backdrop-blur-md items-center justify-between">
         <div className="text-xl tracking-tight font-semibold text-zinc-100">
-          Sources
+          {title}
         </div>
         <ChevronDown className="h-4 w-4 text-zinc-400" />
       </summary>
@@ -40,11 +38,7 @@ export default function Sources() {
             >
               <summary className="flex items-center justify-between px-3 py-2 cursor-pointer">
                 <div className="text-sm font-medium text-zinc-200 inline-flex items-center gap-2">
-                  {src.icon === "code" ? (
-                    <FileCode className="h-4 w-4 text-indigo-300" />
-                  ) : (
-                    <FileText className="h-4 w-4 text-rose-300" />
-                  )}
+                  {iconMap[src.icon]}
                   {src.name}
                 </div>
                 <ChevronDown className="h-4 w-4 text-zinc-400" />
