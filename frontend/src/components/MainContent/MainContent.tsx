@@ -5,6 +5,7 @@ import MainQueryBar from "./components/MainQueryBar";
 import CurrentQuestion from "./components/CurrentQuestion";
 import AIAnswerCard from "./components/AIAnswerCard";
 import Snippets from "./components/Snippets/Snippets";
+import Sources from "./components/Sources";
 import Feedback from "./components/Feedback";
 
 export default function MainContent() {
@@ -15,6 +16,7 @@ export default function MainContent() {
       <CurrentQuestion />
       <AIAnswerCard />
       <Snippets />
+      <Sources />
       <Feedback />
     </section>
   );
