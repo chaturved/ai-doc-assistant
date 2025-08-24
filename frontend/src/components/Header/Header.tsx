@@ -9,10 +9,13 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-3">
           <Brand />
-          <Status />
+          <Status count={12} />
           <div className="flex-1" />
           <Actions />
-          <UserDropdown />
+          <UserDropdown
+            email="you@company.com"
+            avatarUrl="https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=128&auto=format&fit=crop"
+          />
         </div>
       </div>
     </header>
