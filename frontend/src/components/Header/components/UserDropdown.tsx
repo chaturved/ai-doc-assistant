@@ -9,18 +9,16 @@ interface UserDropdownProps {
 export default function UserDropdown({ email, avatarUrl }: UserDropdownProps) {
   return (
     <details className="relative">
-      <summary className="list-none">
-        <button className="h-9 rounded-md px-3 text-sm text-zinc-300 ring-1 ring-white/10 hover:bg-zinc-900/80 hover:text-zinc-100 transition inline-flex items-center gap-2">
-          <Image
-            src={avatarUrl}
-            alt="avatar"
-            width={20}
-            height={20}
-            className="h-5 w-5 rounded-full object-cover ring-1 ring-white/10"
-          />
-          <span className="hidden sm:inline">{email}</span>
-          <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
-        </button>
+      <summary className="h-9 cursor-pointer list-none rounded-md px-3 text-sm text-zinc-300 ring-1 ring-white/10 hover:bg-zinc-900/80 hover:text-zinc-100 transition inline-flex items-center gap-2">
+        <Image
+          src={avatarUrl}
+          alt="avatar"
+          width={20}
+          height={20}
+          className="h-5 w-5 rounded-full object-cover ring-1 ring-white/10"
+        />
+        <span className="hidden sm:inline">{email}</span>
+        <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
       </summary>
 
       <div className="absolute right-0 mt-2 w-52 rounded-lg bg-zinc-950 ring-1 ring-white/10 shadow-xl p-1">
