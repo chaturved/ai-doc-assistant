@@ -1,12 +1,12 @@
-from sqlalchemy import Table, Column, Integer, String, ForeignKey
-from database.db import metadata
+from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, ForeignKey
 
-library_table = Table(
-    "library",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("user_id", Integer, ForeignKey("users.id"), nullable=False),
-    Column("name", String, nullable=False),
-    Column("size", String, nullable=False),
-    Column("type", String, nullable=False),
-)
+Base = declarative_base()
+
+class Library(Base):
+    __tablename__ = "library"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    size = Column(String, nullable=False)
+    type = Column(String, nullable=False)
