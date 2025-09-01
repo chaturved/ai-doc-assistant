@@ -1,9 +1,12 @@
+"use client";
+
 import { FilePlus, Folder, Trash2 } from "lucide-react";
+import { useRef } from "react";
 
 export interface LibraryHeaderProps {
   count: number;
-  onUpload?: () => void;
-  onClear?: () => void;
+  onUpload?: (files: FileList) => Promise<void>;
+  onClear?: () => Promise<void>;
 }
 
 export default function LibraryHeader({
@@ -11,6 +14,20 @@ export default function LibraryHeader({
   onUpload,
   onClear,
 }: LibraryHeaderProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFilesSelected = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && onUpload) {
+      await onUpload(e.target.files);
+    }
+  };
+
   return (
     <div className="ring-1 ring-white/10 bg-zinc-950/40 rounded-xl p-3 backdrop-blur-md">
       <div className="flex items-center justify-between">
@@ -28,11 +45,11 @@ export default function LibraryHeader({
 
       <div className="mt-3 flex gap-2">
         <button
-          onClick={onUpload}
+          onClick={handleUploadClick}
           className="flex-1 rounded-md bg-zinc-900/60 ring-1 ring-white/10 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:ring-indigo-500/40 transition inline-flex items-center justify-center gap-2"
         >
           <FilePlus className="h-3.5 w-3.5" />
-          Upload New Document
+          Upload New Documents
         </button>
         <button
           onClick={onClear}
@@ -41,6 +58,14 @@ export default function LibraryHeader({
           <Trash2 className="h-3.5 w-3.5" />
           Clear Library
         </button>
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          multiple
+          className="hidden"
+          onChange={handleFilesSelected}
+        />
       </div>
     </div>
   );
