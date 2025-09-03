@@ -4,7 +4,7 @@ import MainContent from "@/components/MainContent/MainContent";
 import SidebarLeft from "@/components/SidebarLeft/SidebarLeft";
 import SidebarRight from "@/components/SidebarRight/SidebarRight";
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <>
       <Header

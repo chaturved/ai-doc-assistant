@@ -44,10 +44,7 @@ export default function LoginPage() {
       {/* Subtle sign-up prompt */}
       <div className="text-center mt-4 text-sm text-zinc-400">
         New here?{" "}
-        <a
-          href="/auth/signup"
-          className="text-zinc-200 hover:text-white transition"
-        >
+        <a href="/signup" className="text-zinc-200 hover:text-white transition">
           Create an account
         </a>
       </div>

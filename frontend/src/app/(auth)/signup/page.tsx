@@ -55,10 +55,7 @@ export default function SignupPage() {
       {/* Subtle login prompt */}
       <div className="text-center mt-4 text-sm text-zinc-400">
         Already have an account?{" "}
-        <a
-          href="/auth/login"
-          className="text-zinc-200 hover:text-white transition"
-        >
+        <a href="/login" className="text-zinc-200 hover:text-white transition">
           Sign in
         </a>
       </div>
