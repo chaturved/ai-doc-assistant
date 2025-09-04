@@ -1,21 +1,43 @@
+"use client";
+
 import AuthCard from "@/components/auth/AuthCard";
 import InputField from "@/components/auth/form/InputField";
 import PasswordField from "@/components/auth/form/PasswordField";
 import Divider from "@/components/auth/form/Divider";
 import { User, Mail, LogIn, Github } from "lucide-react";
+import { useState } from "react";
+import api from "@/lib/api";
 
 export default function SignupPage() {
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post("/auth/signup", { email, full_name: fullName, password });
+      window.location.href = "/login";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Signup failed");
+    }
+  };
+
   return (
     <>
       <AuthCard
         title="Create an account"
         subtitle="Use your work email to sign up"
       >
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
             id="name"
             label="Full Name"
             type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             placeholder="Jane Doe"
             icon={<User className="h-4 w-4 text-zinc-400" />}
           />
@@ -23,12 +45,19 @@ export default function SignupPage() {
             id="email"
             label="Email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
             icon={<Mail className="h-4 w-4 text-zinc-400" />}
           />
           <PasswordField id="password" label="Password" />
-          <PasswordField id="confirm-password" label="Confirm Password" />
-
+          <PasswordField
+            id="confirm-password"
+            label="Confirm Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <p className="text-xs text-rose-400">{error}</p>}
           <button
             type="submit"
             className="w-full mt-2 inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-indigo-600/90 text-white text-sm ring-1 ring-indigo-500/40 hover:bg-indigo-500 transition"

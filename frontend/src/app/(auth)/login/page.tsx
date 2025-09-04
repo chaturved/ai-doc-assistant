@@ -1,23 +1,56 @@
+"use client";
+
 import AuthCard from "@/components/auth/AuthCard";
 import InputField from "@/components/auth/form/InputField";
 import PasswordField from "@/components/auth/form/PasswordField";
 import Divider from "@/components/auth/form/Divider";
 import { Mail, LogIn, Github } from "lucide-react";
+import { useState } from "react";
+import api from "@/lib/api";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+
+      const { data } = await api.post("/auth/token", formData, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      localStorage.setItem("access_token", data.access_token);
+      window.location.href = "/dashboard"; // redirect after login
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Login failed");
+    }
+  };
+
   return (
     <>
       <AuthCard title="Sign in" subtitle="Use your work email to continue">
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
             id="email"
             label="Email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
             icon={<Mail className="h-4 w-4 text-zinc-400" />}
           />
-          <PasswordField id="password" label="Password" />
-
+          <PasswordField
+            id="password"
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <p className="text-xs text-rose-400">{error}</p>}
           <button
             type="submit"
             className="w-full mt-2 inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-indigo-600/90 text-white text-sm ring-1 ring-indigo-500/40 hover:bg-indigo-500 transition"

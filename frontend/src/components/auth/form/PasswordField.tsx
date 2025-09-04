@@ -6,9 +6,16 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 interface PasswordFieldProps {
   id?: string;
   label?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function PasswordField({ id, label }: PasswordFieldProps) {
+export default function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+}: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -27,6 +34,8 @@ export default function PasswordField({ id, label }: PasswordFieldProps) {
           id={id}
           name="password"
           type={visible ? "text" : "password"}
+          value={value}
+          onChange={onChange}
           placeholder="••••••••"
           className="w-full rounded-lg bg-zinc-900/80 text-sm pl-9 pr-10 h-11 outline-none ring-1 ring-white/10 focus:ring-indigo-500/40 placeholder:text-zinc-500 transition"
         />
