@@ -22,21 +22,8 @@ async def upload_library(
     current_user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    file_list = []
-    for f in files:
-        # read contents to calculate size
-        contents = await f.read()
-        size_kb = f"{len(contents) / 1024:.0f} KB"
-        file_list.append(
-            {
-                "name": f.filename,
-                "size": size_kb,
-                "type": f.filename.split(".")[-1],
-            }
-        )
-        f.file.seek(0)  # reset cursor if you need file again
 
-    save_files(db, current_user_id, file_list)
+    save_files(db, current_user_id, files)
     return {"status": "ok"}
 
 

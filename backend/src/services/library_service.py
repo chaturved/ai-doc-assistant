@@ -1,4 +1,5 @@
 from typing import List, Dict
+from fastapi import File, UploadFile
 from sqlalchemy.orm import Session
 from backend.src.models.library import Library
 
@@ -18,16 +19,26 @@ def get_library_data(db: Session, user_id: int) -> Dict:
     return {"count": count, "sections": sections}
 
 
-def save_files(db: Session, user_id: int, files: List[Dict]):
+async def save_files(db: Session, user_id: int, files: list[UploadFile]):
+    file_records = []
+
     for f in files:
-        db.add(
+        # read contents to calculate size
+        contents = await f.read()
+        size_kb = f"{len(contents) / 1024:.0f} KB"
+
+        file_records.append(
             Library(
                 user_id=user_id,
-                name=f["name"],
-                size=f["size"],
-                type=f["type"],
+                name=f.filename,
+                size=size_kb,
+                type=f.filename.split(".")[-1],
             )
         )
+
+        f.file.seek(0)
+        
+    db.add_all(file_records)
     db.commit()
 
 
