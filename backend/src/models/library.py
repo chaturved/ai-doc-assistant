@@ -1,7 +1,6 @@
-from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey
 
-Base = declarative_base()
+from ..database.db import Base
 
 class Library(Base):
     __tablename__ = "library"

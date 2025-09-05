@@ -2,8 +2,8 @@ from datetime import timedelta, datetime, timezone
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
-from backend.src.models.user import User
-from backend.src.utils.jwt import get_encoded_token, get_payload
+from ..models.user import User
+from ..utils.jwt import get_encoded_token, get_payload
 
 # Expiry configs (can be env vars)
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -24,7 +24,7 @@ def _create_token(user_id: int, expires_delta: timedelta, token_type: str) -> st
 
 
 def create_access_token(user_id: int) -> str:
-    _create_token(
+    return _create_token(
         user_id,
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         token_type="access",

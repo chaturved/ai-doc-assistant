@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
-from backend.src.database.db import get_db
-from backend.src.services.token_service import get_current_user_id
-from backend.src.services.library_service import get_library_data, save_files, clear_all
+from ..database.db import get_db
+from ..services.token_service import get_current_user_id
+from ..services.library_service import get_library_data, save_files, clear_all
 
 router = APIRouter(prefix="/api/library")
 

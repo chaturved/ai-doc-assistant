@@ -6,3 +6,6 @@ aiosqlite
 python-multipart
 python-jose
 passlib
+pydantic[email]
+alembic
+bcrypt

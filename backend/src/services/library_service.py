@@ -1,7 +1,7 @@
 from typing import List, Dict
 from fastapi import File, UploadFile
 from sqlalchemy.orm import Session
-from backend.src.models.library import Library
+from ..models.library import Library
 
 
 def get_library_data(db: Session, user_id: int) -> Dict:

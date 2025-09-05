@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/dashboard", "/library", "/profile"];
+const ACCESS_TOKEN_KEY = "access_token";
+const protectedRoutes = ["/dashboard", "/profile", "/library"];
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  const token = req.cookies.get("access_token")?.value;
+  const token = req.cookies.get(ACCESS_TOKEN_KEY); // Secure HttpOnly cookie
 
   if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
     if (!token) {
+      // no access token cookie, redirect to login
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ["/", "/dashboard/:path*", "/library/:path*", "/profile/:path*"],
-};
