@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { LibraryAPIResponse } from "@/types/library";
-import LibraryHeader from "./components/LibraryHeader";
+import LibraryHeader from "./components/LibraryHeader/LibraryHeader";
 import LibraryTabs from "./components/LibraryTabs/LibraryTabs";
+import SidebarLeftSkeleton from "./SidebarSkeleton";
 
 export default function SidebarLeft() {
   const [library, setLibrary] = useState<LibraryAPIResponse | null>(null);
@@ -30,7 +31,7 @@ export default function SidebarLeft() {
     fetchLibrary();
   }, []);
 
-  if (!library) return null;
+  if (!library) return <SidebarLeftSkeleton />;
 
   return (
     <aside className="hidden lg:block col-span-3">

@@ -1,4 +1,7 @@
-import { LibrarySection, LibrarySectionProps } from "./LibrarySection";
+import {
+  LibrarySection,
+  LibrarySectionProps,
+} from "./LibrarySection/LibrarySection";
 
 export interface LibraryTabsProps {
   sections: LibrarySectionProps[];
