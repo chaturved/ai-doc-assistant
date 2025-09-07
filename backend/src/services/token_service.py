@@ -1,13 +1,15 @@
 from datetime import timedelta, datetime, timezone
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
-from ..models.user import User
-from ..utils.jwt import get_encoded_token, get_payload
+from ..config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES, 
+    ACCESS_TOKEN_TYPE, 
+    REFRESH_TOKEN_EXPIRE_DAYS, 
+    REFRESH_TOKEN_TYPE
+)
 
-# Expiry configs (can be env vars)
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+from ..utils.jwt import get_encoded_token, get_payload
 
 # OAuth2 scheme for FastAPI dependency injection
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
@@ -27,7 +29,7 @@ def create_access_token(user_id: int) -> str:
     return _create_token(
         user_id,
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-        token_type="access",
+        token_type=ACCESS_TOKEN_TYPE,
     )
 
 
@@ -35,14 +37,14 @@ def create_refresh_token(user_id: int) -> str:
     return _create_token(
         user_id,
         expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        token_type="refresh",
+        token_type=REFRESH_TOKEN_TYPE,
     )
 
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     payload = get_payload(token)
 
-    if payload.get("type") != "access":
+    if payload.get("type") != ACCESS_TOKEN_TYPE:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type",
@@ -62,7 +64,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
 def validate_refresh_token(token: str) -> int:
     payload = get_payload(token)
 
-    if payload.get("type") != "refresh":
+    if payload.get("type") != REFRESH_TOKEN_TYPE:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
     user_id = payload.get("sub")

@@ -1,9 +1,8 @@
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker, declarative_base
+from ..config import DATABASE_URL
 
-DATABASE_URL = "sqlite:///./ai_doc_assistant.db"
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 Base = declarative_base()
 

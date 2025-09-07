@@ -2,10 +2,15 @@ fastapi
 uvicorn
 sqlalchemy
 databases
-aiosqlite
 python-multipart
 python-jose
 passlib
 pydantic[email]
 alembic
 bcrypt
+PyMuPDF
+python-docx
+psycopg2-binary
+pgvector
+python-dotenv
+httpx

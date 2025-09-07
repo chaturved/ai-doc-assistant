@@ -1,15 +1,11 @@
-import os
 from fastapi import HTTPException, status
 from jose import JWTError, jwt, ExpiredSignatureError
-
-# Secret key & algorithm
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "supersecretkey")  # default for dev
-ALGORITHM = "HS256"
+from ..config import JWT_SECRET_KEY, JWT_ALGORITHM
 
 
 def get_encoded_token(claims: dict) -> str:
     try:
-        return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(claims, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -20,7 +16,7 @@ def get_encoded_token(claims: dict) -> str:
 
 def get_payload(token: str) -> dict:
     try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_SECRET_KEY])
     except ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -2,13 +2,12 @@ from fastapi import HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from ..config import ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY
+
 from ..services.token_service import create_access_token, create_refresh_token, validate_refresh_token
 from ..utils.security import verify_password
 from ..schemas.user import UserCreate
 from ..services.user_service import create_user, get_user_by_email
-
-ACCESS_TOKEN_KEY = "access_token"
-REFRESH_TOKEN_KEY = "refresh_token"
 
 
 def signup(user_in: UserCreate, db: Session) -> dict:
