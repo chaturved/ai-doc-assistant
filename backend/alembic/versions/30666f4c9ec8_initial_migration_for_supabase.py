@@ -1,8 +1,8 @@
-"""Initial migration for Postgres
+"""Initial migration for Supabase
 
-Revision ID: 7f720a5fee2f
+Revision ID: 30666f4c9ec8
 Revises: 
-Create Date: 2025-09-06 20:02:22.644897
+Create Date: 2025-09-07 13:37:37.684977
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import pgvector.sqlalchemy as pg
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7f720a5fee2f'
+revision: str = '30666f4c9ec8'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,7 +47,7 @@ def upgrade() -> None:
     sa.Column('library_id', sa.Integer(), nullable=False),
     sa.Column('chunk_index', sa.Integer(), nullable=False),
     sa.Column('chunk_text', sa.Text(), nullable=False),
-    sa.Column('embedding', pg.Vector(1536), nullable=True),
+    sa.Column('embedding', pg.VECTOR(dim=1536), nullable=True),
     sa.ForeignKeyConstraint(['library_id'], ['libraries.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

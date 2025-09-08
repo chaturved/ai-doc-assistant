@@ -54,7 +54,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm, db: Session)
 def refresh(request: Request, response: Response) -> dict:
     refresh_token = request.cookies.get(REFRESH_TOKEN_KEY)
     if not refresh_token:
-        raise HTTPException(status_code=401, detail="Missing refresh token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing refresh token")
     
     user_id = validate_refresh_token(refresh_token)
     access_token = create_access_token(user_id)
