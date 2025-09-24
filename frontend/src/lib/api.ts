@@ -23,15 +23,17 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    if (originalRequest.url?.includes("/auth/login")) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // queue requests while refresh is happening
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -43,9 +45,9 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post("/api/auth/refresh", null, { withCredentials: true });
+        await api.post("/auth/refresh", null);
         processQueue(null);
-        return api(originalRequest); // retry original request
+        return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
         window.location.href = "/login";

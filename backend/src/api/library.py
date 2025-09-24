@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
+from ..services.auth_service import get_current_user_id
+
 from ..database.db import get_db
-from ..services.token_service import get_current_user_id
 from ..services.library_service import get_library_data, save_files, clear_all
 
 router = APIRouter(prefix="/api/library")
 
 
-@router.get("/")
+@router.get("")
 def fetch_library(
     current_user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db),

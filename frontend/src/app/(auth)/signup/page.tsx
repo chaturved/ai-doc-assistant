@@ -7,8 +7,11 @@ import Divider from "@/components/auth/form/Divider";
 import { User, Mail, LogIn, Github } from "lucide-react";
 import { useState } from "react";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -17,8 +20,15 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/auth/signup", { email, full_name: fullName, password });
-      window.location.href = "/login";
+      const response = await api.post("/auth/signup", {
+        email,
+        full_name: fullName,
+        password,
+      });
+
+      if (response.status === 200) {
+        router.push("/login"); // redirect after signup
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Signup failed");

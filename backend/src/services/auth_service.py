@@ -1,13 +1,17 @@
 from fastapi import HTTPException, status, Response, Request
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.params import Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from ..config import ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY
 
-from ..services.token_service import create_access_token, create_refresh_token, validate_refresh_token
+from ..services.token_service import create_access_token, create_refresh_token, validate_access_token, validate_refresh_token
 from ..utils.security import verify_password
 from ..schemas.user import UserCreate
 from ..services.user_service import create_user, get_user_by_email
+
+# OAuth2 scheme for FastAPI dependency injection
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
 def signup(user_in: UserCreate, db: Session) -> dict:
@@ -25,8 +29,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm, db: Session)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Incorrect email or password"
         )
 
     access_token = create_access_token(user.id)
@@ -49,6 +52,29 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm, db: Session)
     )
 
     return {"message": "Login successful"}
+
+def authorize_token(form_data: OAuth2PasswordRequestForm, db: Session) -> dict:
+    user = get_user_by_email(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+
+    access_token = create_access_token(user.id)
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+def get_current_user_id(request: Request, bearer: str = Depends(oauth2_scheme)) -> int:
+    access_token = request.cookies.get(ACCESS_TOKEN_KEY) or bearer
+
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    return validate_access_token(access_token)
 
 
 def refresh(request: Request, response: Response) -> dict:

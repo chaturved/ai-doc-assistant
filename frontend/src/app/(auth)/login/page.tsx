@@ -7,8 +7,11 @@ import Divider from "@/components/auth/form/Divider";
 import { Mail, LogIn, Github } from "lucide-react";
 import { useState } from "react";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,11 +23,14 @@ export default function LoginPage() {
       formData.append("username", email);
       formData.append("password", password);
 
-      const { data } = await api.post("/auth/token", formData, {
+      const response = await api.post("/auth/login", formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
-      localStorage.setItem("access_token", data.access_token);
-      window.location.href = "/dashboard"; // redirect after login
+
+      if (response.status === 200) {
+        router.push("/dashboard"); // redirect after login
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Login failed");

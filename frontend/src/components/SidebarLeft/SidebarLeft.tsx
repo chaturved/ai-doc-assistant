@@ -5,14 +5,14 @@ import { LibraryAPIResponse } from "@/types/library";
 import LibraryHeader from "./components/LibraryHeader/LibraryHeader";
 import LibraryTabs from "./components/LibraryTabs/LibraryTabs";
 import SidebarLeftSkeleton from "./SidebarSkeleton";
+import api from "@/lib/api";
 
 export default function SidebarLeft() {
   const [library, setLibrary] = useState<LibraryAPIResponse | null>(null);
 
   const fetchLibrary = async () => {
-    const res = await fetch("/api/library");
-    const data = await res.json();
-    setLibrary(data);
+    const response = await api.get("/library");
+    setLibrary(response.data);
   };
 
   const handleUpload = async (files: FileList) => {

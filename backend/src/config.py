@@ -5,8 +5,9 @@ load_dotenv()
 
 S3_ENDPOINT: str = os.getenv("S3_ENDPOINT")
 S3_REGION: str = os.getenv("S3_REGION")
-S3_KEY: str = os.getenv("S3_KEY")
-LIBRARY_BUCKET: str = os.getenv("S3_BUCKET_LIBRARY", "library")
+S3_ACCESS_KEY: str = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_ACCESS_KEY: str = os.getenv("S3_SECRET_ACCESS_KEY")
+S3_LIBRARY_BUCKET: str = os.getenv("S3_LIBRARY_BUCKET", "library")
 
 DATABASE_URL: str = os.getenv("DATABASE_URL")
 
