@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api import auth, library
+from .api import router
 
-app = FastAPI()
+app = FastAPI(title="AI Doc Assistant API")
 
 # CORS
 app.add_middleware(
@@ -13,6 +13,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routes
-app.include_router(auth.router)
-app.include_router(library.router)
+app.include_router(router)

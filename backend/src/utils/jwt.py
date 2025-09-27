@@ -15,7 +15,7 @@ def get_encoded_token(claims: dict) -> str:
 
 def get_payload(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_SECRET_KEY])
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
     except ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -2,12 +2,11 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from ..schemas.user import UserCreate
-from ..database.db import get_db
-from ..services.auth_service import signup, login, authorize_token, refresh, logout
+from src.schemas.user import UserCreate
+from src.database.db import get_db
+from src.services.auth_service import signup, login, authorize_token, refresh, logout
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
-
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/signup")
 def signup_route(user_in: UserCreate, db: Session = Depends(get_db)):
@@ -26,7 +25,7 @@ def token_route(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    return authorize_token(None, form_data, db)
+    return authorize_token(form_data, db)
 
 @router.post("/refresh")
 def refresh_route(request: Request, response: Response):

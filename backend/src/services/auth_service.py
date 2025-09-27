@@ -11,7 +11,7 @@ from ..schemas.user import UserCreate
 from ..services.user_service import create_user, get_user_by_email
 
 # OAuth2 scheme for FastAPI dependency injection
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
 
 def signup(user_in: UserCreate, db: Session) -> dict:
@@ -66,7 +66,7 @@ def authorize_token(form_data: OAuth2PasswordRequestForm, db: Session) -> dict:
     return {"access_token": access_token, "token_type": "bearer"}
 
 def get_current_user_id(request: Request, bearer: str = Depends(oauth2_scheme)) -> int:
-    access_token = request.cookies.get(ACCESS_TOKEN_KEY) or bearer
+    access_token = bearer or request.cookies.get(ACCESS_TOKEN_KEY)
 
     if not access_token:
         raise HTTPException(

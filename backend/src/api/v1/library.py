@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
-from ..services.auth_service import get_current_user_id
+from src.services.auth_service import get_current_user_id
 
-from ..database.db import get_db
-from ..services.library_service import get_library_data, save_files, clear_all
+from src.database.db import get_db
+from src.services.library_service import get_library_data, save_files, clear_all
 
-router = APIRouter(prefix="/api/library")
+router = APIRouter(prefix="/library", tags=["Library"])
 
 
 @router.get("")
@@ -28,7 +28,7 @@ async def upload_library(
     return {"status": "ok"}
 
 
-@router.post("/clear")
+@router.delete("/clear")
 def clear_library(
     current_user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db),

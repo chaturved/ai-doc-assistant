@@ -18,12 +18,12 @@ export default function SidebarLeft() {
   const handleUpload = async (files: FileList) => {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append("files", file));
-    await fetch("/api/library/upload", { method: "POST", body: formData });
+    await api.post("/library/upload", formData);
     await fetchLibrary();
   };
 
   const handleClear = async () => {
-    await fetch("/api/library/clear", { method: "POST" });
+    await api.delete("/library/clear");
     await fetchLibrary();
   };
 
