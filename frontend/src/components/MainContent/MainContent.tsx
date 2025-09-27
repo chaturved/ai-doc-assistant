@@ -14,9 +14,21 @@ export default function MainContent() {
       <BreadCrumb
         items={[{ label: "Search", href: "#" }, { label: "Query #3" }]}
       />
-      <MainQueryBar />
+      <MainQueryBar
+        placeholder="Ask me anything about your docs…"
+        leftIcon="sparkles"
+        buttons={{
+          docs: {
+            label: "Docs",
+            icon: "filter",
+            variant: "secondary",
+            hiddenSm: true,
+          },
+          ask: { label: "Ask", icon: "send", variant: "primary" },
+        }}
+      />
       <CurrentQuestion
-        question="How do I stream server‑sent events in JavaScript?"
+        question="How do I stream server-sent events in JavaScript?"
         description="Answered using your indexed documents with citations and snippet context."
         badges={[
           { label: "Synthesized answer", icon: "bot" },
@@ -37,7 +49,7 @@ export default function MainContent() {
           {
             name: "api-reference.md",
             snippet:
-              "To stream tokens, set stream: true and use Server‑Sent Events. The server should flush data using “data: {json}\n\n” format...",
+              "To stream tokens, set stream: true and use Server-Sent Events. The server should flush data using “data: {json}\n\n” format...",
             icon: "code",
           },
           {
@@ -49,7 +61,7 @@ export default function MainContent() {
           {
             name: "endpoints.csv",
             snippet:
-              "/v1/answers — supports stream responses via text/event‑stream and emits token and citation events for UI rendering...",
+              "/v1/answers — supports stream responses via text/event-stream and emits token and citation events for UI rendering...",
             icon: "table",
           },
         ]}
