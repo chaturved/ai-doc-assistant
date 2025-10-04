@@ -11,8 +11,10 @@ S3_LIBRARY_BUCKET: str = os.getenv("S3_LIBRARY_BUCKET", "library")
 
 DATABASE_URL: str = os.getenv("DATABASE_URL")
 
-OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+HF_API_BASE: str = "https://api-inference.huggingface.co/models"
+HF_API_KEY: str = os.getenv("HF_API_KEY")
+HF_EMBEDDING_MODEL: str = os.getenv("HF_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+HF_CHAT_MODEL = os.getenv("HF_CHAT_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
 
 JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "supersecret")
 JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")

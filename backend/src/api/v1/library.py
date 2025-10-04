@@ -24,7 +24,7 @@ async def upload_library(
     db: Session = Depends(get_db),
 ):
 
-    save_files(db, current_user_id, files)
+    await save_files(db, current_user_id, files)
     return {"status": "ok"}
 
 

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..models import Library, LibraryChunk
 from ..utils.storage_utils import delete_file, save_raw_file
 from ..utils.text_utils import chunk_text, extract_text_from_bytes
-from ..utils.embedding_utils import get_embedding
+from ..utils.hugging_face import get_embeddings
 
 def get_library_data(db: Session, user_id: int) -> dict:
     rows = db.query(Library).filter(Library.user_id == user_id).all()
@@ -22,6 +22,7 @@ def get_library_data(db: Session, user_id: int) -> dict:
 
 async def save_files(db: Session, user_id: int, files: list[UploadFile]):
     for f in files:
+        # Save raw file
         file_url, contents = await save_raw_file(f, user_id)
 
         size_kb = f"{len(contents) / 1024:.0f} KB"
@@ -41,22 +42,27 @@ async def save_files(db: Session, user_id: int, files: list[UploadFile]):
         db.add(library)
         db.flush()
 
+        # Split text into chunks
         chunks = chunk_text(extracted_text)
-        chunk_records = []
-        for i, chunk_txt in enumerate(chunks):
-            embedding_vector = get_embedding(chunk_txt)
-            chunk_records.append(
-                LibraryChunk(
-                    library_id=library.id,
-                    chunk_index=i,
-                    chunk_text=chunk_txt,
-                    embedding=embedding_vector
-                )
+
+        # Get embeddings for all chunks at once
+        embeddings = await get_embeddings(chunks)
+
+        # Prepare LibraryChunk records
+        chunk_records = [
+            LibraryChunk(
+                library_id=library.id,
+                chunk_index=i,
+                chunk_text=chunk_txt,
+                embedding=emb
             )
+            for i, (chunk_txt, emb) in enumerate(zip(chunks, embeddings))
+        ]
 
         db.add_all(chunk_records)
         db.commit()
 
+        # Reset file pointer
         f.file.seek(0)
 
 def clear_all(db: Session, user_id: int):

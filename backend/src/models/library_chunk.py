@@ -11,4 +11,4 @@ class LibraryChunk(Base):
     chunk_index = Column(Integer, nullable=False)
     chunk_text = Column(Text, nullable=False)
     library = relationship("Library", back_populates="chunks")
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector(384))

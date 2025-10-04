@@ -14,3 +14,4 @@ pgvector
 python-dotenv
 httpx
 boto3
+huggingface_hub[inference]
