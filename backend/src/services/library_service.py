@@ -1,13 +1,18 @@
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
-
-from ..models import Library, LibraryChunk
-from ..utils.storage_utils import delete_file, save_raw_file
-from ..utils.text_utils import chunk_text, extract_text_from_bytes
-from ..utils.hugging_face import get_embeddings
+from src.utils.storage_utils import delete_file, save_raw_file
+from src.utils.text_utils import chunk_text, extract_text_from_bytes
+from src.utils.hugging_face import get_embeddings
+from src.repositories.library_repository import (
+    get_libraries,
+    add_library,
+    add_library_chunks,
+    clear_user_libraries
+)
+from src.models import Library, LibraryChunk
 
 def get_library_data(db: Session, user_id: int) -> dict:
-    rows = db.query(Library).filter(Library.user_id == user_id).all()
+    rows = get_libraries(db, user_id)
     count = len(rows)
 
     # Organize by type
@@ -39,8 +44,7 @@ async def save_files(db: Session, user_id: int, files: list[UploadFile]):
             path=file_url,
             extracted_text=extracted_text,
         )
-        db.add(library)
-        db.flush()
+        library = add_library(db, library)
 
         # Split text into chunks
         chunks = chunk_text(extracted_text)
@@ -59,18 +63,14 @@ async def save_files(db: Session, user_id: int, files: list[UploadFile]):
             for i, (chunk_txt, emb) in enumerate(zip(chunks, embeddings))
         ]
 
-        db.add_all(chunk_records)
-        db.commit()
+        add_library_chunks(db, chunk_records)
 
         # Reset file pointer
         f.file.seek(0)
 
 def clear_all(db: Session, user_id: int):
-    libraries = db.query(Library).filter(Library.user_id == user_id).all()
-
+    libraries = get_libraries(db, user_id)
     for lib in libraries:
         delete_file(lib.path)
 
-    db.query(LibraryChunk).filter(LibraryChunk.library_id.in_([lib.id for lib in libraries])).delete()
-    db.query(Library).filter(Library.user_id == user_id).delete()
-    db.commit()
+    clear_user_libraries(db, user_id)

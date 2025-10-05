@@ -8,7 +8,8 @@ from ..config import ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY
 from ..services.token_service import create_access_token, create_refresh_token, validate_access_token, validate_refresh_token
 from ..utils.security import verify_password
 from ..schemas.user import UserCreate
-from ..services.user_service import create_user, get_user_by_email
+from ..services.user_service import create_user
+from ..repositories.user_repository import get_user_by_email
 
 # OAuth2 scheme for FastAPI dependency injection
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)

@@ -28,6 +28,6 @@ async def save_raw_file(file: UploadFile, user_id: int) -> tuple[str, bytes]:
     return public_url, contents
 
 
-async def delete_file(file_path: str) -> None:
+def delete_file(file_path: str) -> None:
     key = file_path.split(f"/{S3_LIBRARY_BUCKET}/")[-1]
     s3_client.delete_object(Bucket=S3_LIBRARY_BUCKET, Key=key)

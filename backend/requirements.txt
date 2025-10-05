@@ -12,6 +12,5 @@ python-docx
 psycopg2-binary
 pgvector
 python-dotenv
-httpx
 boto3
 huggingface_hub[inference]
