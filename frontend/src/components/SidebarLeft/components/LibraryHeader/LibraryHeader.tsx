@@ -17,7 +17,9 @@ export default function LibraryHeader({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
-    fileInputRef.current?.click();
+    if (!fileInputRef.current) return;
+    fileInputRef.current.click();
+    fileInputRef.current.value = "";
   };
 
   const handleFilesSelected = async (
