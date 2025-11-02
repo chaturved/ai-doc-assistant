@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/api/v1",
+  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}`,
   withCredentials: true, // send cookies
 });
 
@@ -28,7 +28,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest.url?.includes("/auth/login")) {
+    if (originalRequest.url?.includes("/v1/auth/login")) {
       return Promise.reject(error);
     }
 
@@ -45,7 +45,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/auth/refresh", null);
+        await api.post("/v1/auth/refresh", null);
         processQueue(null);
         return api(originalRequest);
       } catch (err) {

@@ -11,19 +11,19 @@ export default function SidebarLeft() {
   const [library, setLibrary] = useState<LibraryAPIResponse | null>(null);
 
   const fetchLibrary = async () => {
-    const response = await api.get("/library");
+    const response = await api.get("/v1/library");
     setLibrary(response.data);
   };
 
   const handleUpload = async (files: FileList) => {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append("files", file));
-    await api.post("/library/upload", formData);
+    await api.post("/v1/library/upload", formData);
     await fetchLibrary();
   };
 
   const handleClear = async () => {
-    await api.delete("/library/clear");
+    await api.delete("/v1/library/clear");
     await fetchLibrary();
   };
 
