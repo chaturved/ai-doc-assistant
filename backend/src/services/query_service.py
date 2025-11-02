@@ -11,12 +11,12 @@ async def search_documents(
     user_id: int,
     req: QuerySearchRequest,
     background_tasks: BackgroundTasks
-) -> AsyncGenerator[str, None]:
+):
     def save_query():
-        add_recent_query(db, user_id, req.query)
+        add_recent_query(db, user_id, req.question)
     background_tasks.add_task(save_query)
 
-    query_vector = await get_embedding(req.query)
+    query_vector = await get_embedding(req.question)
     doc_id = req.filters.get("doc_id") if req.filters else None
     results = get_top_k_chunks(db, user_id, query_vector, req.top_k, doc_id)
 
@@ -30,7 +30,7 @@ async def search_documents(
     ]
 
     context_text = "\n\n".join([c["text"] for c in chunks])
-    prompt = f"Answer the question using the following context:\n\n{context_text}\n\nQuestion: {req.query}\nAnswer:"
+    prompt = f"Answer the question using the following context:\n\n{context_text}\n\nQuestion: {req.question}\nAnswer:"
 
     async for token in stream_chat(prompt):
         yield token
