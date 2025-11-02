@@ -1,19 +1,23 @@
 "use client";
 
 import { useState } from "react";
-
 import BreadCrumb from "./components/BreadCrumb";
 import MainQueryBar from "./components/MainQueryBar";
-import CurrentQuestion from "./components/CurrentQuestion";
+import CurrentQuestion, { Badge } from "./components/CurrentQuestion";
 import AIAnswerCard from "./components/AIAnswerCard";
 import Snippets from "./components/Snippets/Snippets";
-import Sources from "./components/Sources";
+import Sources, { Source } from "./components/Sources";
 import Feedback from "./components/Feedback";
 import sseApi from "@/lib/sseApi";
+import { Snippet } from "./components/Snippets/SnippetCard";
 
 export default function MainContent() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [description, setDescription] = useState("");
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
 
   const handleAsk = async (value: string) => {
@@ -21,10 +25,14 @@ export default function MainContent() {
 
     setQuestion(value);
     setAnswer("");
+    setDescription("");
+    setSnippets([]);
+    setSources([]);
+    setBadges([]);
     setIsStreaming(true);
 
     try {
-      await sseApi("/v1/query/search", {
+      await sseApi("/v1/query/ask", {
         method: "POST",
         body: JSON.stringify({ question: value }),
 
@@ -36,7 +44,18 @@ export default function MainContent() {
 
           try {
             const parsed = JSON.parse(event.data);
-            if (parsed.token) setAnswer((prev) => prev + parsed.token);
+
+            if (parsed.meta) {
+              const meta = parsed.meta;
+              setDescription(meta.description);
+              setBadges(meta.badges);
+              setSnippets(meta.snippets);
+              setSources(meta.sources);
+            }
+
+            if (parsed.token) {
+              setAnswer((prev) => prev + parsed.token);
+            }
           } catch {
             setAnswer((prev) => prev + event.data);
           }
@@ -56,7 +75,7 @@ export default function MainContent() {
   return (
     <section className="col-span-12 lg:col-span-6 space-y-6">
       <BreadCrumb
-        items={[{ label: "Search", href: "#" }, { label: "Query #3" }]}
+        items={[{ label: "Search", href: "#" }, { label: question || "Query" }]}
       />
 
       <MainQueryBar
@@ -79,38 +98,16 @@ export default function MainContent() {
       />
 
       <CurrentQuestion
-        question={question || "Your question will appear here"}
-        description="Answered using your indexed documents with citations and snippet context."
-        badges={[
-          { label: "Synthesized answer", icon: "bot" },
-          { label: "Private docs only", icon: "shield" },
-          { label: isStreaming ? "Streaming…" : "Complete", icon: "waves" },
-        ]}
+        question={question}
+        description={description}
+        badges={badges}
       />
 
       <AIAnswerCard answer={answer} isStreaming={isStreaming} />
 
-      <Snippets
-        snippets={[
-          {
-            name: "api-reference.md",
-            snippet:
-              "To stream tokens, set stream: true and use Server-Sent Events. The server should flush data using 'data: {json}\\n\\n' format...",
-            icon: "code",
-          },
-        ]}
-      />
+      <Snippets snippets={snippets} />
 
-      <Sources
-        sources={[
-          {
-            name: "api-reference.md",
-            quote:
-              "Use text/event-stream and flush lines prefixed by data:. Emit [DONE] when complete for cleanup.",
-            icon: "code",
-          },
-        ]}
-      />
+      <Sources sources={sources} />
 
       <Feedback />
     </section>

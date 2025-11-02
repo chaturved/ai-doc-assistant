@@ -36,7 +36,7 @@ def get_top_k_chunks(
     doc_id: Optional[str] = None
 ) -> List:
     q = (
-        db.query(LibraryChunk, Library.name)
+        db.query(LibraryChunk, Library)
         .join(Library, LibraryChunk.library_id == Library.id)
         .filter(Library.user_id == user_id)
     )
