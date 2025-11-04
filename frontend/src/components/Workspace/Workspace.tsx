@@ -11,7 +11,7 @@ import Feedback from "./components/Feedback";
 import sseApi from "@/lib/sseApi";
 import { Snippet } from "./components/Snippets/SnippetCard";
 
-export default function MainContent() {
+export default function Workspace() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [description, setDescription] = useState("");

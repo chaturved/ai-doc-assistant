@@ -1,7 +1,7 @@
 import LibraryHeaderSkeleton from "./components/LibraryHeader/LibraryHeaderSkeleton";
 import LibraryTabsSkeleton from "./components/LibraryTabs/LibraryTabsSkeleton";
 
-export default function SidebarLeftSkeleton() {
+export default function LibrarySidebarSkeleton() {
   return (
     <aside className="hidden lg:block col-span-3">
       <div className="sticky top-20 space-y-6">
