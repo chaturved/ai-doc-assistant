@@ -43,7 +43,12 @@ export default function MainQueryBar({
   const queryInputRef = useRef<HTMLInputElement>(null);
 
   const handleAskClick = () => {
-    buttons.ask?.onClick?.(queryInputRef.current?.value || "");
+    const value = queryInputRef.current?.value || "";
+    buttons.ask?.onClick?.(value);
+
+    if (queryInputRef.current) {
+      queryInputRef.current.value = "";
+    }
   };
 
   const handleDocsClick = () => {

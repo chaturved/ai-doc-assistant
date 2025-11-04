@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const [insightsWidth, setInsightsWidth] = useState(300);
   const [libraryWidth, setLibraryWidth] = useState(280);
   const [insightsCollapsed, setInsightsCollapsed] = useState(false);
-  const [libraryCollapsed, setLibraryCollapsed] = useState(false);
+  const [libraryCollapsed, setLibraryCollapsed] = useState(true);
 
   const prevInsightsWidth = useRef(insightsWidth);
   const prevLibraryWidth = useRef(libraryWidth);

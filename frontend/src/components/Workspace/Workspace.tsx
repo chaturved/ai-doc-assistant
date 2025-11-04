@@ -18,18 +18,16 @@ export default function Workspace() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
 
   const handleAsk = async (value: string) => {
     if (!value) return;
 
     setQuestion(value);
-    setAnswer("");
+    setAnswer("Awaiting response...");
     setDescription("");
     setSnippets([]);
     setSources([]);
     setBadges([]);
-    setIsStreaming(true);
 
     try {
       await sseApi("/v1/query/ask", {
@@ -38,7 +36,6 @@ export default function Workspace() {
 
         onmessage(event) {
           if (event.data === "[DONE]") {
-            setIsStreaming(false);
             return;
           }
 
@@ -47,6 +44,7 @@ export default function Workspace() {
 
             if (parsed.meta) {
               const meta = parsed.meta;
+              setAnswer("");
               setDescription(meta.description);
               setBadges(meta.badges);
               setSnippets(meta.snippets);
@@ -63,53 +61,63 @@ export default function Workspace() {
 
         onerror(err) {
           console.error("SSE error:", err);
-          setIsStreaming(false);
         },
       });
     } catch (err) {
       console.error("Fetch error:", err);
-      setIsStreaming(false);
     }
   };
 
   return (
     <section className="col-span-12 lg:col-span-6 space-y-6">
-      <BreadCrumb
-        items={[{ label: "Search", href: "#" }, { label: question || "Query" }]}
-      />
+      {question && (
+        <BreadCrumb
+          items={[{ label: "Search", href: "#" }, { label: "Query" }]}
+        />
+      )}
 
-      <MainQueryBar
-        placeholder="Ask me anything about your docs…"
-        leftIcon="sparkles"
-        buttons={{
-          docs: {
-            label: "Docs",
-            icon: "filter",
-            variant: "secondary",
-            hiddenSm: true,
-          },
-          ask: {
-            label: "Ask",
-            icon: "send",
-            variant: "primary",
-            onClick: handleAsk,
-          },
-        }}
-      />
+      <div
+        className={`${
+          !question ? "flex justify-center items-center h-[60vh]" : ""
+        }`}
+      >
+        <div className={`${!question ? "w-full max-w-3xl px-4" : ""}`}>
+          <MainQueryBar
+            placeholder="Ask me anything about your docs…"
+            leftIcon="sparkles"
+            buttons={{
+              docs: {
+                label: "Docs",
+                icon: "filter",
+                variant: "secondary",
+                hiddenSm: true,
+              },
+              ask: {
+                label: "Ask",
+                icon: "send",
+                variant: "primary",
+                onClick: handleAsk,
+              },
+            }}
+          />
+        </div>
+      </div>
 
-      <CurrentQuestion
-        question={question}
-        description={description}
-        badges={badges}
-      />
+      {question && (
+        <CurrentQuestion
+          question={question}
+          description={description}
+          badges={badges}
+        />
+      )}
 
-      <AIAnswerCard answer={answer} isStreaming={isStreaming} />
+      {question && <AIAnswerCard answer={answer} />}
 
-      <Snippets snippets={snippets} />
+      {question && <Snippets snippets={snippets} />}
 
-      <Sources sources={sources} />
+      {question && <Sources sources={sources} />}
 
-      <Feedback />
+      {question && <Feedback />}
     </section>
   );
 }

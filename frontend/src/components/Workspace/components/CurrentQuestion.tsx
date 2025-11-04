@@ -1,9 +1,29 @@
-import { Bot, Shield, Waves, Copy, RefreshCcw } from "lucide-react";
+import {
+  Bot,
+  Shield,
+  Waves,
+  Star,
+  Zap,
+  BookOpen,
+  Link,
+  Check,
+  AlertCircle,
+  Sparkles,
+  Copy,
+  RefreshCcw,
+} from "lucide-react";
 
 const iconMap = {
   bot: <Bot className="h-3.5 w-3.5 text-zinc-400" />,
   shield: <Shield className="h-3.5 w-3.5 text-zinc-400" />,
   waves: <Waves className="h-3.5 w-3.5 text-zinc-400" />,
+  star: <Star className="h-3.5 w-3.5 text-yellow-400" />,
+  lightning: <Zap className="h-3.5 w-3.5 text-yellow-300" />,
+  book: <BookOpen className="h-3.5 w-3.5 text-blue-400" />,
+  link: <Link className="h-3.5 w-3.5 text-green-400" />,
+  check: <Check className="h-3.5 w-3.5 text-emerald-400" />,
+  warning: <AlertCircle className="h-3.5 w-3.5 text-red-400" />,
+  sparkles: <Sparkles className="h-3.5 w-3.5 text-pink-400" />,
 } as const;
 
 export interface Badge {

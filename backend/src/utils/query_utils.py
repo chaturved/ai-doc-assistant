@@ -1,5 +1,5 @@
 from typing import List, AsyncGenerator
-from src.utils.hugging_face import stream_chat
+from src.utils.hugging_face import stream_chat, chat
 import json
 
 def get_library_chunks(results: list) -> List[dict]:
@@ -38,36 +38,61 @@ def generate_sources(chunks: List[dict]) -> List[dict]:
         for c in unique
     ]
 
-async def generate_badges(context_text: str, question: str) -> List[dict]:
+async def generate_description_and_badges(chunks: List[dict], question: str):
+    if not chunks:
+        return "No relevant information found.", []
+
+    context_text = build_context_text(chunks)
+
     prompt = f"""
-    For the following context and question,
-    generate 2-3 short badges (labels) that summarize key aspects of the answer.
-    Return them as a JSON array of objects with 'label' and 'icon'.
-    Only pick icons from: bot, shield, waves.
+You are a helpful assistant.
 
-    Context:
-    {context_text}
+Context:
+{context_text}
 
-    Question:
-    {question}
-    """
+Question:
+{question}
 
-    output = ""
-    async for token in stream_chat(prompt, max_tokens=150):
-        output += token
+Please return a JSON object with:
+1. "title": a short, catchy sentence summarizing the context suitable as a chat title.
+2. "badges": 2-3 short badges (labels) summarizing key aspects of the answer.
+   Each badge should have a "label" and an "icon".
+
+Available icons:
+- bot: AI-generated content
+- shield: Verified or trusted information
+- waves: Conceptual, trends, or patterns
+- sparkles: Novelty, creative solutions, tips
+- star: Key takeaway, important point
+- lightning: Fast, critical, or high-priority info
+- book: Reference or documentation-based content
+- link: External resources
+- check: Correct, confirmed, validated info
+- warning: Caution or limitation
+
+Example response:
+{{
+  "title": "Summary title here",
+  "badges": [
+    {{"label": "AI Generated", "icon": "bot"}},
+    {{"label": "Verified Context", "icon": "shield"}}
+  ]
+}}
+"""
+
+    output = await chat(prompt)
 
     try:
-        badges = json.loads(output)
-        if isinstance(badges, list) and all("label" in b and "icon" in b for b in badges):
-            return badges
+        data = json.loads(output)
+        title = data.get("title", f"Found {len(chunks)} relevant sections from your library.")
+        badges = data.get("badges", [])
+        return title, badges
     except json.JSONDecodeError:
-        pass
+        return f"Found {len(chunks)} relevant sections from your library.", [
+            {"label": "AI Generated", "icon": "bot"},
+            {"label": "Verified Context", "icon": "shield"},
+        ]
 
-    # fallback
-    return [
-        {"label": "AI Generated", "icon": "bot"},
-        {"label": "Verified Context", "icon": "shield"},
-    ]
 
 async def stream_answer(context_text: str, question: str) -> AsyncGenerator[str, None]:
     prompt = (

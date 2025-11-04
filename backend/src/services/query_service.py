@@ -10,7 +10,7 @@ from src.utils.query_utils import (
     build_context_text,
     generate_snippets,
     generate_sources,
-    generate_badges,
+    generate_description_and_badges,
     stream_answer
 )
 
@@ -29,9 +29,11 @@ async def ask_question(
     chunks = get_library_chunks(results)
     context_text = build_context_text(chunks)
 
+    description, badges = await generate_description_and_badges(chunks, req.question)
+
     meta = {
-        "description": f"Found {len(chunks)} relevant sections from your library.",
-        "badges": await generate_badges(context_text, req.question),
+        "description": description,
+        "badges": badges,
         "snippets": generate_snippets(chunks),
         "sources": generate_sources(chunks),
     }
