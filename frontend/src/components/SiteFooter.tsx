@@ -1,10 +1,28 @@
 import Link from "next/link";
 
-const NAV_LINKS = [
-  { label: "Features",     href: "/#features" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Pricing",      href: "/pricing" },
-  { label: "FAQ",          href: "/pricing#faq" },
+const FOOTER_COLS = [
+  {
+    label: "Product",
+    links: [
+      { label: "Features",     href: "/#features" },
+      { label: "How It Works", href: "/#how-it-works" },
+      { label: "Pricing",      href: "/pricing" },
+    ],
+  },
+  {
+    label: "Company",
+    links: [
+      { label: "FAQ",     href: "/pricing#faq" },
+      { label: "Contact", href: "mailto:hello@paperwise.ai" },
+    ],
+  },
+  {
+    label: "Legal",
+    links: [
+      { label: "Privacy Policy",    href: "/privacy" },
+      { label: "Terms of Service",  href: "/terms" },
+    ],
+  },
 ];
 
 const SOCIAL = [
@@ -14,72 +32,68 @@ const SOCIAL = [
 ];
 
 interface SiteFooterProps {
-  /** Optional CTA block rendered above the divider */
   cta?: React.ReactNode;
-  /** Show logo + description + nav links section (default true) */
-  showLogoSection?: boolean;
-  /** Show social icons instead of legal links in the bottom row (default false) */
   showSocial?: boolean;
-  /** Background gradient class (default "footer") */
-  gradient?: "footer" | "pricing";
 }
 
-export function SiteFooter({
-  cta,
-  showLogoSection = true,
-  showSocial = false,
-  gradient = "footer",
-}: SiteFooterProps) {
-  const bgClass = gradient === "footer" ? "bg-footer-gradient" : "bg-pricing-cta";
-
+export function SiteFooter({ cta, showSocial = false }: SiteFooterProps) {
   return (
-    <footer className={`relative overflow-hidden border-t-system ${bgClass}`}>
+    <footer className="relative overflow-hidden bg-footer-gradient">
+      <div className="absolute top-0 inset-x-0 h-[160px] pointer-events-none z-0 bg-gradient-to-b from-bg to-transparent" />
+
       {cta && (
-        <>
+        <div className="relative z-10">
           <div className="max-w-[1100px] mx-auto px-9 py-20 text-center">{cta}</div>
           <div className="border-t-system" />
-        </>
-      )}
-
-      {showLogoSection && (
-        <div className="max-w-[1100px] mx-auto px-9 pt-10 pb-0">
-          <div className="flex justify-between items-start mb-10">
-            <div className="max-w-[280px]">
-              <span className="text-sm font-bold block mb-3">Paperwise</span>
-              <p className="text-[13px] text-muted leading-[1.7]">
-                Upload any document. Ask anything. Get cited answers instantly.
-              </p>
-            </div>
-            <nav className="flex gap-7 pt-1">
-              {NAV_LINKS.map((l) => (
-                <Link key={l.label} href={l.href} className="text-[13px] text-muted hover:text-white transition">
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
         </div>
       )}
 
-      <div className="max-w-[1100px] mx-auto px-9 py-6 flex items-center justify-between border-t-system">
-        <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
-        {showSocial ? (
-          <div className="flex gap-3">
-            {SOCIAL.map((s) => (
-              <a key={s.label} href="#" className="w-[30px] h-[30px] rounded-full border-system flex items-center justify-center">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
-                  <path d={s.path} fill={["X", "in", "gh"].includes(s.label) ? "none" : "currentColor"} />
-                </svg>
-              </a>
+      <div className={`relative z-10 max-w-[1100px] mx-auto px-9 pb-0 ${cta ? "pt-10" : "pt-20"}`}>
+        <div className="flex justify-between items-start mb-10">
+
+          {/* Brand */}
+          <div className="max-w-[240px]">
+            <span className="text-sm font-bold block mb-3">Paperwise</span>
+            <p className="text-[13px] text-muted leading-[1.7]">
+              Upload any document. Ask anything. Get cited answers instantly.
+            </p>
+            {showSocial && (
+              <div className="flex gap-2 mt-5">
+                {SOCIAL.map((s) => (
+                  <a key={s.label} href="#" className="w-[30px] h-[30px] rounded-full border-system flex items-center justify-center hover:border-white/20 transition">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                      <path d={s.path} />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Columns */}
+          <div className="flex gap-16">
+            {FOOTER_COLS.map((col) => (
+              <div key={col.label}>
+                <p className="text-[11px] font-bold text-faint uppercase tracking-[0.09em] mb-4">{col.label}</p>
+                <ul className="space-y-[10px]">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} className="text-[13px] text-muted hover:text-white transition">
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="flex gap-5">
-            <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy</Link>
-            <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms</Link>
-            <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
-          </div>
-        )}
+
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-[1100px] mx-auto px-9 py-6 flex items-center justify-between border-t-system">
+        <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
+        <span className="text-xs text-faint">Made with care for document-heavy work.</span>
       </div>
     </footer>
   );

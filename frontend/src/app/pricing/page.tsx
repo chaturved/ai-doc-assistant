@@ -87,7 +87,9 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="section-padding pt-[120px] text-center border-b-system relative">
-        <div className="absolute inset-0 pointer-events-none bg-pricing-hero" />
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" />
+        <div className="absolute inset-0 pointer-events-none bg-vignette" />
+        <div className="absolute bottom-0 inset-x-0 h-[80px] pointer-events-none bg-hero-fade" />
         <div className="relative max-w-[1100px] mx-auto">
           <p className="section-label mb-[14px]">Pricing</p>
           <h1 className="heading-section mb-4">One plan for every stage of your work</h1>
@@ -275,8 +277,6 @@ export default function PricingPage() {
       </section>
 
       <SiteFooter
-        gradient="pricing"
-        showLogoSection={false}
         cta={
           <>
             <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>

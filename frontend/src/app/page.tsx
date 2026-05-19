@@ -55,7 +55,7 @@ export default function LandingPage() {
   return (
     <div className="bg-bg text-white overflow-x-hidden min-h-screen">
 
-      <SiteNav showLogin={false} />
+      <SiteNav />
 
       {/* ══════════════════════════════════════════
           HERO
@@ -63,7 +63,7 @@ export default function LandingPage() {
       <section className="h-svh overflow-hidden relative flex flex-col items-center">
 
         {/* Background gradient */}
-        <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" />
         <div className="absolute inset-0 pointer-events-none bg-vignette" />
 
         {/* Headline */}
