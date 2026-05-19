@@ -1,1 +1,184 @@
 @import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS
+   @theme auto-generates utility classes:
+   --color-* → bg-* text-* border-* fill-* stroke-*
+   --radius-* → rounded-*
+═══════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Colors ── */
+  --color-bg:      #080810;
+  --color-card:    rgba(28, 28, 30, 0.85);
+  --color-primary: #5b21b6;
+  --color-accent:  #f59e0b;
+
+  /* ── Border radius ── */
+  --radius-btn:     8px;
+  --radius-btn-md:  10px;
+  --radius-card:    14px;
+  --radius-card-lg: 18px;
+
+  /* ── Font ── */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════
+   BASE RESET
+═══════════════════════════════════════════════════ */
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  a      { color: inherit; text-decoration: none; }
+  button { cursor: pointer; }
+}
+
+/* ═══════════════════════════════════════════════════
+   COMPONENT UTILITIES
+═══════════════════════════════════════════════════ */
+
+/* ── Cards ── */
+@utility card {
+  background: var(--color-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+@utility card-lg {
+  background: var(--color-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card-lg);
+  overflow: hidden;
+}
+
+/* ── Buttons ── */
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6875rem 1.625rem;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius-btn);
+  transition: opacity 150ms ease;
+  &:hover { opacity: 0.88; }
+}
+
+@utility btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1.375rem;
+  background-color: #ffffff;
+  color: var(--color-bg);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius-btn);
+  transition: opacity 150ms ease;
+  &:hover { opacity: 0.88; }
+}
+
+/* ── Typography ── */
+@utility section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@utility heading-hero {
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+@utility heading-section {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+@utility heading-md {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+@utility heading-cta {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* ── Text colors ── */
+@utility text-muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@utility text-faint {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Borders ── */
+@utility border-system {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility border-t-system {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility border-b-system {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility border-r-system {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Misc ── */
+@utility divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+@utility section-padding {
+  padding: 6rem 2.25rem;
+}
+
+@utility link-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@utility animate-fu   { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+@utility animate-fu-1 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.10s both; }
+@utility animate-fu-2 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.22s both; }
+@utility animate-fu-3 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.34s both; }
+@utility animate-blink { animation: blink 1.1s ease-in-out infinite; }
