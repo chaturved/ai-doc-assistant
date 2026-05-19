@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 interface Section {
@@ -140,38 +142,63 @@ const SECTIONS: Section[] = [
 ];
 
 export default function TermsPage() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-bg text-white">
-      <nav className="sticky top-0 z-50 h-[60px] flex items-center px-9 bg-bg/90 backdrop-blur-xl border-b-system">
+    <div className="bg-bg text-white overflow-x-hidden min-h-screen">
+      <nav className={`fixed top-0 inset-x-0 z-50 h-[60px] flex items-center px-9 transition-all duration-300 ${scrolled ? "bg-bg/90 backdrop-blur-xl border-b-system" : ""}`}>
         <Link href="/" className="text-[15px] font-bold">Paperwise</Link>
-        <Link href="/privacy" className="ml-auto text-sm text-faint hover:text-muted transition">Privacy Policy</Link>
+        <div className="ml-auto flex items-center gap-6">
+          <Link href="/pricing" className="text-[13.5px] font-medium text-white/70 hover:text-white transition">Pricing</Link>
+          <Link href="/privacy" className="text-[13.5px] font-medium text-white/70 hover:text-white transition">Privacy</Link>
+          <Link href="/login" className="text-[13.5px] font-medium text-muted hover:text-white transition">Log in</Link>
+          <Link href="/signup" className="btn-primary !text-[13.5px]">Get Started Free</Link>
+        </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="mb-12">
-          <p className="section-label mb-3">Legal</p>
-          <h1 className="heading-md mb-2">Terms of Service</h1>
-          <p className="text-faint text-sm">Last updated: May 2026</p>
+      {/* Hero */}
+      <section className="relative section-padding pt-[120px] pb-16 text-center border-b-system">
+        <div className="absolute inset-0 pointer-events-none bg-pricing-hero" />
+        <div className="relative max-w-[800px] mx-auto">
+          <p className="section-label mb-[14px]">Legal</p>
+          <h1 className="heading-section mb-4">Terms of Service</h1>
+          <p className="text-[15px] text-muted max-w-[480px] mx-auto">
+            These terms govern your access to and use of Paperwise. Please read them carefully.
+          </p>
+          <p className="text-[13px] text-faint mt-4">Last updated: May 2026</p>
         </div>
+      </section>
 
-        <p className="text-sm text-muted leading-relaxed mb-10">
-          These Terms of Service govern your access to and use of Paperwise. Please read them carefully.
-        </p>
-
-        <div className="space-y-10">
-          {SECTIONS.map((s) => (
-            <div key={s.title}>
-              <h2 className="text-[15px] font-semibold text-white mb-3">{s.title}</h2>
-              {s.content}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16 pt-8 border-t-system flex items-center justify-between">
-          <Link href="/privacy" className="text-sm text-faint hover:text-muted transition">← Privacy Policy</Link>
-          <Link href="/" className="text-sm text-faint hover:text-muted transition">Back to Paperwise →</Link>
-        </div>
+      {/* Content */}
+      <div className="max-w-[760px] mx-auto px-6 py-4">
+        {SECTIONS.map((s, i) => (
+          <div key={s.title} className={`py-9 ${i > 0 ? "border-t-system" : ""}`}>
+            <h2 className="flex items-center gap-3 text-[15px] font-semibold text-white mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+              {s.title}
+            </h2>
+            {s.content}
+          </div>
+        ))}
       </div>
+
+      {/* Footer */}
+      <footer className="relative border-t-system bg-footer-gradient mt-8">
+        <div className="max-w-[760px] mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-[15px] font-bold">Paperwise</span>
+          <div className="flex gap-6">
+            <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy Policy</Link>
+            <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms of Service</Link>
+            <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
+          </div>
+          <span className="text-xs text-faint">© 2026 Paperwise</span>
+        </div>
+      </footer>
     </div>
   );
 }
