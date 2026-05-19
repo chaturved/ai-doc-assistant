@@ -152,12 +152,24 @@ export default function TermsPage() {
   return (
     <div className="bg-bg text-white overflow-x-hidden min-h-screen">
       <nav className={`fixed top-0 inset-x-0 z-50 h-[60px] flex items-center px-9 transition-all duration-300 ${scrolled ? "bg-bg/90 backdrop-blur-xl border-b-system" : ""}`}>
-        <Link href="/" className="text-[15px] font-bold">Paperwise</Link>
-        <div className="ml-auto flex items-center gap-6">
-          <Link href="/pricing" className="text-[13.5px] font-medium text-white/70 hover:text-white transition">Pricing</Link>
-          <Link href="/privacy" className="text-[13.5px] font-medium text-white/70 hover:text-white transition">Privacy</Link>
+        <Link href="/" className="flex items-center shrink-0">
+          <span className="text-[15px] font-bold">Paperwise</span>
+        </Link>
+        <div className="flex-1 flex items-center justify-center gap-8">
+          {[
+            { label: "Features",     href: "/#features" },
+            { label: "How It Works", href: "/#how-it-works" },
+            { label: "Pricing",      href: "/pricing" },
+            { label: "FAQ",          href: "/pricing#faq" },
+          ].map((l) => (
+            <Link key={l.label} href={l.href} className="text-[13.5px] font-medium text-white/70 hover:text-white transition">
+              {l.label}
+            </Link>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
           <Link href="/login" className="text-[13.5px] font-medium text-muted hover:text-white transition">Log in</Link>
-          <Link href="/signup" className="btn-primary !text-[13.5px]">Get Started Free</Link>
+          <Link href="/signup" className="btn-primary shrink-0 !text-[13.5px]">Get Started Free</Link>
         </div>
       </nav>
 
@@ -188,15 +200,32 @@ export default function TermsPage() {
       </div>
 
       {/* Footer */}
-      <footer className="relative border-t-system bg-footer-gradient mt-8">
-        <div className="max-w-[760px] mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-[15px] font-bold">Paperwise</span>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy Policy</Link>
-            <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms of Service</Link>
-            <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
+      <footer className="relative overflow-hidden border-t-system bg-footer-gradient mt-8">
+        <div className="max-w-[1100px] mx-auto px-9 pt-10 pb-6">
+          <div className="flex justify-between items-start mb-10">
+            <div className="max-w-[280px]">
+              <span className="text-sm font-bold block mb-3">Paperwise</span>
+              <p className="text-[13px] text-muted leading-[1.7]">Upload any document. Ask anything. Get cited answers instantly.</p>
+            </div>
+            <nav className="flex gap-7 pt-1">
+              {[
+                { label: "Features",     href: "/#features" },
+                { label: "How It Works", href: "/#how-it-works" },
+                { label: "Pricing",      href: "/pricing" },
+                { label: "FAQ",          href: "/pricing#faq" },
+              ].map((l) => (
+                <Link key={l.label} href={l.href} className="text-[13px] text-muted hover:text-white transition">{l.label}</Link>
+              ))}
+            </nav>
           </div>
-          <span className="text-xs text-faint">© 2026 Paperwise</span>
+          <div className="border-t-system pt-6 flex items-center justify-between">
+            <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
+            <div className="flex gap-5">
+              <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy</Link>
+              <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms</Link>
+              <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
