@@ -63,14 +63,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-bg">
-      <style>{`
-        @keyframes float {
-          0%,100% { transform: translateY(0px) rotate(var(--rot)); }
-          50% { transform: translateY(-12px) rotate(var(--rot)); }
-        }
-        .doc-float { animation: float 6s ease-in-out infinite; }
-      `}</style>
-
       {/* Left panel */}
       <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative overflow-hidden border-r-system">
         <div className="absolute inset-0 pointer-events-none bg-login-gradient" />
@@ -84,7 +76,7 @@ export default function LoginPage() {
           >
             <div className="card p-3">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-[22px] h-[22px] rounded flex items-center justify-center text-[9px] font-bold text-white/50 bg-white/6">{doc.type}</div>
+                <div className="w-[22px] h-[22px] rounded flex items-center justify-center text-[9px] font-bold text-white/50 bg-white/[0.06]">{doc.type}</div>
               </div>
               <p className="text-[12px] font-medium text-white/70">{doc.title}</p>
               <div className="mt-2 h-1 rounded-full bg-white/[0.06] overflow-hidden">

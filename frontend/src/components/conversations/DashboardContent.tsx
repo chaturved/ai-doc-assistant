@@ -216,8 +216,7 @@ function InputBox({
         }}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
         placeholder="Ask anything about your documents…"
-        className="w-full bg-transparent px-4 pt-4 pb-2 text-[14px] text-white placeholder:text-faint resize-none outline-none overflow-hidden"
-        style={{ minHeight: large ? 88 : 52 }}
+        className={`w-full bg-transparent px-4 pt-4 pb-2 text-[14px] text-white placeholder:text-faint resize-none outline-none overflow-hidden ${large ? "min-h-[88px]" : "min-h-[52px]"}`}
       />
       <div className="flex items-center justify-between px-3 pb-3">
         <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted hover:text-white transition bg-white/[0.06] border border-white/[0.07]">
@@ -405,30 +404,6 @@ function DashboardInner() {
     <div className="flex h-screen overflow-hidden text-white relative bg-bg">
       <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
       <div className="absolute inset-0 pointer-events-none bg-vignette" />
-      <style>{`
-        @keyframes cursor-blink { 0%,100%{opacity:1}50%{opacity:0} }
-        @keyframes fade-in-up { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%,100%{opacity:0.35}50%{opacity:0.7} }
-        @keyframes source-glow { 0%{box-shadow:0 0 0 2px rgba(245,158,11,0.8)}100%{box-shadow:0 0 0 2px rgba(245,158,11,0)} }
-        .cursor-blink{animation:cursor-blink 1.1s ease-in-out infinite}
-        .msg-in{animation:fade-in-up 0.28s ease-out forwards}
-        .shimmer-dot{animation:shimmer 1.4s ease-in-out infinite}
-        .shimmer-line{background:rgba(255,255,255,0.06);animation:shimmer 1.5s ease-in-out infinite}
-        .source-highlighted{animation:source-glow 2s ease-out forwards}
-        .conv-row{transition:background 0.12s}
-        .conv-row:hover{background:rgba(255,255,255,0.04)}
-        .conv-row.active{background:rgba(245,158,11,0.08);border-left:2px solid #f59e0b}
-        .thin-scroll::-webkit-scrollbar{width:3px}
-        .thin-scroll::-webkit-scrollbar-track{background:transparent}
-        .thin-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
-        textarea::-webkit-scrollbar{display:none}
-        .prose p{margin:0.45em 0}
-        .prose ul{margin:0.45em 0;padding-left:1.4em}
-        .prose li{margin:0.2em 0}
-        .prose strong{color:rgba(255,255,255,0.9)}
-        .prose code{background:rgba(255,255,255,0.07);padding:0.1em 0.3em;border-radius:4px;font-size:0.84em}
-        .prose pre{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.9em;overflow-x:auto}
-      `}</style>
 
       {/* ══════════ LEFT SIDEBAR ══════════ */}
       <aside className="w-[255px] flex-shrink-0 flex flex-col thin-scroll relative z-10 bg-sidebar border-r-system">
