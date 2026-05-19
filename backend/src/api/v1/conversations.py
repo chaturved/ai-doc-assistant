@@ -3,9 +3,8 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from src.database.db import get_db
+from src.core.dependencies import get_current_user_id, get_db
 from src.schemas.conversation import AskRequest, ConversationCreate, ConversationRename
-from src.services.auth_service import get_current_user_id
 from src.services.conversation_service import (
     ask,
     list_conversations,

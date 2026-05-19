@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getMe } from "@/lib/paperwise-api";
-import type { User } from "@/lib/types";
+import { getMe } from "@/lib/api/auth";
+import type { User } from "@/types";
 
 interface AuthContextValue {
   user: User | null;

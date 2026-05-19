@@ -1,47 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { LibraryAPIResponse } from "@/types/library";
+import { useLibrary } from "@/hooks/useLibrary";
+import type { LibraryDoc } from "@/types";
+import type { LibrarySectionProps } from "./components/LibraryTabs/LibrarySection/LibrarySection";
 import LibraryHeader from "./components/LibraryHeader/LibraryHeader";
 import LibraryTabs from "./components/LibraryTabs/LibraryTabs";
 import LibrarySidebarSkeleton from "./LibrarySidebarSkeleton";
-import api from "@/lib/api";
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function groupDocs(docs: LibraryDoc[]): LibrarySectionProps[] {
+  const groups: Record<string, LibrarySectionProps> = {};
+  for (const doc of docs) {
+    const type = doc.type.toLowerCase();
+    const icon = type === "pdf" ? "pdf" : type === "md" ? "md" : type === "csv" || type === "xlsx" ? "data" : "folder";
+    const key = icon;
+    if (!groups[key]) {
+      groups[key] = { title: type.toUpperCase(), icon, items: [] };
+    }
+    groups[key].items.push({ name: doc.name, size: formatBytes(doc.size) });
+  }
+  return Object.values(groups);
+}
 
 export default function LibrarySidebar() {
-  const [library, setLibrary] = useState<LibraryAPIResponse | null>(null);
-
-  const fetchLibrary = async () => {
-    const response = await api.get("/v1/library");
-    setLibrary(response.data);
-  };
+  const { data, loading, upload, clear } = useLibrary();
 
   const handleUpload = async (files: FileList) => {
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("files", file));
-    await api.post("/v1/library/upload", formData);
-    await fetchLibrary();
+    await upload(Array.from(files));
   };
 
-  const handleClear = async () => {
-    await api.delete("/v1/library/clear");
-    await fetchLibrary();
-  };
-
-  useEffect(() => {
-    fetchLibrary();
-  }, []);
-
-  if (!library) return <LibrarySidebarSkeleton />;
+  if (loading || !data) return <LibrarySidebarSkeleton />;
 
   return (
     <aside className="hidden lg:block col-span-3">
       <div className="sticky top-20 space-y-6">
         <LibraryHeader
-          count={library.count}
+          count={data.count}
           onUpload={handleUpload}
-          onClear={handleClear}
+          onClear={clear}
         />
-        <LibraryTabs sections={library.sections} />
+        <LibraryTabs sections={groupDocs(data.sections)} />
       </div>
     </aside>
   );

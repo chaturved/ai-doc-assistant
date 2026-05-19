@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { resetPassword } from "@/lib/paperwise-api";
+import { resetPassword } from "@/lib/api/auth";
 
 
 const schema = z.object({

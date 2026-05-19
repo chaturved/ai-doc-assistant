@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { deleteAccount, updateProfile } from "@/lib/paperwise-api";
+import { deleteAccount, updateProfile } from "@/lib/api/users";
 import { useRouter } from "next/navigation";
 
 

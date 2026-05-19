@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { sendMagicLink } from "@/lib/paperwise-api";
+import { sendMagicLink } from "@/lib/api/auth";
 import { useState } from "react";
 import { toast } from "sonner";
 

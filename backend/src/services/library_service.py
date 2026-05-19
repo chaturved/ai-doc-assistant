@@ -8,6 +8,8 @@ from src.repositories.library_repository import (
     add_library,
     add_library_chunks,
     clear_user_libraries,
+    get_library_by_id,
+    delete_library_item,
 )
 from src.models import Library, LibraryChunk
 
@@ -72,12 +74,11 @@ async def save_files(db: Session, user_id: int, files: list[UploadFile]) -> dict
 
 
 def delete_document(db: Session, doc_id: int, user_id: int) -> dict:
-    lib = db.query(Library).filter(Library.id == doc_id, Library.user_id == user_id).first()
+    lib = get_library_by_id(db, doc_id, user_id)
     if not lib:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
     delete_file(lib.path)
-    db.delete(lib)
-    db.commit()
+    delete_library_item(db, lib)
     return {"message": "Document deleted"}
 
 

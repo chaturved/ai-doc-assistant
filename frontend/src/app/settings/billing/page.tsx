@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUsage } from "@/lib/paperwise-api";
+import { getUsage } from "@/lib/api/users";
 import { useAuth } from "@/context/AuthContext";
-import type { Usage } from "@/lib/types";
+import type { Usage } from "@/types";
 
 const T = { primary: "#5b21b6", accent: "#f59e0b" };
 

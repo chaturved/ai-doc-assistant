@@ -8,7 +8,7 @@ import AIAnswerCard from "./components/AIAnswerCard";
 import Snippets from "./components/Snippets/Snippets";
 import Sources, { Source } from "./components/Sources";
 import Feedback from "./components/Feedback";
-import sseApi from "@/lib/sseApi";
+import { sseClient } from "@/lib/api-client";
 import { Snippet } from "./components/Snippets/SnippetCard";
 
 export default function Workspace() {
@@ -30,7 +30,7 @@ export default function Workspace() {
     setBadges([]);
 
     try {
-      await sseApi("/v1/query/ask", {
+      await sseClient("/v1/query/ask", {
         method: "POST",
         body: JSON.stringify({ question: value }),
 

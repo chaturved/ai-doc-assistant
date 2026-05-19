@@ -1,53 +1,93 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv()
 
-S3_ENDPOINT: str = os.getenv("S3_ENDPOINT")
-S3_REGION: str = os.getenv("S3_REGION")
-S3_ACCESS_KEY: str = os.getenv("S3_ACCESS_KEY")
-S3_SECRET_ACCESS_KEY: str = os.getenv("S3_SECRET_ACCESS_KEY")
-S3_LIBRARY_BUCKET: str = os.getenv("S3_LIBRARY_BUCKET", "library")
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-DATABASE_URL: str = os.getenv("DATABASE_URL")
+    S3_ENDPOINT: str = ""
+    S3_REGION: str = ""
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_ACCESS_KEY: str = ""
+    S3_LIBRARY_BUCKET: str = "library"
 
-HF_API_BASE: str = "https://api-inference.huggingface.co/models"
-HF_API_KEY: str = os.getenv("HF_API_KEY")
-HF_EMBEDDING_MODEL: str = os.getenv("HF_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-HF_CHAT_MODEL = os.getenv("HF_CHAT_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
+    DATABASE_URL: str = ""
 
-# Google OAuth
-GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/auth/google/callback")
+    HF_API_BASE: str = "https://api-inference.huggingface.co/models"
+    HF_API_KEY: str = ""
+    HF_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    HF_CHAT_MODEL: str = "mistralai/Mistral-7B-Instruct-v0.2"
 
-# SMTP
-SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
-SMTP_USER: str = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Paperwise")
-SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "noreply@paperwise.ai")
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
 
-APP_URL: str = os.getenv("APP_URL", "http://localhost:3001")
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_NAME: str = "Paperwise"
+    SMTP_FROM_EMAIL: str = "noreply@paperwise.ai"
 
-JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "supersecret")
-JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    APP_URL: str = "http://localhost:3001"
 
-ACCESS_TOKEN_KEY: str = os.getenv("ACCESS_TOKEN_KEY", "access_token")
-ACCESS_TOKEN_TYPE: str = os.getenv("ACCESS_TOKEN_TYPE", "access")
-ACCESS_TOKEN_EXPIRE_MINUTES: float = float(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+    JWT_SECRET_KEY: str = "supersecret"
+    JWT_ALGORITHM: str = "HS256"
 
-REFRESH_TOKEN_KEY: str = os.getenv("REFRESH_TOKEN_KEY", "refresh_token")
-REFRESH_TOKEN_TYPE: str = os.getenv("REFRESH_TOKEN_TYPE", "refresh")
-REFRESH_TOKEN_EXPIRE_DAYS: float = float(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
+    ACCESS_TOKEN_KEY: str = "access_token"
+    ACCESS_TOKEN_TYPE: str = "access"
+    ACCESS_TOKEN_EXPIRE_MINUTES: float = 60.0
 
-TEXT_CHUNK_SIZE: int = int(os.getenv("TEXT_CHUNK_SIZE", 500))
-TEXT_CHUNK_OVERLAP: int = int(os.getenv("TEXT_CHUNK_OVERLAP", 50))
+    REFRESH_TOKEN_KEY: str = "refresh_token"
+    REFRESH_TOKEN_TYPE: str = "refresh"
+    REFRESH_TOKEN_EXPIRE_DAYS: float = 7.0
 
-ALLOWED_ORIGINS: list[str] = [
-    o.strip()
-    for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
-    if o.strip()
-]
+    TEXT_CHUNK_SIZE: int = 500
+    TEXT_CHUNK_OVERLAP: int = 50
 
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+
+
+settings = Settings()
+
+# Module-level aliases for backward-compatible imports (from ..config import X)
+S3_ENDPOINT = settings.S3_ENDPOINT
+S3_REGION = settings.S3_REGION
+S3_ACCESS_KEY = settings.S3_ACCESS_KEY
+S3_SECRET_ACCESS_KEY = settings.S3_SECRET_ACCESS_KEY
+S3_LIBRARY_BUCKET = settings.S3_LIBRARY_BUCKET
+
+DATABASE_URL = settings.DATABASE_URL
+
+HF_API_BASE = settings.HF_API_BASE
+HF_API_KEY = settings.HF_API_KEY
+HF_EMBEDDING_MODEL = settings.HF_EMBEDDING_MODEL
+HF_CHAT_MODEL = settings.HF_CHAT_MODEL
+
+GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET = settings.GOOGLE_CLIENT_SECRET
+GOOGLE_REDIRECT_URI = settings.GOOGLE_REDIRECT_URI
+
+SMTP_HOST = settings.SMTP_HOST
+SMTP_PORT = settings.SMTP_PORT
+SMTP_USER = settings.SMTP_USER
+SMTP_PASSWORD = settings.SMTP_PASSWORD
+SMTP_FROM_NAME = settings.SMTP_FROM_NAME
+SMTP_FROM_EMAIL = settings.SMTP_FROM_EMAIL
+
+APP_URL = settings.APP_URL
+
+JWT_SECRET_KEY = settings.JWT_SECRET_KEY
+JWT_ALGORITHM = settings.JWT_ALGORITHM
+
+ACCESS_TOKEN_KEY = settings.ACCESS_TOKEN_KEY
+ACCESS_TOKEN_TYPE = settings.ACCESS_TOKEN_TYPE
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
+REFRESH_TOKEN_KEY = settings.REFRESH_TOKEN_KEY
+REFRESH_TOKEN_TYPE = settings.REFRESH_TOKEN_TYPE
+REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+
+TEXT_CHUNK_SIZE = settings.TEXT_CHUNK_SIZE
+TEXT_CHUNK_OVERLAP = settings.TEXT_CHUNK_OVERLAP
+
+ALLOWED_ORIGINS = settings.ALLOWED_ORIGINS

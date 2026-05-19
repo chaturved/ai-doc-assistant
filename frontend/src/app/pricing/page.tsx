@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { joinWaitlist } from "@/lib/paperwise-api";
+import { joinWaitlist } from "@/lib/api/misc";
 import { toast } from "sonner";
 
 const T = {

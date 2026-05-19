@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from src.database.db import get_db
+from src.core.dependencies import get_db
 from src.repositories.waitlist_repository import add_to_waitlist, email_on_waitlist
 from src.schemas.user import WaitlistRequest
 

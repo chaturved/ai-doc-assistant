@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from src.core.dependencies import get_current_user_id, get_db
 from src.schemas.user import ForgotPasswordRequest, MagicLinkRequest, ResetPasswordRequest, UserCreate
-from src.database.db import get_db
 from src.services.auth_service import (
     forgot_password,
-    get_current_user_id,
     get_me,
     google_callback,
     google_redirect,

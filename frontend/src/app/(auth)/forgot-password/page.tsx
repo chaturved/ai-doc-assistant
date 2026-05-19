@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { forgotPassword } from "@/lib/paperwise-api";
+import { forgotPassword } from "@/lib/api/auth";
 
 
 const schema = z.object({ email: z.string().email("Enter a valid email address") });

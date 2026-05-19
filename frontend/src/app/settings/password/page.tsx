@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
-import { changePassword } from "@/lib/paperwise-api";
+import { changePassword } from "@/lib/api/users";
 
 const schema = z.object({
   current_password: z.string().min(1, "Required"),

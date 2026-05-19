@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { signup } from "@/lib/paperwise-api";
+import { signup } from "@/lib/api/auth";
 import { useAuth } from "@/context/AuthContext";
 
 

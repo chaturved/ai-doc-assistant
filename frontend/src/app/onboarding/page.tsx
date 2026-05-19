@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { Upload, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useAuth } from "@/context/AuthContext";
-import { completeOnboarding, createConversation, uploadFiles } from "@/lib/paperwise-api";
-import type { LibraryDoc } from "@/lib/types";
+import { completeOnboarding } from "@/lib/api/users";
+import { createConversation } from "@/lib/api/conversations";
+import { uploadFiles } from "@/lib/api/documents";
+import type { LibraryDoc } from "@/types";
 
 
 const SUGGESTIONS = [

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
-from src.database.db import get_db
+from src.core.dependencies import get_current_user_id, get_db
 from src.schemas.user import DeleteAccount, PasswordChange, PasswordSet, UserUpdate
-from src.services.auth_service import get_current_user_id, get_me
+from src.services.auth_service import get_me
 from src.services.user_service import (
     change_password,
     complete_onboarding,

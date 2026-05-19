@@ -4,8 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import HTTPException, Request, Response, status
-from fastapi.params import Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from ..config import (
@@ -39,8 +38,6 @@ from ..services.token_service import (
 from ..services.user_service import create_user
 from ..utils.email_utils import send_magic_link_email, send_password_reset_email
 from ..utils.security import hash_password, verify_password
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
 # Google OAuth client (lazy init)
 _oauth = OAuth()
@@ -85,13 +82,6 @@ def authorize_token(form_data: OAuth2PasswordRequestForm, db: Session) -> dict:
     if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect email or password")
     return {"access_token": create_access_token(user.id), "token_type": "bearer"}
-
-
-def get_current_user_id(request: Request, bearer: str = Depends(oauth2_scheme)) -> int:
-    token = bearer or request.cookies.get(ACCESS_TOKEN_KEY)
-    if not token:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
-    return validate_access_token(token)
 
 
 def refresh(request: Request, response: Response) -> dict:

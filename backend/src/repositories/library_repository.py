@@ -22,6 +22,15 @@ def clear_user_libraries(db: Session, user_id: int):
     db.query(Library).filter(Library.user_id == user_id).delete(synchronize_session=False)
     db.commit()
 
+def get_library_by_id(db: Session, doc_id: int, user_id: int) -> Optional[Library]:
+    return db.query(Library).filter(Library.id == doc_id, Library.user_id == user_id).first()
+
+
+def delete_library_item(db: Session, lib: Library) -> None:
+    db.delete(lib)
+    db.commit()
+
+
 def get_top_k_chunks(
     db: Session,
     user_id: int,
