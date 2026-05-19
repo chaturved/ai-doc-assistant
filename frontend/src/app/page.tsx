@@ -9,8 +9,7 @@ import { Play, ChevronRight, CheckCircle2 } from "lucide-react";
    Everything else lives in globals.css design tokens.
 ───────────────────────────────────────────────────────── */
 const T = {
-  grad:    "linear-gradient(135deg, #6d28d9 0%, #b45309 100%)",
-  primary: "#5b21b6",
+primary: "#5b21b6",
   accent:  "#f59e0b",
   bg:      "#080810",
   muted:   "rgba(255,255,255,0.5)",
@@ -65,9 +64,7 @@ export default function LandingPage() {
       <nav className={`fixed top-0 inset-x-0 z-50 h-[60px] flex items-center px-9 transition-all duration-300 ${
         scrolled ? "bg-bg/90 backdrop-blur-xl border-b-system" : ""
       }`}>
-        <Link href="/" className="flex items-center gap-[9px] shrink-0">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm"
-               style={{ background: T.grad }}>P</div>
+        <Link href="/" className="flex items-center shrink-0">
           <span className="text-[15px] font-bold">Paperwise</span>
         </Link>
 
@@ -674,9 +671,7 @@ export default function LandingPage() {
         <div className="max-w-[1100px] mx-auto px-9 pt-10 pb-6">
           <div className="flex justify-between items-start mb-10">
             <div className="max-w-[280px]">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-extrabold"
-                     style={{ background: T.grad }}>P</div>
+              <div className="flex items-center mb-3">
                 <span className="text-sm font-bold">Paperwise</span>
               </div>
               <p className="text-[13px] text-muted leading-[1.7]">

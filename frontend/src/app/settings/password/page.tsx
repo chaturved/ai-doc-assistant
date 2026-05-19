@@ -34,26 +34,26 @@ export default function PasswordPage() {
 
   const fields: { id: keyof FormData; label: string }[] = [
     { id: "current_password", label: "Current password" },
-    { id: "new_password", label: "New password" },
-    { id: "confirm", label: "Confirm new password" },
+    { id: "new_password",     label: "New password" },
+    { id: "confirm",          label: "Confirm new password" },
   ];
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-100 mb-6">Password</h1>
+      <h1 className="text-xl font-bold mb-6">Password</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
         {fields.map((f) => (
           <div key={f.id}>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">{f.label}</label>
+            <label className="block text-xs font-semibold text-muted mb-1.5">{f.label}</label>
             <div className="relative">
               <input
                 {...register(f.id)}
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full h-11 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.08] px-4 pr-10 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none focus:ring-indigo-500/40 transition"
+                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
               />
               {f.id === "current_password" && (
-                <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">
+                <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               )}
@@ -61,14 +61,14 @@ export default function PasswordPage() {
             {errors[f.id] && <p className="mt-1 text-xs text-red-400">{errors[f.id]?.message}</p>}
             {f.id === "new_password" && pw && (
               <div className="mt-2 flex gap-1">
-                {[1,2,3,4].map((i) => (
-                  <div key={i} className={`h-1 flex-1 rounded-full ${i <= score ? strengthColors[score] : "bg-zinc-800"}`} />
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= score ? strengthColors[score] : "bg-white/[0.08]"}`} />
                 ))}
               </div>
             )}
           </div>
         ))}
-        <button type="submit" disabled={isSubmitting} className="h-10 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-medium text-white transition">
+        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-[10px] disabled:opacity-50">
           {isSubmitting ? "Updating…" : "Update password"}
         </button>
       </form>

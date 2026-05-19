@@ -8,6 +8,7 @@ import { sendMagicLink } from "@/lib/paperwise-api";
 import { useState } from "react";
 import { toast } from "sonner";
 
+
 function MagicLinkSentContent() {
   const params = useSearchParams();
   const email = params.get("email") || "";
@@ -27,33 +28,37 @@ function MagicLinkSentContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
       <div className="w-full max-w-[380px] text-center">
-        <div className="h-14 w-14 rounded-full bg-indigo-500/10 ring-1 ring-indigo-500/20 flex items-center justify-center mx-auto mb-5">
-          <Mail className="h-7 w-7 text-indigo-400" />
+        <div className="flex items-center justify-center gap-[9px] mb-10">          <span className="text-[15px] font-bold">Paperwise</span>
         </div>
 
-        <h2 className="text-2xl font-semibold text-zinc-100 mb-2">Check your email</h2>
+        <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5"
+             style={{ background: "rgba(91,33,182,0.12)" }}>
+          <Mail className="h-6 w-6" style={{ color: "#a78bfa" }} />
+        </div>
+
+        <h2 className="text-2xl font-bold mb-2">Check your email</h2>
 
         {email && (
-          <p className="text-sm text-zinc-500 mb-1">
-            We sent a sign-in link to <span className="text-zinc-300">{email}</span>
+          <p className="text-sm text-muted mb-1">
+            We sent a sign-in link to <span className="text-white font-medium">{email}</span>
           </p>
         )}
 
-        <p className="text-sm text-zinc-600 mb-8">
+        <p className="text-sm text-faint mb-8">
           Click the link in that email to sign in. The link expires in 15 minutes.
         </p>
 
         <button
           onClick={handleResend}
           disabled={resending || !email}
-          className="text-sm text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition mb-6 block mx-auto"
+          className="text-sm text-muted hover:text-white disabled:opacity-50 transition mb-6 block mx-auto"
         >
           {resending ? "Sending…" : "Didn't get it? Resend"}
         </button>
 
-        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-zinc-600 hover:text-zinc-400 transition">
+        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-faint hover:text-muted transition">
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </Link>
       </div>

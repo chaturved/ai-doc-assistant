@@ -2,13 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 import { joinWaitlist } from "@/lib/paperwise-api";
 import { toast } from "sonner";
 
+const T = {
+  accent: "#f59e0b",
+  primary: "#5b21b6",
+  border: "rgba(255,255,255,0.08)",
+};
+
 const FREE_FEATURES = [
-  "5 documents",
-  "20 queries per day",
-  "10 MB per file",
+  "Up to 5 documents",
+  "20 queries / month",
+  "1 workspace",
   "PDF, TXT, MD support",
   "7-day conversation history",
   "Community support",
@@ -38,15 +45,15 @@ const FAQS = [
   },
   {
     q: "How is the AI trained?",
-    a: "Paperwise uses an open-source language model (Mistral 7B) combined with vector search over your own documents. The AI is not trained on your data — it only reads your documents at query time.",
+    a: "Paperwise uses vector search over your own documents. The AI is not trained on your data — it only reads your documents at query time.",
   },
   {
     q: "What happens when I hit my free limit?",
-    a: "You'll see a clear message when you're near your limit. Queries reset daily at midnight UTC. Document and storage limits require upgrading to Pro.",
+    a: "You'll see a clear message when you're near your limit. Queries reset monthly on your billing date. Document limits require upgrading to Pro.",
   },
   {
     q: "Do you offer student or nonprofit discounts?",
-    a: "Yes — email us at hello@paperwise.ai with proof of enrollment or nonprofit status and we'll set you up with a discount code when Pro launches.",
+    a: "Yes — email us at hello@paperwise.ai with proof of enrollment or nonprofit status and we'll set you up with a discount code.",
   },
 ];
 
@@ -56,6 +63,7 @@ export default function PricingPage() {
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [scrolled] = useState(false);
 
   const handleWaitlist = async () => {
     if (!waitlistEmail) return;
@@ -72,163 +80,248 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">P</span>
-            </div>
-            <span className="text-sm font-semibold text-zinc-100">Paperwise</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-200 transition">Log in</Link>
-            <Link href="/signup" className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium transition flex items-center">
-              Get started free
+    <div className="bg-bg text-white overflow-x-hidden min-h-screen">
+
+      {/* Nav */}
+      <nav className={`fixed top-0 inset-x-0 z-50 h-[60px] flex items-center px-9 transition-all duration-300 ${
+        scrolled ? "bg-bg/90 backdrop-blur-xl border-b-system" : ""
+      }`}>
+        <Link href="/" className="flex items-center gap-[9px] shrink-0">          <span className="text-[15px] font-bold">Paperwise</span>
+        </Link>
+        <div className="flex-1 flex items-center justify-center gap-8">
+          {[
+            { label: "Features", href: "/#features" },
+            { label: "How It Works", href: "/#how-it-works" },
+            { label: "Pricing", href: "/pricing" },
+            { label: "FAQ", href: "#faq" },
+          ].map((l) => (
+            <Link key={l.label} href={l.href} className="text-[13.5px] font-medium text-white/70 hover:text-white transition">
+              {l.label}
             </Link>
-          </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/login" className="text-[13.5px] font-medium text-muted hover:text-white transition">Log in</Link>
+          <Link href="/signup" className="btn-primary !text-[13.5px]">Get Started Free</Link>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-20">
-        {/* Header */}
-        <div className="text-center mb-14">
-          <h1 className="text-4xl font-bold text-zinc-100 mb-3">Simple, honest pricing</h1>
-          <p className="text-zinc-500 text-base mb-8">Start free. Upgrade when you need more.</p>
+      {/* Hero */}
+      <section className="section-padding pt-[120px] text-center border-b-system relative">
+        <div className="absolute inset-0 pointer-events-none"
+             style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(91,33,182,0.18) 0%, transparent 70%)" }} />
+        <div className="relative max-w-[1100px] mx-auto">
+          <p className="section-label mb-[14px]">Pricing</p>
+          <h1 className="heading-section mb-4">One plan for every stage of your work</h1>
+          <p className="text-[15px] text-muted max-w-[480px] mx-auto mb-10">
+            Start free, upgrade when you need more. No hidden fees, no lock-in.
+          </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 bg-zinc-900 ring-1 ring-white/[0.07] rounded-full px-1.5 py-1.5">
+          <div className="inline-flex items-center gap-1 p-1 rounded-[10px] border-system" style={{ background: "rgba(255,255,255,0.04)" }}>
             <button
               onClick={() => setYearly(false)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${!yearly ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-5 py-2 rounded-[8px] text-[13px] font-semibold transition ${
+                !yearly ? "bg-primary text-white" : "text-muted hover:text-white"
+              }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setYearly(true)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition flex items-center gap-2 ${yearly ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-5 py-2 rounded-[8px] text-[13px] font-semibold transition flex items-center gap-2 ${
+                yearly ? "bg-primary text-white" : "text-muted hover:text-white"
+              }`}
             >
               Yearly
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full ring-1 ring-emerald-500/20">
+              <span className="text-[10px] font-bold px-[7px] py-[2px] rounded-full"
+                    style={{ background: "rgba(52,211,153,0.15)", color: "#34d399" }}>
                 Save 25%
               </span>
             </button>
           </div>
         </div>
+      </section>
 
-        {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20 max-w-2xl mx-auto">
+      {/* Plan cards */}
+      <section className="section-padding">
+        <div className="max-w-[900px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+
           {/* Free */}
-          <div className="rounded-2xl bg-zinc-900/60 ring-1 ring-white/[0.08] p-7 flex flex-col">
+          <div className="card p-7 flex flex-col">
             <div className="mb-6">
-              <p className="text-sm font-medium text-zinc-400 mb-1">Free</p>
+              <p className="text-sm font-semibold text-muted mb-2">Starter</p>
               <div className="flex items-end gap-1.5">
-                <span className="text-4xl font-bold text-zinc-100">$0</span>
-                <span className="text-zinc-500 text-sm mb-1.5">/ month</span>
+                <span className="text-[36px] font-black leading-none">$0</span>
+                <span className="text-muted text-sm mb-1">/ month</span>
               </div>
-              <p className="text-xs text-zinc-600 mt-1">No credit card required</p>
+              <p className="text-[11px] text-faint mt-1">No credit card required</p>
             </div>
-
-            <ul className="space-y-3 flex-1 mb-7">
+            <div className="divider mb-5" />
+            <ul className="space-y-[10px] flex-1 mb-7">
               {FREE_FEATURES.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-sm text-zinc-400">
-                  <span className="h-4 w-4 rounded-full bg-zinc-700 flex items-center justify-center flex-shrink-0">
-                    <span className="text-zinc-300 text-[10px]">✓</span>
-                  </span>
+                <li key={f} className="flex items-center gap-2.5 text-[13px] text-muted">
+                  <CheckCircle2 size={14} color="rgba(255,255,255,0.25)" />
                   {f}
                 </li>
               ))}
             </ul>
-
-            <Link href="/signup" className="w-full h-10 rounded-xl bg-zinc-800 ring-1 ring-white/[0.08] hover:bg-zinc-700 text-sm text-zinc-200 font-medium transition flex items-center justify-center">
-              Get started free
+            <Link href="/signup" className="btn-primary w-full !block !text-center">
+              Start Free
             </Link>
           </div>
 
-          {/* Pro */}
-          <div className="rounded-2xl bg-indigo-950/40 ring-1 ring-indigo-500/30 p-7 flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 right-0 left-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-medium text-indigo-300">Pro</p>
-                <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full ring-1 ring-indigo-500/30">Coming soon</span>
+          {/* Pro — Popular */}
+          <div className="relative card flex flex-col" style={{ border: `1px solid rgba(245,158,11,0.35)` }}>
+            <div className="absolute top-0 inset-x-0 h-px"
+                 style={{ background: "linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent)" }} />
+            <div className="p-7 flex flex-col flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-muted">Growth</span>
+                <span className="text-[11px] font-bold rounded-full px-[10px] py-[3px]"
+                      style={{ background: "rgba(245,158,11,0.15)", color: T.accent }}>Popular</span>
               </div>
-              <div className="flex items-end gap-1.5">
-                <span className="text-4xl font-bold text-zinc-100">${yearly ? "9" : "12"}</span>
-                <span className="text-zinc-500 text-sm mb-1.5">/ month{yearly ? ", billed yearly" : ""}</span>
+              <div className="flex items-end gap-1.5 mb-1">
+                <span className="text-[36px] font-black leading-none">${yearly ? "9" : "12"}</span>
+                <span className="text-muted text-sm mb-1">/ month{yearly ? ", billed yearly" : ""}</span>
               </div>
-              {yearly && <p className="text-xs text-emerald-400 mt-1">$108/year — save $36</p>}
+              {yearly && <p className="text-[11px] mb-1" style={{ color: "#34d399" }}>$108/year — save $36</p>}
+              <p className="text-[11px] text-faint mt-1 mb-6">
+                For power users and researchers who need more.
+              </p>
+              <div className="divider mb-5" />
+              <p className="text-[11px] font-bold text-faint uppercase tracking-[0.08em] mb-[14px]">Everything in Starter plus…</p>
+              <ul className="space-y-[10px] flex-1 mb-7">
+                {PRO_FEATURES.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-[13px] text-white/75">
+                    <CheckCircle2 size={14} color={T.accent} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              {joined ? (
+                <div className="w-full h-11 rounded-[8px] flex items-center justify-center text-sm font-semibold"
+                     style={{ background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  You&apos;re on the list ✓
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleWaitlist()}
+                    placeholder="your@email.com"
+                    className="flex-1 h-11 rounded-[8px] bg-white/[0.05] border border-white/[0.08] px-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                  />
+                  <button
+                    onClick={handleWaitlist}
+                    disabled={joining || !waitlistEmail}
+                    className="btn-primary !py-0 h-11 !rounded-[8px] disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {joining ? "…" : "Join"}
+                  </button>
+                </div>
+              )}
             </div>
+          </div>
 
-            <ul className="space-y-3 flex-1 mb-7">
-              {PRO_FEATURES.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-sm text-zinc-300">
-                  <span className="h-4 w-4 rounded-full bg-indigo-500/30 flex items-center justify-center flex-shrink-0">
-                    <span className="text-indigo-300 text-[10px]">✓</span>
-                  </span>
+          {/* Enterprise */}
+          <div className="card p-7 flex flex-col">
+            <div className="mb-6">
+              <p className="text-sm font-semibold text-muted mb-2">Enterprise</p>
+              <div className="flex items-end gap-1.5">
+                <span className="text-[36px] font-black leading-none">$40</span>
+                <span className="text-muted text-sm mb-1">/ month</span>
+              </div>
+              <p className="text-[11px] text-faint mt-1">Custom security & compliance</p>
+            </div>
+            <div className="divider mb-5" />
+            <p className="text-[11px] font-bold text-faint uppercase tracking-[0.08em] mb-[14px]">Everything in Growth plus…</p>
+            <ul className="space-y-[10px] flex-1 mb-7">
+              {["Unlimited documents","Custom AI model tuning","Dedicated success manager","SOC 2 & GDPR compliance","Role-based permissions","Audit logs & SSO"].map((f) => (
+                <li key={f} className="flex items-center gap-2.5 text-[13px] text-muted">
+                  <CheckCircle2 size={14} color="rgba(255,255,255,0.25)" />
                   {f}
                 </li>
               ))}
             </ul>
-
-            {joined ? (
-              <div className="w-full h-10 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/20 text-sm text-emerald-400 flex items-center justify-center">
-                You&apos;re on the list ✓
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={waitlistEmail}
-                  onChange={(e) => setWaitlistEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleWaitlist()}
-                  placeholder="your@email.com"
-                  className="flex-1 h-10 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.08] px-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:ring-indigo-500/40 transition"
-                />
-                <button
-                  onClick={handleWaitlist}
-                  disabled={joining || !waitlistEmail}
-                  className="h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm text-white font-medium transition"
-                >
-                  {joining ? "…" : "Join waitlist"}
-                </button>
-              </div>
-            )}
+            <Link href="mailto:hello@paperwise.ai" className="btn-secondary w-full !block !text-center">
+              Contact Sales
+            </Link>
           </div>
         </div>
+      </section>
 
-        {/* FAQ */}
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-xl font-semibold text-zinc-100 mb-6 text-center">Frequently asked questions</h2>
-          <div className="space-y-2">
-            {FAQS.map((faq, i) => (
-              <div key={i} className="rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.07] overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left"
-                >
-                  <span className="text-sm font-medium text-zinc-200">{faq.q}</span>
-                  <span className={`text-zinc-500 transition-transform ${openFaq === i ? "rotate-45" : ""}`}>+</span>
-                </button>
-                {openFaq === i && (
-                  <div className="px-5 pb-4">
-                    <p className="text-sm text-zinc-500 leading-relaxed">{faq.a}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+      {/* Stats band */}
+      <section className="border-t-system border-b-system section-padding">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="card-lg p-[48px] text-center">
+            <h2 className="heading-md mb-3">Built for people who live inside documents</h2>
+            <p className="text-muted text-[15px] mb-10">Less time hunting for answers. More time using them.</p>
+            <div className="grid grid-cols-3">
+              {[
+                { val: "-70%", label: "Time Searching" },
+                { val: "+3×",  label: "Faster Answers" },
+                { val: "94%",  label: "Citation Accuracy" },
+              ].map((s, i) => (
+                <div key={i} className={`px-8 ${i < 2 ? "border-r-system" : ""}`}>
+                  <div className="font-black tracking-[-0.04em] bg-gradient-to-br from-white/90 to-accent bg-clip-text text-transparent"
+                       style={{ fontSize: "clamp(2rem,4vw,3rem)" }}>{s.val}</div>
+                  <div className="text-[13px] text-muted mt-[6px]">{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Footer CTA */}
-        <div className="text-center mt-20">
-          <p className="text-zinc-600 text-sm mb-4">Still have questions?</p>
-          <a href="mailto:hello@paperwise.ai" className="text-indigo-400 hover:text-indigo-300 text-sm transition">
-            hello@paperwise.ai
-          </a>
+      {/* FAQ */}
+      <section id="faq" className="section-padding">
+        <div className="max-w-[700px] mx-auto">
+          <div className="text-center mb-14">
+            <p className="section-label mb-[14px]">FAQ</p>
+            <h2 className="heading-section mb-3">Everything you need to know</h2>
+            <p className="text-[15px] text-muted">Quick answers about documents, privacy, and plans.</p>
+          </div>
+          {FAQS.map((item, i) => (
+            <div key={i} className="border-b-system">
+              <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between py-5 bg-transparent border-none text-white text-left">
+                <span className="text-[15px] font-semibold">{item.q}</span>
+                <div className="shrink-0 ml-4 w-[22px] h-[22px] rounded-full border-system flex items-center justify-center transition-transform duration-200"
+                     style={{ transform: openFaq === i ? "rotate(45deg)" : "none" }}>
+                  <span className="text-sm text-muted leading-none -mt-px">+</span>
+                </div>
+              </button>
+              {openFaq === i && (
+                <p className="text-sm text-muted leading-[1.7] pb-5">{item.a}</p>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* Footer CTA */}
+      <footer className="relative overflow-hidden border-t-system"
+              style={{ background: "radial-gradient(ellipse 100% 80% at 50% 0%, rgba(91,33,182,0.2) 0%, transparent 70%)" }}>
+        <div className="max-w-[1100px] mx-auto px-9 py-20 text-center">
+          <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>
+          <p className="text-[15px] text-muted mb-8">
+            Try Paperwise free. No credit card required.
+          </p>
+          <Link href="/signup" className="btn-primary">Get started free</Link>
+        </div>
+        <div className="border-t-system" />
+        <div className="max-w-[1100px] mx-auto px-9 py-6 flex items-center justify-between">
+          <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy</Link>
+            <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms</Link>
+            <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

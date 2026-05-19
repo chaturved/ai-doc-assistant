@@ -6,10 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Eye, EyeOff, FileText, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { login, sendMagicLink } from "@/lib/paperwise-api";
 import { useAuth } from "@/context/AuthContext";
+
 
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -18,10 +19,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const floatingDocs = [
-  { title: "Q3 Financial Report", type: "PDF", rot: "-6deg", pos: "top-[12%] left-[8%]", color: "from-indigo-500/20 to-indigo-500/5", border: "border-indigo-500/20", delay: "0s" },
-  { title: "Legal Contract", type: "DOCX", rot: "5deg", pos: "top-[30%] right-[8%]", color: "from-violet-500/20 to-violet-500/5", border: "border-violet-500/20", delay: "1.2s" },
-  { title: "Product Roadmap", type: "PDF", rot: "4deg", pos: "bottom-[28%] left-[10%]", color: "from-emerald-500/20 to-emerald-500/5", border: "border-emerald-500/20", delay: "0.6s" },
-  { title: "Onboarding Guide", type: "MD", rot: "-4deg", pos: "bottom-[14%] right-[10%]", color: "from-amber-500/20 to-amber-500/5", border: "border-amber-500/20", delay: "1.8s" },
+  { title: "Q3 Financial Report", type: "PDF", rot: "-6deg", pos: "top-[12%] left-[8%]", delay: "0s" },
+  { title: "Legal Contract",       type: "DOCX", rot: "5deg",  pos: "top-[30%] right-[8%]", delay: "1.2s" },
+  { title: "Product Roadmap",      type: "PDF", rot: "4deg",   pos: "bottom-[28%] left-[10%]", delay: "0.6s" },
+  { title: "Onboarding Guide",     type: "MD",  rot: "-4deg",  pos: "bottom-[14%] right-[10%]", delay: "1.8s" },
 ];
 
 export default function LoginPage() {
@@ -61,7 +62,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex">
+    <div className="min-h-screen flex" style={{ background: "#080810" }}>
       <style>{`
         @keyframes float {
           0%,100% { transform: translateY(0px) rotate(var(--rot)); }
@@ -71,41 +72,40 @@ export default function LoginPage() {
       `}</style>
 
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative bg-gradient-to-br from-[#0d0d14] to-[#09090b] border-r border-white/[0.06] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/30 via-transparent to-violet-950/20" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-3xl" />
+      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative overflow-hidden border-r-system">
+        <div className="absolute inset-0 pointer-events-none"
+             style={{ background: "radial-gradient(ellipse 100% 80% at 50% 90%, #4c1db0 0%, #2a0e6e 25%, #080810 65%)" }} />
 
         {/* Floating doc cards */}
         {floatingDocs.map((doc) => (
           <div
             key={doc.title}
-            className={`doc-float absolute ${doc.pos} w-[180px]`}
+            className={`doc-float absolute ${doc.pos} w-[188px]`}
             style={{ "--rot": doc.rot, animationDelay: doc.delay } as React.CSSProperties}
           >
-            <div className={`rounded-xl bg-gradient-to-br ${doc.color} border ${doc.border} backdrop-blur-sm p-3`}>
+            <div className="card p-3">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-3.5 w-3.5 text-zinc-400" />
-                <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{doc.type}</span>
+                <div className="w-[22px] h-[22px] rounded flex items-center justify-center text-[9px] font-bold text-white/50"
+                     style={{ background: "rgba(255,255,255,0.06)" }}>{doc.type}</div>
               </div>
-              <p className="text-xs font-medium text-zinc-300">{doc.title}</p>
+              <p className="text-[12px] font-medium text-white/70">{doc.title}</p>
+              <div className="mt-2 h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-full rounded-full logo-grad" style={{ width: "60%" }} />
+              </div>
             </div>
           </div>
         ))}
 
         {/* Center content */}
-        <div className="relative flex-1 flex flex-col items-center justify-center px-12 text-center">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-5">
-            <span className="text-white text-lg font-bold">P</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-zinc-100 mb-3">Paperwise</h1>
-          <p className="text-zinc-500 text-sm leading-relaxed max-w-[260px]">
+        <div className="relative flex-1 flex flex-col items-center justify-center px-12 text-center">          <h1 className="text-2xl font-bold text-white mb-3">Paperwise</h1>
+          <p className="text-muted text-sm leading-relaxed max-w-[260px]">
             Chat with your documents. Get cited answers instantly.
           </p>
-          <div className="mt-10 rounded-2xl bg-zinc-900/50 ring-1 ring-white/[0.07] p-5 max-w-[280px] text-left">
-            <p className="text-sm text-zinc-300 leading-relaxed italic">
+          <div className="mt-10 card p-5 max-w-[280px] text-left">
+            <p className="text-[13px] text-white/70 leading-relaxed italic">
               &ldquo;Paperwise cut my research time in half.&rdquo;
             </p>
-            <p className="mt-3 text-xs text-zinc-600">— Sarah K., PhD Student</p>
+            <p className="mt-3 text-[11px] text-faint">— Sarah K., PhD Student</p>
           </div>
         </div>
       </div>
@@ -114,20 +114,16 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[380px]">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">P</span>
-            </div>
-            <span className="text-base font-semibold text-zinc-100">Paperwise</span>
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">            <span className="text-[15px] font-bold">Paperwise</span>
           </div>
 
-          <h2 className="text-2xl font-semibold text-zinc-100 mb-1">Sign in</h2>
-          <p className="text-sm text-zinc-500 mb-8">Welcome back to Paperwise.</p>
+          <h2 className="text-2xl font-bold mb-1">Sign in</h2>
+          <p className="text-sm text-muted mb-8">Welcome back to Paperwise.</p>
 
           {/* Google OAuth */}
           <a
             href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/auth/google`}
-            className="flex items-center justify-center gap-3 w-full h-11 rounded-xl bg-zinc-900/80 ring-1 ring-white/10 text-sm text-zinc-200 hover:ring-white/20 hover:bg-zinc-900 transition-all mb-5"
+            className="flex items-center justify-center gap-3 w-full h-11 rounded-[10px] border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -140,20 +136,20 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-zinc-700">or</span>
+            <span className="text-xs text-faint">or</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-muted mb-1.5">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                 <input
                   {...register("email")}
                   type="email"
                   placeholder="you@example.com"
-                  className="w-full h-11 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.08] pl-10 pr-4 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none focus:ring-indigo-500/40 transition"
+                  className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
                 />
               </div>
               {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
@@ -161,20 +157,20 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-medium text-zinc-400">Password</label>
-                <Link href="/forgot-password" className="text-xs text-zinc-600 hover:text-zinc-400 transition">
+                <label className="text-xs font-semibold text-muted">Password</label>
+                <Link href="/forgot-password" className="text-xs text-faint hover:text-muted transition">
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                 <input
                   {...register("password")}
                   type={showPw ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full h-11 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.08] pl-10 pr-10 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none focus:ring-indigo-500/40 transition"
+                  className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
                 />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -184,39 +180,40 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-medium text-white flex items-center justify-center gap-2 transition"
+              className="btn-primary w-full !rounded-[10px] disabled:opacity-50"
             >
-              {isSubmitting ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
+              {isSubmitting
+                ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                : <>Sign in <ArrowRight className="h-4 w-4" /></>}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-zinc-700">or</span>
+            <span className="text-xs text-faint">magic link</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* Magic link */}
           <div className="flex gap-2">
             <input
               type="email"
               value={magicEmail}
               onChange={(e) => setMagicEmail(e.target.value)}
               placeholder="your@email.com"
-              className="flex-1 h-10 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.08] px-3 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none focus:ring-indigo-500/40 transition"
+              className="flex-1 h-10 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
             />
             <button
               onClick={handleMagicLink}
               disabled={magicLoading}
-              className="h-10 px-4 rounded-xl bg-zinc-800 ring-1 ring-white/10 text-sm text-zinc-300 hover:ring-white/20 disabled:opacity-50 transition whitespace-nowrap"
+              className="h-10 px-4 rounded-[10px] bg-white/[0.07] border-system text-sm text-white/70 hover:bg-white/[0.1] disabled:opacity-50 transition whitespace-nowrap"
             >
-              {magicLoading ? "Sending…" : "Send magic link"}
+              {magicLoading ? "Sending…" : "Send link"}
             </button>
           </div>
 
-          <p className="mt-8 text-center text-sm text-zinc-600">
+          <p className="mt-8 text-center text-sm text-muted">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-zinc-300 hover:text-white transition">Sign up</Link>
+            <Link href="/signup" className="text-white font-medium hover:opacity-80 transition">Sign up</Link>
           </p>
         </div>
       </div>

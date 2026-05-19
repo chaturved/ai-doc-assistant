@@ -1,17 +1,17 @@
 import Link from "next/link";
 
+
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-6 text-center">
-      <div>
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-6">
-          <span className="text-white text-base font-bold">P</span>
+    <div className="min-h-screen flex items-center justify-center px-6 text-center" style={{ background: "#080810" }}>
+      <div className="animate-fu">
+<div className="text-[96px] font-black leading-none tracking-[-0.04em] bg-gradient-to-br from-white/20 to-white/5 bg-clip-text text-transparent mb-4">
+          404
         </div>
-        <h1 className="text-6xl font-bold text-zinc-800 mb-3">404</h1>
-        <p className="text-sm text-zinc-500 mb-8">
+        <p className="text-muted text-[15px] mb-8 leading-relaxed">
           The page you&apos;re looking for doesn&apos;t exist.<br />It may have been moved or deleted.
         </p>
-        <Link href="/" className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-zinc-900 ring-1 ring-white/10 text-sm text-zinc-300 hover:ring-white/20 transition">
+        <Link href="/" className="btn-primary !rounded-[10px]">
           ← Go home
         </Link>
       </div>
