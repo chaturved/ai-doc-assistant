@@ -8,7 +8,7 @@ const DOCS = [
 export function AuthBackground() {
   return (
     <>
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+      <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" />
       <div className="absolute inset-0 pointer-events-none bg-vignette" />
       {DOCS.map((doc) => (
         <div

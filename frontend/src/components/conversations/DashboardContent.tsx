@@ -1,53 +1,17 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import {
-  Plus, Search, Settings, LogOut, Send, FileText,
-  ChevronDown, ChevronRight, Copy, ThumbsUp, ThumbsDown,
-  Paperclip, Trash2, Upload, MessageSquare,
-} from "lucide-react";
-import Link from "next/link";
+import { Send, Copy, ThumbsUp, ThumbsDown, Paperclip, ChevronDown } from "lucide-react";
+import AppSidebar from "@/components/AppSidebar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { sseClient } from "@/lib/api-client";
-import { useAuth } from "@/context/AuthContext";
-import { logout } from "@/lib/api/auth";
-import {
-  getConversations, createConversation, deleteConversation,
-  renameConversation, getMessages,
-} from "@/lib/api/conversations";
-import { getLibrary, uploadFiles, deleteDocument } from "@/lib/api/documents";
-import type { Conversation, LibraryDoc, Message, Meta, Source } from "@/types";
+import { createConversation, getMessages } from "@/lib/api/conversations";
+import { setFeedback } from "@/lib/api/analytics";
+import type { Message, Meta, Source } from "@/types";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function groupByDate(convs: Conversation[]) {
-  const now       = new Date();
-  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today.getTime() - 86400000);
-  const lastWeek  = new Date(today.getTime() - 7 * 86400000);
-  const groups: { label: string; items: Conversation[] }[] = [
-    { label: "Today", items: [] },
-    { label: "Yesterday", items: [] },
-    { label: "Last 7 days", items: [] },
-    { label: "Older", items: [] },
-  ];
-  for (const c of convs) {
-    const d = new Date(c.updated_at);
-    if (d >= today)           groups[0].items.push(c);
-    else if (d >= yesterday)  groups[1].items.push(c);
-    else if (d >= lastWeek)   groups[2].items.push(c);
-    else                      groups[3].items.push(c);
-  }
-  return groups.filter((g) => g.items.length > 0);
-}
-
-function DocIcon({ type }: { type: string }) {
-  const color = type === "pdf" ? "#f87171" : type === "docx" ? "#60a5fa" : "rgba(255,255,255,0.35)";
-  return <FileText size={13} color={color} />;
-}
 
 function SourceBadge({ n }: { n: number }) {
   return (
@@ -62,15 +26,26 @@ function SourceBadge({ n }: { n: number }) {
 // ─── AI Message ───────────────────────────────────────────────────────────────
 
 interface AIMessageProps {
+  messageId?: number;
   content: string;
   meta: Meta | null;
   streaming?: boolean;
   timestamp: string;
 }
 
-function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
+function AIMessage({ messageId, content, meta, streaming, timestamp }: AIMessageProps) {
   const handleCopy = () => { navigator.clipboard.writeText(content); toast.success("Copied!"); };
   const [expandedSource, setExpandedSource] = useState<number | null>(null);
+  const [feedback, setFeedbackState] = useState<"up" | "down" | null>(null);
+
+  const handleFeedback = async (value: "up" | "down") => {
+    if (!messageId) return;
+    const next = feedback === value ? null : value;
+    setFeedbackState(next);
+    if (next) {
+      try { await setFeedback(messageId, next); } catch { setFeedbackState(feedback); }
+    }
+  };
 
   return (
     <div className="msg-in card overflow-hidden">
@@ -149,8 +124,14 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
             <Copy size={13} /> Copy
           </button>
           <div className="ml-auto flex items-center gap-0.5">
-            <button className="p-1.5 rounded-[7px] text-faint hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"><ThumbsUp size={13} /></button>
-            <button className="p-1.5 rounded-[7px] text-faint hover:text-red-400 hover:bg-red-500/10 transition-all"><ThumbsDown size={13} /></button>
+            <button onClick={() => handleFeedback("up")}
+              className={`p-1.5 rounded-[7px] transition-all hover:bg-emerald-500/10 ${feedback === "up" ? "text-emerald-400" : "text-faint hover:text-emerald-400"}`}>
+              <ThumbsUp size={13} />
+            </button>
+            <button onClick={() => handleFeedback("down")}
+              className={`p-1.5 rounded-[7px] transition-all hover:bg-red-500/10 ${feedback === "down" ? "text-red-400" : "text-faint hover:text-red-400"}`}>
+              <ThumbsDown size={13} />
+            </button>
           </div>
         </div>
       )}
@@ -239,43 +220,22 @@ function InputBox({
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 function DashboardInner() {
-  const router = useRouter();
   const params = useSearchParams();
-  const { user, refetchUser } = useAuth();
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages]         = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState("");
-  const [streamingMeta, setStreamingMeta] = useState<Meta | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [search, setSearch] = useState("");
-  const [library, setLibrary] = useState<LibraryDoc[]>([]);
-  const [hoveredConv, setHoveredConv] = useState<number | null>(null);
-  const [renamingId, setRenamingId] = useState<number | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [uploadingDocs, setUploadingDocs] = useState(false);
-  const [docsOpen, setDocsOpen] = useState(true);
-  const [chatOpen, setChatOpen] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [streamingMeta, setStreamingMeta]       = useState<Meta | null>(null);
+  const [isStreaming, setIsStreaming]   = useState(false);
+  const [inputValue, setInputValue]     = useState("");
+  const [sidebarRefresh, setSidebarRefresh] = useState(0);
+  const chatEndRef  = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const loadConversations = useCallback(async () => {
-    try { setConversations(await getConversations()); } catch { /* silent */ }
-  }, []);
-
-  const loadLibrary = useCallback(async () => {
-    try { const data = await getLibrary(); setLibrary(data.sections); } catch { /* silent */ }
-  }, []);
-
   useEffect(() => {
-    loadConversations();
-    loadLibrary();
     const initConv = params.get("conv");
     if (initConv) setActiveConvId(Number(initConv));
-  }, [loadConversations, loadLibrary, params]);
+  }, [params]);
 
   useEffect(() => {
     if (activeConvId) getMessages(activeConvId).then(setMessages).catch(() => {});
@@ -289,27 +249,12 @@ function DashboardInner() {
   const handleNewChat = async () => {
     try {
       const conv = await createConversation();
-      await loadConversations();
+      setSidebarRefresh((v) => v + 1);
       setActiveConvId(conv.id);
       setMessages([]);
       setStreamingContent("");
       setStreamingMeta(null);
     } catch { toast.error("Failed to create conversation"); }
-  };
-
-  const handleDeleteConv = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await deleteConversation(id);
-      await loadConversations();
-      if (activeConvId === id) { setActiveConvId(null); setMessages([]); }
-    } catch { toast.error("Failed to delete conversation"); }
-  };
-
-  const handleRenameSubmit = async (id: number) => {
-    if (!renameValue.trim()) { setRenamingId(null); return; }
-    try { await renameConversation(id, renameValue.trim()); await loadConversations(); } catch { /* silent */ }
-    setRenamingId(null);
   };
 
   const handleSend = async (question?: string) => {
@@ -322,7 +267,7 @@ function DashboardInner() {
         const conv = await createConversation();
         convId = conv.id;
         setActiveConvId(conv.id);
-        await loadConversations();
+        setSidebarRefresh((v) => v + 1);
       } catch { toast.error("Failed to start conversation"); return; }
     }
 
@@ -350,7 +295,7 @@ function DashboardInner() {
               }
               return prev;
             });
-            loadConversations();
+            setSidebarRefresh((v) => v + 1);
             return;
           }
           if (ev.event === "error") { setIsStreaming(false); toast.error("AI response failed"); return; }
@@ -365,30 +310,6 @@ function DashboardInner() {
     } catch { setIsStreaming(false); }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    await refetchUser();
-    router.push("/login");
-  };
-
-  const handleUploadDocs = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    setUploadingDocs(true);
-    try {
-      await uploadFiles(files);
-      await loadLibrary();
-      toast.success(`Uploaded ${files.length} file(s)`);
-    } catch { toast.error("Upload failed"); }
-    finally { setUploadingDocs(false); }
-  };
-
-  const handleDeleteDoc = async (id: number) => {
-    try { await deleteDocument(id); await loadLibrary(); } catch { toast.error("Delete failed"); }
-  };
-
-  const filteredConvs = conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
-  const grouped = groupByDate(filteredConvs);
   const inChat = activeConvId !== null || messages.length > 0;
 
   const SUGGESTIONS = [
@@ -406,171 +327,23 @@ function DashboardInner() {
       <div className="absolute inset-0 pointer-events-none bg-vignette" />
 
       {/* ══════════ LEFT SIDEBAR ══════════ */}
-      <aside className="w-[255px] flex-shrink-0 flex flex-col thin-scroll relative z-10 bg-sidebar border-r-system">
-        <div className="flex items-center justify-between px-4 py-[14px] border-b-system">
-          <span className="text-[15px] font-bold tracking-tight">Paperwise</span>
-        </div>
-
-        <div className="px-3 pt-3 pb-2">
-          <button onClick={handleNewChat}
-            className="btn-primary w-full !rounded-[9px] !text-[13px] !font-semibold">
-            <Plus size={14} /> New Chat
-          </button>
-        </div>
-
-        <div className="px-3 pb-3">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" size={13} />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
-              className="w-full h-8 rounded-[8px] pl-8 pr-3 text-xs text-muted placeholder:text-faint outline-none transition bg-white/[0.04] border border-white/[0.08]" />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto thin-scroll px-2 pb-2 space-y-1">
-          <div>
-            <button onClick={() => setDocsOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-2 py-1.5 rounded-[7px] text-xs font-semibold text-muted uppercase tracking-wider hover:text-white hover:bg-white/[0.03] transition">
-              <span>Documents</span>
-              <div className="flex items-center gap-1">
-                <span className="text-faint font-normal normal-case tracking-normal">{library.length}</span>
-                {docsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </div>
-            </button>
-
-            {docsOpen && (
-              <div className="mt-0.5">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingDocs}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[7px] text-xs text-muted hover:text-white hover:bg-white/[0.04] transition disabled:opacity-50">
-                  {uploadingDocs
-                    ? <span className="h-3 w-3 rounded-full border border-white/20 border-t-white/60 animate-spin" />
-                    : <Upload size={13} />}
-                  Upload document
-                </button>
-                <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
-
-                {library.length === 0 ? (
-                  <p className="px-2 py-2 text-[11px] text-faint">No documents yet.</p>
-                ) : (
-                  library.slice(0, 8).map((doc) => (
-                    <div key={doc.id}
-                      className="group flex items-center gap-2 px-2 py-1.5 rounded-[7px] hover:bg-white/[0.04] transition cursor-default">
-                      <DocIcon type={doc.type} />
-                      <span className="flex-1 text-xs text-muted truncate group-hover:text-white transition">{doc.name}</span>
-                      <button onClick={() => handleDeleteDoc(doc.id)}
-                        className="opacity-0 group-hover:opacity-100 text-faint hover:text-red-400 transition p-0.5 rounded">
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                  ))
-                )}
-                {library.length > 8 && (
-                  <p className="px-2 py-1 text-[11px] text-faint">+{library.length - 8} more</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="divider mx-2 my-1.5" />
-
-          <div>
-            <button onClick={() => setChatOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-2 py-1.5 rounded-[7px] text-xs font-semibold text-muted uppercase tracking-wider hover:text-white hover:bg-white/[0.03] transition">
-              <span>Chat</span>
-              {chatOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            </button>
-
-            {chatOpen && (
-              <div className="mt-0.5">
-                {grouped.length === 0 ? (
-                  <p className="px-2 py-2 text-[11px] text-faint">No conversations yet.</p>
-                ) : (
-                  grouped.map(({ label, items }) => (
-                    <div key={label} className="mb-2">
-                      <div className="px-2 py-0.5 text-[10px] text-faint uppercase tracking-widest">{label}</div>
-                      {items.map((conv) => (
-                        <div
-                          key={conv.id}
-                          onClick={() => setActiveConvId(conv.id)}
-                          onMouseEnter={() => setHoveredConv(conv.id)}
-                          onMouseLeave={() => setHoveredConv(null)}
-                          className={`conv-row relative flex items-center gap-2 px-2 py-1.5 rounded-[7px] cursor-pointer mb-px ${activeConvId === conv.id ? "active" : ""}`}
-                        >
-                          <MessageSquare className="text-faint flex-shrink-0" size={12} />
-                          {renamingId === conv.id ? (
-                            <input
-                              autoFocus value={renameValue}
-                              onChange={(e) => setRenameValue(e.target.value)}
-                              onBlur={() => handleRenameSubmit(conv.id)}
-                              onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex-1 text-xs bg-transparent text-white outline-none border-b border-accent"
-                            />
-                          ) : (
-                            <span
-                              className={`text-xs truncate flex-1 transition ${activeConvId === conv.id ? "text-white" : "text-muted"}`}
-                              onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(conv.id); setRenameValue(conv.title); }}
-                            >
-                              {conv.title}
-                            </span>
-                          )}
-                          {hoveredConv === conv.id && renamingId !== conv.id && (
-                            <button onClick={(e) => handleDeleteConv(conv.id, e)} className="flex-shrink-0 text-faint hover:text-red-400 transition p-0.5 rounded">
-                              <Trash2 size={11} />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t-system">
-          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3 bg-amber-500/[0.08] border border-amber-500/20">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent text-white">Free</span>
-              <span className="text-[11px] text-muted">20 queries / month</span>
-            </div>
-            <p className="text-[11px] text-faint mb-2 leading-relaxed">Upgrade to Growth for unlimited queries and documents.</p>
-            <Link href="/pricing" className="block w-full text-center text-[12px] font-semibold py-1.5 rounded-[7px] transition hover:opacity-85 bg-white text-bg">
-              View Plan
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2.5 px-3 py-3">
-            <div className="logo-grad h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-              {user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "??"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate">{user?.full_name}</div>
-              <div className="text-[10px] text-faint truncate">{user?.email}</div>
-            </div>
-            <div className="flex items-center gap-0.5">
-              <button onClick={() => router.push("/settings/profile")} className="p-1.5 rounded-[6px] text-faint hover:text-muted hover:bg-white/[0.05] transition">
-                <Settings size={13} />
-              </button>
-              <button onClick={handleLogout} className="p-1.5 rounded-[6px] text-faint hover:text-red-400 hover:bg-red-500/10 transition">
-                <LogOut size={13} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <AppSidebar
+        activeConvId={activeConvId}
+        onConvSelect={setActiveConvId}
+        onNewChat={handleNewChat}
+        refreshKey={sidebarRefresh}
+      />
 
       {/* ══════════ MAIN CHAT ══════════ */}
       <main className="flex-1 flex flex-col min-w-0 relative z-10 bg-sidebar">
+        <div className="absolute inset-0 pointer-events-none bg-amber-glow z-0" />
         {inChat ? (
           <>
             <div className="flex-1 overflow-y-auto thin-scroll px-8 py-7 space-y-5 max-w-[780px] w-full mx-auto">
               {messages.map((msg) =>
                 msg.role === "user"
                   ? <UserMessage key={msg.id} content={msg.content} timestamp={msg.created_at} />
-                  : <AIMessage key={msg.id} content={msg.content} meta={msg.meta} timestamp={msg.created_at} />
+                  : <AIMessage key={msg.id} messageId={msg.id} content={msg.content} meta={msg.meta} timestamp={msg.created_at} />
               )}
               {isStreaming && (
                 <AIMessage content={streamingContent} meta={streamingMeta} streaming timestamp={new Date().toISOString()} />

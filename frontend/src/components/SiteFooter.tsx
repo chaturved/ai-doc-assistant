@@ -38,7 +38,8 @@ interface SiteFooterProps {
 
 export function SiteFooter({ cta, showSocial = false }: SiteFooterProps) {
   return (
-    <footer className="relative overflow-hidden bg-footer-gradient">
+    <footer className="relative overflow-hidden bg-bg">
+      <div className="absolute inset-0 pointer-events-none bg-footer-gradient opacity-50" />
       <div className="absolute top-0 inset-x-0 h-[160px] pointer-events-none z-0 bg-gradient-to-b from-bg to-transparent" />
 
       {cta && (

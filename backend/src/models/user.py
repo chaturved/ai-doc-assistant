@@ -18,3 +18,4 @@ class User(Base):
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
     oauth_accounts = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
     reset_tokens = relationship("ResetToken", back_populates="user", cascade="all, delete-orphan")
+    recent_queries = relationship("RecentQuery", back_populates="user", cascade="all, delete-orphan")

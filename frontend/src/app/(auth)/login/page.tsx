@@ -47,8 +47,13 @@ function LoginContent() {
       await refetchUser();
       router.push("/dashboard");
     } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(msg || "Incorrect email or password");
+      if (status && status >= 500) {
+        toast.error("Something went wrong on our end. Please try again.");
+      } else {
+        toast.error(msg || "Incorrect email or password");
+      }
     }
   };
 

@@ -102,7 +102,7 @@ export default function PricingPage() {
             <button
               onClick={() => setYearly(false)}
               className={`px-5 py-2 rounded-[8px] text-[13px] font-semibold transition ${
-                !yearly ? "bg-primary text-white" : "text-muted hover:text-white"
+                !yearly ? "bg-primary text-bg" : "text-muted hover:text-white"
               }`}
             >
               Monthly
@@ -110,7 +110,7 @@ export default function PricingPage() {
             <button
               onClick={() => setYearly(true)}
               className={`px-5 py-2 rounded-[8px] text-[13px] font-semibold transition flex items-center gap-2 ${
-                yearly ? "bg-primary text-white" : "text-muted hover:text-white"
+                yearly ? "bg-primary text-bg" : "text-muted hover:text-white"
               }`}
             >
               Yearly
