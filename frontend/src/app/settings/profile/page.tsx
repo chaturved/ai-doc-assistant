@@ -66,8 +66,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2">
             <input value={user?.email || ""} readOnly
               className="flex-1 h-11 rounded-[10px] bg-white/[0.03] border border-white/[0.06] px-4 text-sm text-faint cursor-not-allowed" />
-            <span className="text-xs font-semibold px-2 py-1 rounded-full"
-                  style={{ background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>
+            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
               Verified
             </span>
           </div>
@@ -84,8 +83,7 @@ export default function ProfilePage() {
         </p>
         {!showDelete ? (
           <button onClick={() => setShowDelete(true)}
-            className="h-9 px-4 rounded-[8px] text-sm text-red-400 transition"
-            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)" }}>
+            className="h-9 px-4 rounded-[8px] text-sm text-red-400 transition bg-red-500/[0.08] border border-red-500/[0.18]">
             Delete my account
           </button>
         ) : (
@@ -94,16 +92,14 @@ export default function ProfilePage() {
               Type <span className="font-mono text-white">DELETE</span> to confirm.
             </p>
             <input value={deleteInput} onChange={(e) => setDeleteInput(e.target.value)} placeholder="DELETE"
-              className="w-full h-10 rounded-[10px] bg-white/[0.05] px-4 text-sm text-white outline-none transition"
-              style={{ border: "1px solid rgba(239,68,68,0.25)" }} />
+              className="w-full h-10 rounded-[10px] bg-white/[0.05] px-4 text-sm text-white outline-none transition border border-red-500/25" />
             <div className="flex gap-2">
               <button onClick={() => setShowDelete(false)}
                 className="h-9 px-4 rounded-[8px] text-sm text-muted hover:text-white border-system bg-white/[0.04] transition">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleteInput !== "DELETE" || deleting}
-                className="h-9 px-4 rounded-[8px] text-sm text-white transition disabled:opacity-40"
-                style={{ background: "#dc2626" }}>
+                className="h-9 px-4 rounded-[8px] text-sm text-white transition disabled:opacity-40 bg-red-600">
                 {deleting ? "Deleting…" : "Confirm delete"}
               </button>
             </div>

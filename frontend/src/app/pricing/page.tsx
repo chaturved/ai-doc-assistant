@@ -108,8 +108,7 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="section-padding pt-[120px] text-center border-b-system relative">
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(91,33,182,0.18) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none bg-pricing-hero" />
         <div className="relative max-w-[1100px] mx-auto">
           <p className="section-label mb-[14px]">Pricing</p>
           <h1 className="heading-section mb-4">One plan for every stage of your work</h1>
@@ -118,7 +117,7 @@ export default function PricingPage() {
           </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-[10px] border-system" style={{ background: "rgba(255,255,255,0.04)" }}>
+          <div className="inline-flex items-center gap-1 p-1 rounded-[10px] border-system bg-white/[0.04]">
             <button
               onClick={() => setYearly(false)}
               className={`px-5 py-2 rounded-[8px] text-[13px] font-semibold transition ${
@@ -134,8 +133,7 @@ export default function PricingPage() {
               }`}
             >
               Yearly
-              <span className="text-[10px] font-bold px-[7px] py-[2px] rounded-full"
-                    style={{ background: "rgba(52,211,153,0.15)", color: "#34d399" }}>
+              <span className="text-[10px] font-bold px-[7px] py-[2px] rounded-full bg-emerald-400/[0.15] text-emerald-400">
                 Save 25%
               </span>
             </button>
@@ -172,20 +170,18 @@ export default function PricingPage() {
           </div>
 
           {/* Pro — Popular */}
-          <div className="relative card flex flex-col" style={{ border: `1px solid rgba(245,158,11,0.35)` }}>
-            <div className="absolute top-0 inset-x-0 h-px"
-                 style={{ background: "linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent)" }} />
+          <div className="relative card flex flex-col border-amber-500/35">
+            <div className="absolute top-0 inset-x-0 h-px bg-shimmer-bar" />
             <div className="p-7 flex flex-col flex-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-muted">Growth</span>
-                <span className="text-[11px] font-bold rounded-full px-[10px] py-[3px]"
-                      style={{ background: "rgba(245,158,11,0.15)", color: T.accent }}>Popular</span>
+                <span className="text-[11px] font-bold rounded-full px-[10px] py-[3px] bg-amber-500/[0.15] text-accent">Popular</span>
               </div>
               <div className="flex items-end gap-1.5 mb-1">
                 <span className="text-[36px] font-black leading-none">${yearly ? "9" : "12"}</span>
                 <span className="text-muted text-sm mb-1">/ month{yearly ? ", billed yearly" : ""}</span>
               </div>
-              {yearly && <p className="text-[11px] mb-1" style={{ color: "#34d399" }}>$108/year — save $36</p>}
+              {yearly && <p className="text-[11px] mb-1 text-emerald-400">$108/year — save $36</p>}
               <p className="text-[11px] text-faint mt-1 mb-6">
                 For power users and researchers who need more.
               </p>
@@ -200,8 +196,7 @@ export default function PricingPage() {
                 ))}
               </ul>
               {joined ? (
-                <div className="w-full h-11 rounded-[8px] flex items-center justify-center text-sm font-semibold"
-                     style={{ background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>
+                <div className="w-full h-11 rounded-[8px] flex items-center justify-center text-sm font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
                   You&apos;re on the list ✓
                 </div>
               ) : (
@@ -266,8 +261,7 @@ export default function PricingPage() {
                 { val: "94%",  label: "Citation Accuracy" },
               ].map((s, i) => (
                 <div key={i} className={`px-8 ${i < 2 ? "border-r-system" : ""}`}>
-                  <div className="font-black tracking-[-0.04em] bg-gradient-to-br from-white/90 to-accent bg-clip-text text-transparent"
-                       style={{ fontSize: "clamp(2rem,4vw,3rem)" }}>{s.val}</div>
+                  <div className="text-stat font-black tracking-[-0.04em] bg-gradient-to-br from-white/90 to-accent bg-clip-text text-transparent">{s.val}</div>
                   <div className="text-[13px] text-muted mt-[6px]">{s.label}</div>
                 </div>
               ))}
@@ -289,8 +283,7 @@ export default function PricingPage() {
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="w-full flex items-center justify-between py-5 bg-transparent border-none text-white text-left">
                 <span className="text-[15px] font-semibold">{item.q}</span>
-                <div className="shrink-0 ml-4 w-[22px] h-[22px] rounded-full border-system flex items-center justify-center transition-transform duration-200"
-                     style={{ transform: openFaq === i ? "rotate(45deg)" : "none" }}>
+                <div className={`shrink-0 ml-4 w-[22px] h-[22px] rounded-full border-system flex items-center justify-center transition-transform duration-200 ${openFaq === i ? "rotate-45" : ""}`}>
                   <span className="text-sm text-muted leading-none -mt-px">+</span>
                 </div>
               </button>
@@ -303,8 +296,7 @@ export default function PricingPage() {
       </section>
 
       {/* Footer CTA */}
-      <footer className="relative overflow-hidden border-t-system"
-              style={{ background: "radial-gradient(ellipse 100% 80% at 50% 0%, rgba(91,33,182,0.2) 0%, transparent 70%)" }}>
+      <footer className="relative overflow-hidden border-t-system bg-pricing-cta">
         <div className="max-w-[1100px] mx-auto px-9 py-20 text-center">
           <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>
           <p className="text-[15px] text-muted mb-8">

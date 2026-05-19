@@ -62,7 +62,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex bg-bg">
       <style>{`
         @keyframes float {
           0%,100% { transform: translateY(0px) rotate(var(--rot)); }
@@ -73,8 +73,7 @@ export default function LoginPage() {
 
       {/* Left panel */}
       <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative overflow-hidden border-r-system">
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: "radial-gradient(ellipse 100% 80% at 50% 90%, #4c1db0 0%, #2a0e6e 25%, #080810 65%)" }} />
+        <div className="absolute inset-0 pointer-events-none bg-login-gradient" />
 
         {/* Floating doc cards */}
         {floatingDocs.map((doc) => (
@@ -85,12 +84,11 @@ export default function LoginPage() {
           >
             <div className="card p-3">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-[22px] h-[22px] rounded flex items-center justify-center text-[9px] font-bold text-white/50"
-                     style={{ background: "rgba(255,255,255,0.06)" }}>{doc.type}</div>
+                <div className="w-[22px] h-[22px] rounded flex items-center justify-center text-[9px] font-bold text-white/50 bg-white/6">{doc.type}</div>
               </div>
               <p className="text-[12px] font-medium text-white/70">{doc.title}</p>
               <div className="mt-2 h-1 rounded-full bg-white/[0.06] overflow-hidden">
-                <div className="h-full rounded-full logo-grad" style={{ width: "60%" }} />
+                <div className="h-full rounded-full logo-grad w-[60%]" />
               </div>
             </div>
           </div>

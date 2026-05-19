@@ -24,14 +24,13 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
       <div className="w-full max-w-[380px]">
         <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 
         {sent ? (
           <div className="text-center">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5 border-system"
-                 style={{ background: "rgba(52,211,153,0.08)" }}>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5 border-system bg-emerald-400/[0.08]">
               <Mail className="h-6 w-6 text-emerald-400" />
             </div>
             <h2 className="text-xl font-bold mb-2">Check your inbox</h2>

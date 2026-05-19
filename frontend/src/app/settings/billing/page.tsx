@@ -64,18 +64,16 @@ export default function BillingPage() {
         </div>
       )}
 
-      <div className="card p-5 max-w-sm" style={{ borderColor: `rgba(245,158,11,0.25)` }}>
+      <div className="card p-5 max-w-sm border-amber-500/25">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-5 h-5 rounded flex items-center justify-center text-[11px]"
-               style={{ background: `rgba(245,158,11,0.15)`, color: T.accent }}>⚡</div>
+          <div className="w-5 h-5 rounded flex items-center justify-center text-[11px] bg-amber-500/[0.15] text-accent">⚡</div>
           <p className="text-sm font-bold">Growth — $12/month</p>
-          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(245,158,11,0.12)", color: T.accent }}>Coming soon</span>
+          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/[0.12] text-accent">Coming soon</span>
         </div>
         <ul className="space-y-2 text-[13px] text-muted mb-5">
           {["Unlimited documents", "Unlimited queries", "50 MB per file", "DOCX support", "Conversation history forever", "Priority support"].map((f) => (
             <li key={f} className="flex items-center gap-2">
-              <span style={{ color: "#34d399" }}>✓</span> {f}
+              <span className="text-emerald-400">✓</span> {f}
             </li>
           ))}
         </ul>

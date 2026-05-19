@@ -23,8 +23,6 @@ import type { Conversation, LibraryDoc, Message, Meta, Source } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const BORDER = "rgba(255,255,255,0.08)";
-
 function groupByDate(convs: Conversation[]) {
   const now       = new Date();
   const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -48,14 +46,13 @@ function groupByDate(convs: Conversation[]) {
 
 function DocIcon({ type }: { type: string }) {
   const color = type === "pdf" ? "#f87171" : type === "docx" ? "#60a5fa" : "rgba(255,255,255,0.35)";
-  return <FileText style={{ width: 13, height: 13, color }} />;
+  return <FileText size={13} color={color} />;
 }
 
 function SourceBadge({ n }: { n: number }) {
   return (
     <span
-      className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded text-[10px] font-bold font-mono mx-px"
-      style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.4)", color: "#f59e0b" }}
+      className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded text-[10px] font-bold font-mono mx-px bg-amber-500/20 border border-amber-500/40 text-accent"
     >
       {n}
     </span>
@@ -78,12 +75,12 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
   return (
     <div className="msg-in card overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-3 border-b-system">
-        <span className="text-xs font-bold" style={{ color: "#f59e0b" }}>Paperwise</span>
+        <span className="text-xs font-bold text-accent">Paperwise</span>
         {streaming ? (
           <div className="ml-auto flex items-center gap-1">
             {[0, 180, 360].map((d) => (
-              <span key={d} className="inline-block h-1.5 w-1.5 rounded-full shimmer-dot"
-                    style={{ background: "#f59e0b", animationDelay: `${d}ms` }} />
+              <span key={d} className="inline-block h-1.5 w-1.5 rounded-full shimmer-dot bg-accent"
+                    style={{ animationDelay: `${d}ms` }} />
             ))}
           </div>
         ) : (
@@ -100,7 +97,7 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
           ))}
         </div>
       ) : (
-        <div className="px-5 py-4 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" style={{ color: "rgba(255,255,255,0.78)" }}>
+        <div className="px-5 py-4 text-sm leading-relaxed prose prose-invert prose-sm max-w-none text-soft">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -122,7 +119,7 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
           >
             {content}
           </ReactMarkdown>
-          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5" style={{ background: "#f59e0b" }} />}
+          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5 bg-accent" />}
         </div>
       )}
 
@@ -132,12 +129,10 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
           {meta.sources.map((src: Source, i: number) => (
             <div key={i}
               onClick={() => setExpandedSource(expandedSource === i + 1 ? null : i + 1)}
-              className="rounded-[8px] p-2.5 cursor-pointer transition-all"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+              className="rounded-[8px] p-2.5 cursor-pointer transition-all bg-white/[0.03] border border-white/[0.07]"
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold flex-shrink-0"
-                      style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>{i + 1}</span>
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold flex-shrink-0 bg-amber-500/[0.15] text-accent">{i + 1}</span>
                 <span className="text-[11px] text-muted truncate">{src.name}</span>
               </div>
               <p className={`text-[11px] text-faint leading-relaxed ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>
@@ -151,11 +146,11 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
       {!streaming && (
         <div className="px-5 py-2.5 border-t-system flex items-center gap-1">
           <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-xs text-faint hover:text-muted hover:bg-white/[0.04] transition-all">
-            <Copy style={{ width: 13, height: 13 }} /> Copy
+            <Copy size={13} /> Copy
           </button>
           <div className="ml-auto flex items-center gap-0.5">
-            <button className="p-1.5 rounded-[7px] text-faint hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"><ThumbsUp style={{ width: 13, height: 13 }} /></button>
-            <button className="p-1.5 rounded-[7px] text-faint hover:text-red-400 hover:bg-red-500/10 transition-all"><ThumbsDown style={{ width: 13, height: 13 }} /></button>
+            <button className="p-1.5 rounded-[7px] text-faint hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"><ThumbsUp size={13} /></button>
+            <button className="p-1.5 rounded-[7px] text-faint hover:text-red-400 hover:bg-red-500/10 transition-all"><ThumbsDown size={13} /></button>
           </div>
         </div>
       )}
@@ -169,8 +164,7 @@ function UserMessage({ content, timestamp }: { content: string; timestamp: strin
   return (
     <div className="msg-in flex justify-end">
       <div className="max-w-[72%]">
-        <div className="rounded-[14px] rounded-tr-[5px] px-4 py-3"
-             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
+        <div className="rounded-[14px] rounded-tr-[5px] px-4 py-3 bg-white/[0.06] border border-amber-500/[0.15]">
           <p className="text-sm text-white/80">{content}</p>
         </div>
         <div className="flex justify-end mt-1">
@@ -189,8 +183,7 @@ function Chip({ icon, label, onClick }: { icon: string; label: string; onClick: 
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-[12.5px] text-muted hover:text-white whitespace-nowrap transition-all"
-      style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}` }}
+      className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-[12.5px] text-muted hover:text-white whitespace-nowrap transition-all bg-white/[0.05] border-system"
     >
       <span className="text-[13px]">{icon}</span>
       {label}
@@ -210,10 +203,8 @@ function InputBox({
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   large?: boolean;
 }) {
-  const border = "rgba(255,255,255,0.07)";
   return (
-    <div className="rounded-[16px] overflow-hidden transition-all"
-         style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${border}` }}>
+    <div className="rounded-[16px] overflow-hidden transition-all bg-white/[0.04] border border-white/[0.07]">
       <textarea
         ref={textareaRef}
         rows={large ? 3 : 1}
@@ -225,22 +216,21 @@ function InputBox({
         }}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
         placeholder="Ask anything about your documents…"
-        className="w-full bg-transparent px-4 pt-4 pb-2 text-[14px] text-white placeholder:text-faint resize-none outline-none"
-        style={{ minHeight: large ? 88 : 52, overflow: "hidden" }}
+        className="w-full bg-transparent px-4 pt-4 pb-2 text-[14px] text-white placeholder:text-faint resize-none outline-none overflow-hidden"
+        style={{ minHeight: large ? 88 : 52 }}
       />
       <div className="flex items-center justify-between px-3 pb-3">
-        <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted hover:text-white transition"
-                style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${border}` }}>
-          <Paperclip style={{ width: 12, height: 12 }} /> All docs <ChevronDown style={{ width: 11, height: 11 }} />
+        <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted hover:text-white transition bg-white/[0.06] border border-white/[0.07]">
+          <Paperclip size={12} /> All docs <ChevronDown size={11} />
         </button>
         <button
           onClick={onSend}
           disabled={isStreaming || !value.trim()}
-          className="btn-primary !p-0 rounded-[10px] disabled:opacity-35" style={{ height: 34, width: 34 }}
+          className="btn-primary !p-0 rounded-[10px] disabled:opacity-35 h-[34px] w-[34px]"
         >
           {isStreaming
             ? <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            : <Send style={{ width: 14, height: 14 }} />}
+            : <Send size={14} />}
         </button>
       </div>
     </div>
@@ -412,9 +402,9 @@ function DashboardInner() {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden text-white relative" style={{ background: "#080810" }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 140% 110% at 50% 100%, #4c1db0 0%, #2a0e6e 20%, #7a3d00 42%, #080810 72%)" }} />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 45%, rgba(8,8,16,0.75) 100%)" }} />
+    <div className="flex h-screen overflow-hidden text-white relative bg-bg">
+      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+      <div className="absolute inset-0 pointer-events-none bg-vignette" />
       <style>{`
         @keyframes cursor-blink { 0%,100%{opacity:1}50%{opacity:0} }
         @keyframes fade-in-up { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
@@ -441,25 +431,23 @@ function DashboardInner() {
       `}</style>
 
       {/* ══════════ LEFT SIDEBAR ══════════ */}
-      <aside className="w-[255px] flex-shrink-0 flex flex-col thin-scroll relative z-10"
-             style={{ background: "rgba(8,8,16,0.65)", borderRight: `1px solid ${BORDER}` }}>
-        <div className="flex items-center justify-between px-4 py-[14px]" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <aside className="w-[255px] flex-shrink-0 flex flex-col thin-scroll relative z-10 bg-sidebar border-r-system">
+        <div className="flex items-center justify-between px-4 py-[14px] border-b-system">
           <span className="text-[15px] font-bold tracking-tight">Paperwise</span>
         </div>
 
         <div className="px-3 pt-3 pb-2">
           <button onClick={handleNewChat}
             className="btn-primary w-full !rounded-[9px] !text-[13px] !font-semibold">
-            <Plus style={{ width: 14, height: 14 }} /> New Chat
+            <Plus size={14} /> New Chat
           </button>
         </div>
 
         <div className="px-3 pb-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" style={{ width: 13, height: 13 }} />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" size={13} />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
-              className="w-full h-8 rounded-[8px] pl-8 pr-3 text-xs text-muted placeholder:text-faint outline-none transition"
-              style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}` }} />
+              className="w-full h-8 rounded-[8px] pl-8 pr-3 text-xs text-muted placeholder:text-faint outline-none transition bg-white/[0.04] border border-white/[0.08]" />
           </div>
         </div>
 
@@ -470,7 +458,7 @@ function DashboardInner() {
               <span>Documents</span>
               <div className="flex items-center gap-1">
                 <span className="text-faint font-normal normal-case tracking-normal">{library.length}</span>
-                {docsOpen ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}
+                {docsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </div>
             </button>
 
@@ -482,7 +470,7 @@ function DashboardInner() {
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[7px] text-xs text-muted hover:text-white hover:bg-white/[0.04] transition disabled:opacity-50">
                   {uploadingDocs
                     ? <span className="h-3 w-3 rounded-full border border-white/20 border-t-white/60 animate-spin" />
-                    : <Upload style={{ width: 13, height: 13 }} />}
+                    : <Upload size={13} />}
                   Upload document
                 </button>
                 <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
@@ -497,7 +485,7 @@ function DashboardInner() {
                       <span className="flex-1 text-xs text-muted truncate group-hover:text-white transition">{doc.name}</span>
                       <button onClick={() => handleDeleteDoc(doc.id)}
                         className="opacity-0 group-hover:opacity-100 text-faint hover:text-red-400 transition p-0.5 rounded">
-                        <Trash2 style={{ width: 11, height: 11 }} />
+                        <Trash2 size={11} />
                       </button>
                     </div>
                   ))
@@ -509,13 +497,13 @@ function DashboardInner() {
             )}
           </div>
 
-          <div style={{ height: 1, background: BORDER, margin: "6px 8px" }} />
+          <div className="divider mx-2 my-1.5" />
 
           <div>
             <button onClick={() => setChatOpen((v) => !v)}
               className="w-full flex items-center justify-between px-2 py-1.5 rounded-[7px] text-xs font-semibold text-muted uppercase tracking-wider hover:text-white hover:bg-white/[0.03] transition">
               <span>Chat</span>
-              {chatOpen ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}
+              {chatOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             </button>
 
             {chatOpen && (
@@ -534,7 +522,7 @@ function DashboardInner() {
                           onMouseLeave={() => setHoveredConv(null)}
                           className={`conv-row relative flex items-center gap-2 px-2 py-1.5 rounded-[7px] cursor-pointer mb-px ${activeConvId === conv.id ? "active" : ""}`}
                         >
-                          <MessageSquare className="text-faint flex-shrink-0" style={{ width: 12, height: 12 }} />
+                          <MessageSquare className="text-faint flex-shrink-0" size={12} />
                           {renamingId === conv.id ? (
                             <input
                               autoFocus value={renameValue}
@@ -542,8 +530,7 @@ function DashboardInner() {
                               onBlur={() => handleRenameSubmit(conv.id)}
                               onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
                               onClick={(e) => e.stopPropagation()}
-                              className="flex-1 text-xs bg-transparent text-white outline-none border-b"
-                              style={{ borderColor: "#f59e0b" }}
+                              className="flex-1 text-xs bg-transparent text-white outline-none border-b border-accent"
                             />
                           ) : (
                             <span
@@ -555,7 +542,7 @@ function DashboardInner() {
                           )}
                           {hoveredConv === conv.id && renamingId !== conv.id && (
                             <button onClick={(e) => handleDeleteConv(conv.id, e)} className="flex-shrink-0 text-faint hover:text-red-400 transition p-0.5 rounded">
-                              <Trash2 style={{ width: 11, height: 11 }} />
+                              <Trash2 size={11} />
                             </button>
                           )}
                         </div>
@@ -568,15 +555,14 @@ function DashboardInner() {
           </div>
         </div>
 
-        <div style={{ borderTop: `1px solid ${BORDER}` }}>
-          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+        <div className="border-t-system">
+          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3 bg-amber-500/[0.08] border border-amber-500/20">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#f59e0b", color: "white" }}>Free</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent text-white">Free</span>
               <span className="text-[11px] text-muted">20 queries / month</span>
             </div>
             <p className="text-[11px] text-faint mb-2 leading-relaxed">Upgrade to Growth for unlimited queries and documents.</p>
-            <Link href="/pricing" className="block w-full text-center text-[12px] font-semibold py-1.5 rounded-[7px] transition hover:opacity-85"
-                  style={{ background: "white", color: "#080810" }}>
+            <Link href="/pricing" className="block w-full text-center text-[12px] font-semibold py-1.5 rounded-[7px] transition hover:opacity-85 bg-white text-bg">
               View Plan
             </Link>
           </div>
@@ -591,10 +577,10 @@ function DashboardInner() {
             </div>
             <div className="flex items-center gap-0.5">
               <button onClick={() => router.push("/settings/profile")} className="p-1.5 rounded-[6px] text-faint hover:text-muted hover:bg-white/[0.05] transition">
-                <Settings style={{ width: 13, height: 13 }} />
+                <Settings size={13} />
               </button>
               <button onClick={handleLogout} className="p-1.5 rounded-[6px] text-faint hover:text-red-400 hover:bg-red-500/10 transition">
-                <LogOut style={{ width: 13, height: 13 }} />
+                <LogOut size={13} />
               </button>
             </div>
           </div>
@@ -602,7 +588,7 @@ function DashboardInner() {
       </aside>
 
       {/* ══════════ MAIN CHAT ══════════ */}
-      <main className="flex-1 flex flex-col min-w-0 relative z-10" style={{ background: "rgba(8,8,16,0.65)" }}>
+      <main className="flex-1 flex flex-col min-w-0 relative z-10 bg-sidebar">
         {inChat ? (
           <>
             <div className="flex-1 overflow-y-auto thin-scroll px-8 py-7 space-y-5 max-w-[780px] w-full mx-auto">

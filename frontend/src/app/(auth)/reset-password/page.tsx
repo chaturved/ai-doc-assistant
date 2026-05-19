@@ -29,7 +29,7 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
+      <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
         <div className="text-center">
           <p className="text-muted mb-4">Invalid or missing reset token.</p>
           <Link href="/forgot-password" className="link-accent">Request a new link</Link>
@@ -49,7 +49,7 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
       <div className="w-full max-w-[380px]">
         <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 

@@ -57,7 +57,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-bg">
       <div className="w-full max-w-[400px]">
         <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 

@@ -97,7 +97,7 @@ export default function OnboardingPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-bg">
       <div className="w-full max-w-[500px]">
         {/* Logo */}
         <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
@@ -105,12 +105,9 @@ export default function OnboardingPage() {
         {/* Progress */}
         <div className="flex items-center gap-2 mb-3">
           {steps.map((s) => (
-            <div key={s.n} className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-              <div className="h-full rounded-full transition-all duration-500"
-                   style={{
-                     width: step > s.n ? "100%" : step === s.n ? "60%" : "0%",
-                     background: "radial-gradient(ellipse at 30% 30%, #a78bfa 0%, #7c3aed 50%, #f59e0b 100%)",
-                   }} />
+            <div key={s.n} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/[0.06]">
+              <div className="h-full rounded-full transition-all duration-500 bg-grad"
+                   style={{ width: step > s.n ? "100%" : step === s.n ? "60%" : "0%" }} />
             </div>
           ))}
         </div>
@@ -146,9 +143,8 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted mb-6">Drop a PDF, TXT, or MD file to get started.</p>
 
             {uploadedDoc ? (
-              <div className="flex items-center gap-3 rounded-[10px] p-4 mb-6"
-                   style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.18)" }}>
-                <CheckCircle className="h-5 w-5 flex-shrink-0" style={{ color: "#34d399" }} />
+              <div className="flex items-center gap-3 rounded-[10px] p-4 mb-6 bg-emerald-400/[0.08] border border-emerald-400/[0.18]">
+                <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-400" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{uploadedDoc.name}</p>
                   <p className="text-xs text-faint">{(uploadedDoc.size / 1024).toFixed(0)} KB</p>
@@ -158,8 +154,7 @@ export default function OnboardingPage() {
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="w-full rounded-[10px] p-10 flex flex-col items-center gap-3 transition-all mb-6 disabled:opacity-50"
-                style={{ border: "2px dashed rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+                className="w-full rounded-[10px] p-10 flex flex-col items-center gap-3 transition-all mb-6 disabled:opacity-50 border-2 border-dashed border-white/[0.08] bg-white/[0.02]"
               >
                 {uploading ? (
                   <span className="h-6 w-6 rounded-full border-2 border-white/10 border-t-white/50 animate-spin" />
@@ -224,7 +219,7 @@ export default function OnboardingPage() {
             {(answer || streaming) && (
               <div className="card p-4 mb-5 text-sm text-white/70 leading-relaxed">
                 {answer}
-                {streaming && <span className="inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5 animate-blink" style={{ background: "#a78bfa" }} />}
+                {streaming && <span className="inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5 animate-blink bg-violet-400" />}
               </div>
             )}
 

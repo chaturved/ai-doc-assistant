@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 text-center" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 text-center bg-bg">
       <div className="animate-fu">
 <div className="text-[96px] font-black leading-none tracking-[-0.04em] bg-gradient-to-br from-white/20 to-white/5 bg-clip-text text-transparent mb-4">
           404

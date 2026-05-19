@@ -28,13 +28,12 @@ function MagicLinkSentContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
+    <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
       <div className="w-full max-w-[380px] text-center">
         <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
 
-        <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5"
-             style={{ background: "rgba(91,33,182,0.12)" }}>
-          <Mail className="h-6 w-6" style={{ color: "#a78bfa" }} />
+        <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5 bg-violet-800/[0.12]">
+          <Mail className="h-6 w-6 text-violet-400" />
         </div>
 
         <h2 className="text-2xl font-bold mb-2">Check your email</h2>

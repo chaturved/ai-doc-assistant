@@ -93,19 +93,15 @@ export default function LandingPage() {
       <section className="h-svh overflow-hidden relative flex flex-col items-center">
 
         {/* Background gradient */}
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: "radial-gradient(ellipse 140% 110% at 50% 100%, #4c1db0 0%, #2a0e6e 20%, #7a3d00 42%, #080810 72%)" }} />
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 45%, rgba(8,8,16,0.75) 100%)" }} />
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+        <div className="absolute inset-0 pointer-events-none bg-vignette" />
 
         {/* Headline */}
-        <div className="animate-fu text-center px-6 relative z-10 w-full max-w-[1080px]"
-             style={{ paddingTop: "clamp(120px,16vh,180px)" }}>
+        <div className="animate-fu text-center px-6 relative z-10 w-full max-w-[1080px] pt-hero">
           <h1 className="heading-hero">
             Chat with your documents.<br />Instantly.
           </h1>
-          <p className="animate-fu-1 mt-[18px] text-muted max-w-[520px] mx-auto leading-[1.65]"
-             style={{ fontSize: "clamp(0.95rem,1.4vw,1.1rem)" }}>
+          <p className="animate-fu-1 mt-[18px] text-muted max-w-[520px] mx-auto leading-[1.65] text-hero-sub">
             Upload any document and get cited, grounded answers in seconds — no setup, no data science, no guesswork.
           </p>
           <div className="animate-fu-2 flex items-center justify-center gap-[10px] mt-7">
@@ -122,8 +118,7 @@ export default function LandingPage() {
         </div>
 
         {/* Product preview cards */}
-        <div className="animate-fu-3 w-full max-w-[1160px] px-[18px] relative z-10 grid gap-[10px]"
-             style={{ marginTop: "clamp(16px,2.5vh,38px)", gridTemplateColumns: "5fr 2.8fr 4.2fr" }}>
+        <div className="animate-fu-3 w-full max-w-[1160px] px-[18px] relative z-10 grid gap-[10px] mt-[clamp(16px,2.5vh,38px)] grid-cols-[5fr_2.8fr_4.2fr]">
 
           {/* Card A — Document Journey */}
           <Card>
@@ -231,8 +226,7 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom bleed */}
-        <div className="absolute bottom-0 inset-x-0 h-[100px] pointer-events-none z-20"
-             style={{ background: `linear-gradient(to top, ${T.bg} 22%, transparent)` }} />
+        <div className="absolute bottom-0 inset-x-0 h-[100px] pointer-events-none z-20 bg-hero-fade" />
       </section>
 
       {/* ══════════════════════════════════════════
@@ -505,8 +499,7 @@ export default function LandingPage() {
                 { val: "94%",  label: "Citation Accuracy" },
               ].map((s, i) => (
                 <div key={i} className={`px-8 ${i < 2 ? "border-r-system" : ""}`}>
-                  <div className="font-black tracking-[-0.04em] bg-gradient-to-br from-white/90 to-accent bg-clip-text text-transparent"
-                       style={{ fontSize: "clamp(2rem,4vw,3rem)" }}>{s.val}</div>
+                  <div className="text-stat font-black tracking-[-0.04em] bg-gradient-to-br from-white/90 to-accent bg-clip-text text-transparent">{s.val}</div>
                   <div className="text-[13px] text-muted mt-[6px]">{s.label}</div>
                 </div>
               ))}
@@ -551,10 +544,8 @@ export default function LandingPage() {
             </Card>
 
             {/* Growth — Popular */}
-            <div className="relative card shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
-                 style={{ border: "1px solid rgba(245,158,11,0.35)" }}>
-              <div className="absolute top-0 inset-x-0 h-px"
-                   style={{ background: "linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent)" }} />
+            <div className="relative card shadow-[0_8px_40px_rgba(0,0,0,0.45)] border-amber-500/35">
+              <div className="absolute top-0 inset-x-0 h-px bg-shimmer-bar" />
               <div className="p-[28px_28px_24px]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-muted">Growth</span>
@@ -626,8 +617,7 @@ export default function LandingPage() {
               <button onClick={() => setFaqOpen(faqOpen === i ? null : i)}
                 className="w-full flex items-center justify-between py-5 bg-transparent border-none text-white text-left">
                 <span className="text-[15px] font-semibold">{item.q}</span>
-                <div className="shrink-0 ml-4 w-[22px] h-[22px] rounded-full border-system flex items-center justify-center transition-transform duration-200"
-                     style={{ transform: faqOpen === i ? "rotate(45deg)" : "none" }}>
+                <div className={`shrink-0 ml-4 w-[22px] h-[22px] rounded-full border-system flex items-center justify-center transition-transform duration-200 ${faqOpen === i ? "rotate-45" : ""}`}>
                   <span className="text-sm text-muted leading-none -mt-px">+</span>
                 </div>
               </button>
@@ -642,13 +632,12 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════
           FOOTER  (gradient background, no card)
       ══════════════════════════════════════════ */}
-      <footer className="relative overflow-hidden"
-              style={{ background: "radial-gradient(ellipse 120% 90% at 50% 10%, #3b1f8a 0%, #6b3500 45%, #080810 75%)" }}>
+      <footer className="relative overflow-hidden bg-footer-gradient">
 
         {/* CTA */}
         <div className="max-w-[1100px] mx-auto px-9 pt-20 pb-16 text-center">
           <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>
-          <p className="text-[15px] mb-8" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p className="text-[15px] mb-8 text-white/55">
             Try Paperwise free for 14 days. No credit card required.
           </p>
           <div className="flex items-center justify-center gap-3">
