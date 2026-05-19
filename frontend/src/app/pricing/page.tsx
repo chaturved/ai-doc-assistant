@@ -5,6 +5,8 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { joinWaitlist } from "@/lib/api/misc";
 import { toast } from "sonner";
+import { SiteNav } from "@/components/SiteNav";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const T = {
   accent: "#f59e0b",
@@ -63,7 +65,6 @@ export default function PricingPage() {
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [scrolled] = useState(false);
 
   const handleWaitlist = async () => {
     if (!waitlistEmail) return;
@@ -82,29 +83,7 @@ export default function PricingPage() {
   return (
     <div className="bg-bg text-white overflow-x-hidden min-h-screen">
 
-      {/* Nav */}
-      <nav className={`fixed top-0 inset-x-0 z-50 h-[60px] flex items-center px-9 transition-all duration-300 ${
-        scrolled ? "bg-bg/90 backdrop-blur-xl border-b-system" : ""
-      }`}>
-        <Link href="/" className="flex items-center gap-[9px] shrink-0">          <span className="text-[15px] font-bold">Paperwise</span>
-        </Link>
-        <div className="flex-1 flex items-center justify-center gap-8">
-          {[
-            { label: "Features", href: "/#features" },
-            { label: "How It Works", href: "/#how-it-works" },
-            { label: "Pricing", href: "/pricing" },
-            { label: "FAQ", href: "#faq" },
-          ].map((l) => (
-            <Link key={l.label} href={l.href} className="text-[13.5px] font-medium text-white/70 hover:text-white transition">
-              {l.label}
-            </Link>
-          ))}
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/login" className="text-[13.5px] font-medium text-muted hover:text-white transition">Log in</Link>
-          <Link href="/signup" className="btn-primary !text-[13.5px]">Get Started Free</Link>
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* Hero */}
       <section className="section-padding pt-[120px] text-center border-b-system relative">
@@ -295,25 +274,17 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <footer className="relative overflow-hidden border-t-system bg-pricing-cta">
-        <div className="max-w-[1100px] mx-auto px-9 py-20 text-center">
-          <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>
-          <p className="text-[15px] text-muted mb-8">
-            Try Paperwise free. No credit card required.
-          </p>
-          <Link href="/signup" className="btn-primary">Get started free</Link>
-        </div>
-        <div className="border-t-system" />
-        <div className="max-w-[1100px] mx-auto px-9 py-6 flex items-center justify-between">
-          <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
-          <div className="flex gap-5">
-            <Link href="/privacy" className="text-xs text-faint hover:text-muted transition">Privacy</Link>
-            <Link href="/terms" className="text-xs text-faint hover:text-muted transition">Terms</Link>
-            <a href="mailto:hello@paperwise.ai" className="text-xs text-faint hover:text-muted transition">Contact</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        gradient="pricing"
+        showLogoSection={false}
+        cta={
+          <>
+            <h2 className="heading-cta mb-[10px]">Your documents deserve better than Ctrl+F.</h2>
+            <p className="text-[15px] text-muted mb-8">Try Paperwise free. No credit card required.</p>
+            <Link href="/signup" className="btn-primary">Get started free</Link>
+          </>
+        }
+      />
     </div>
   );
 }

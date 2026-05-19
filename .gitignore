@@ -36,6 +36,8 @@ backend/.env
 # -------------------------
 # Shared / General
 # -------------------------
+.playwright-mcp/
+*.png
 .DS_Store
 *.swp
 *.swo
