@@ -9,7 +9,7 @@ import { Play, ChevronRight, CheckCircle2 } from "lucide-react";
    Everything else lives in globals.css design tokens.
 ───────────────────────────────────────────────────────── */
 const T = {
-primary: "#5b21b6",
+primary: "#ffffff",
   accent:  "#f59e0b",
   bg:      "#080810",
   muted:   "rgba(255,255,255,0.5)",
@@ -146,7 +146,7 @@ export default function LandingPage() {
               <div className="flex-1 relative overflow-hidden">
                 <svg width="100%" height="100%" viewBox="0 0 260 178" preserveAspectRatio="none" className="absolute inset-0">
                   <defs>
-                    {[["f1","#5b21b6","#f59e0b"],["f2","#6d28d9","#f59e0b"],["f3","#4c1d95","#f97316"],["f4","#7c3aed","#ef4444"],["f5","#6d28d9","#ef4444"]].map(([id,s,e])=>(
+                    {[["f1","#ffffff","#f59e0b"],["f2","#f59e0b","#f97316"],["f3","#e2e8f0","#f59e0b"],["f4","#ffffff","#ef4444"],["f5","#f59e0b","#ef4444"]].map(([id,s,e])=>(
                       <linearGradient key={id} id={id} x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={s} stopOpacity="0.7" />
                         <stop offset="100%" stopColor={e} stopOpacity="0.75" />
@@ -203,7 +203,7 @@ export default function LandingPage() {
 
           {/* Card C — Document Pipeline */}
           <Card>
-            <CardHeader title="Document Pipeline" dot="#60a5fa" />
+            <CardHeader title="Document Pipeline" dot="rgba(255,255,255,0.35)" />
             <div className="grid grid-cols-4 p-[10px_14px_8px] gap-[6px] border-b-system">
               {[{l:"Upload",v:"3",s:"docs"},{l:"Indexed",v:"487",s:"chunks"},{l:"Queried",v:"18",s:"today"},{l:"Cited",v:"47",s:"refs"}].map(s=>(
                 <div key={s.l}>
@@ -217,7 +217,7 @@ export default function LandingPage() {
               <svg width="100%" height="100%" viewBox="0 0 280 80" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="fn" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={T.primary} /><stop offset="50%" stopColor="#db2777" /><stop offset="100%" stopColor={T.accent} />
+                    <stop offset="0%" stopColor={T.primary} /><stop offset="50%" stopColor="#f59e0b" /><stop offset="100%" stopColor={T.accent} />
                   </linearGradient>
                 </defs>
                 <path d="M0,0 Q140,2 270,14 L270,66 Q140,78 0,80 Z" fill="url(#fn)" opacity="0.6" />
@@ -294,7 +294,7 @@ export default function LandingPage() {
                   <svg width="100%" height="100%" viewBox="0 0 400 85" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="fc1" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={T.primary} /><stop offset="45%" stopColor="#db2777" /><stop offset="100%" stopColor={T.accent} />
+                        <stop offset="0%" stopColor={T.primary} /><stop offset="45%" stopColor="#f59e0b" /><stop offset="100%" stopColor={T.accent} />
                       </linearGradient>
                     </defs>
                     <path d="M0,0 Q200,1 390,10 L390,75 Q200,84 0,85 Z" fill="url(#fc1)" opacity="0.55" />
@@ -351,15 +351,15 @@ export default function LandingPage() {
 
             {/* Feature 3 — Query Volume */}
             <Card>
-              <CardHeader title="Query Volume" dot="#60a5fa" />
+              <CardHeader title="Query Volume" dot="rgba(255,255,255,0.35)" />
               <div className="p-[16px_20px]">
                 <div className="text-[32px] font-black text-[#34d399] leading-none">+34%</div>
                 <div className="text-xs text-muted mt-1 mb-[14px]">Over the last 7 days</div>
                 <div className="flex items-end gap-1 h-16">
                   {[
                     {h:30,c:"#334155"},{h:48,c:"#334155"},{h:22,c:"#334155"},{h:55,c:"#334155"},{h:38,c:"#334155"},
-                    {h:70,c:T.primary},{h:52,c:T.primary},{h:88,c:T.primary},{h:60,c:"#60a5fa"},{h:42,c:"#60a5fa"},
-                    {h:76,c:T.primary},{h:95,c:T.primary},{h:65,c:T.primary},{h:82,c:"#60a5fa"},
+                    {h:70,c:T.primary},{h:52,c:T.primary},{h:88,c:T.primary},{h:60,c:"rgba(255,255,255,0.35)"},{h:42,c:"rgba(255,255,255,0.35)"},
+                    {h:76,c:T.primary},{h:95,c:T.primary},{h:65,c:T.primary},{h:82,c:"rgba(255,255,255,0.35)"},
                   ].map((b,i)=>(
                     <div key={i} className="flex-1 rounded-t-[2px] opacity-85" style={{ height:`${b.h}%`, background:b.c }} />
                   ))}
@@ -368,7 +368,7 @@ export default function LandingPage() {
                   {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(v=><span key={v} className="text-[7px] text-faint">{v}</span>)}
                 </div>
                 <div className="flex gap-[14px] mt-2">
-                  {[{c:T.primary,l:"This week"},{c:"#60a5fa",l:"Last week"}].map(({c,l})=>(
+                  {[{c:T.primary,l:"This week"},{c:"rgba(255,255,255,0.35)",l:"Last week"}].map(({c,l})=>(
                     <div key={l} className="flex items-center gap-[5px]">
                       <div className="w-5 h-[3px] rounded-sm" style={{ background:c }} />
                       <span className="text-[10px] text-muted">{l}</span>
@@ -400,7 +400,7 @@ export default function LandingPage() {
                   <svg width="100%" height="100%" viewBox="0 0 400 85" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="fc2" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={T.primary} /><stop offset="45%" stopColor="#ec4899" /><stop offset="100%" stopColor={T.accent} />
+                        <stop offset="0%" stopColor={T.primary} /><stop offset="45%" stopColor="#f97316" /><stop offset="100%" stopColor={T.accent} />
                       </linearGradient>
                     </defs>
                     <path d="M0,0 Q200,1 392,10 L392,75 Q200,84 0,85 Z" fill="url(#fc2)" opacity="0.55" />
@@ -474,7 +474,7 @@ export default function LandingPage() {
                     {seg(135, 177, 128, 28, "#3b82f6", "o3", "Cited")}
                     {seg(192, 237, 128, 28, "#06b6d4", "o4", "Stored")}
                     {seg(252, 295, 128, 28, T.primary, "o5", "Parsed")}
-                    {seg(310, 345, 128, 28, "#db2777", "o6", "Tagged")}
+                    {seg(310, 345, 128, 28, "#f59e0b", "o6", "Tagged")}
                     {seg(8,   72,   90, 20, "#ea580c", "i1")}
                     {seg(87,  153,  90, 20, "#1d4ed8", "i2")}
                     {seg(168, 234,  90, 20, "#0e7490", "i3")}

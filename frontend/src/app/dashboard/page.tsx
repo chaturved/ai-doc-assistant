@@ -54,7 +54,7 @@ function SourceBadge({ n }: { n: number }) {
   return (
     <span
       className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded text-[10px] font-bold font-mono mx-px"
-      style={{ background: "rgba(91,33,182,0.25)", border: "1px solid rgba(91,33,182,0.4)", color: "#a78bfa" }}
+      style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.4)", color: "#f59e0b" }}
     >
       {n}
     </span>
@@ -77,12 +77,12 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
   return (
     <div className="msg-in card overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-3 border-b-system">
-        <span className="text-xs font-bold" style={{ color: "#a78bfa" }}>Paperwise</span>
+        <span className="text-xs font-bold" style={{ color: "#f59e0b" }}>Paperwise</span>
         {streaming ? (
           <div className="ml-auto flex items-center gap-1">
             {[0, 180, 360].map((d) => (
               <span key={d} className="inline-block h-1.5 w-1.5 rounded-full shimmer-dot"
-                    style={{ background: "#7c3aed", animationDelay: `${d}ms` }} />
+                    style={{ background: "#f59e0b", animationDelay: `${d}ms` }} />
             ))}
           </div>
         ) : (
@@ -121,7 +121,7 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
           >
             {content}
           </ReactMarkdown>
-          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5" style={{ background: "#a78bfa" }} />}
+          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5" style={{ background: "#f59e0b" }} />}
         </div>
       )}
 
@@ -137,7 +137,7 @@ function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold flex-shrink-0"
-                      style={{ background: "rgba(91,33,182,0.2)", color: "#a78bfa" }}>{i + 1}</span>
+                      style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>{i + 1}</span>
                 <span className="text-[11px] text-muted truncate">{src.name}</span>
               </div>
               <p className={`text-[11px] text-faint leading-relaxed ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>
@@ -170,7 +170,7 @@ function UserMessage({ content, timestamp }: { content: string; timestamp: strin
     <div className="msg-in flex justify-end">
       <div className="max-w-[72%]">
         <div className="rounded-[14px] rounded-tr-[5px] px-4 py-3"
-             style={{ background: "rgba(91,33,182,0.14)", border: "1px solid rgba(91,33,182,0.2)" }}>
+             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
           <p className="text-sm text-white/80">{content}</p>
         </div>
         <div className="flex justify-end mt-1">
@@ -371,7 +371,7 @@ function DashboardContent() {
         @keyframes cursor-blink { 0%,100%{opacity:1}50%{opacity:0} }
         @keyframes fade-in-up { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
         @keyframes shimmer { 0%,100%{opacity:0.35}50%{opacity:0.7} }
-        @keyframes source-glow { 0%{box-shadow:0 0 0 2px rgba(91,33,182,0.8)}100%{box-shadow:0 0 0 2px rgba(91,33,182,0)} }
+        @keyframes source-glow { 0%{box-shadow:0 0 0 2px rgba(245,158,11,0.8)}100%{box-shadow:0 0 0 2px rgba(245,158,11,0)} }
         .cursor-blink{animation:cursor-blink 1.1s ease-in-out infinite}
         .msg-in{animation:fade-in-up 0.28s ease-out forwards}
         .shimmer-dot{animation:shimmer 1.4s ease-in-out infinite}
@@ -379,7 +379,7 @@ function DashboardContent() {
         .source-highlighted{animation:source-glow 2s ease-out forwards}
         .conv-row{transition:background 0.12s}
         .conv-row:hover{background:rgba(255,255,255,0.04)}
-        .conv-row.active{background:rgba(91,33,182,0.1);border-left:2px solid #7c3aed}
+        .conv-row.active{background:rgba(245,158,11,0.08);border-left:2px solid #f59e0b}
         .thin-scroll::-webkit-scrollbar{width:3px}
         .thin-scroll::-webkit-scrollbar-track{background:transparent}
         .thin-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
@@ -502,7 +502,7 @@ function DashboardContent() {
                               onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
                               onClick={(e) => e.stopPropagation()}
                               className="flex-1 text-xs bg-transparent text-white outline-none border-b"
-                              style={{ borderColor: "#7c3aed" }}
+                              style={{ borderColor: "#f59e0b" }}
                             />
                           ) : (
                             <span
@@ -530,9 +530,9 @@ function DashboardContent() {
         {/* Bottom — upgrade card + user */}
         <div style={{ borderTop: `1px solid ${BORDER}` }}>
           {/* Upgrade nudge */}
-          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3" style={{ background: "rgba(91,33,182,0.12)", border: "1px solid rgba(91,33,182,0.22)" }}>
+          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#5b21b6", color: "white" }}>Free</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#f59e0b", color: "white" }}>Free</span>
               <span className="text-[11px] text-muted">20 queries / month</span>
             </div>
             <p className="text-[11px] text-faint mb-2 leading-relaxed">Upgrade to Growth for unlimited queries and documents.</p>
