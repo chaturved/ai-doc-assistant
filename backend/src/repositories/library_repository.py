@@ -7,7 +7,8 @@ def get_libraries(db: Session, user_id: int) -> List[Library]:
 
 def add_library(db: Session, library: Library) -> Library:
     db.add(library)
-    db.flush()  # flush to get library.id
+    db.commit()
+    db.refresh(library)
     return library
 
 def add_library_chunks(db: Session, chunks: List[LibraryChunk]):

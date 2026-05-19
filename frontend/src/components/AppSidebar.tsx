@@ -47,12 +47,13 @@ function DocIcon({ type }: { type: string }) {
 interface Props {
   activeConvId?: number | null;
   onConvSelect?: (id: number) => void;
+  onConvDelete?: (id: number) => void;
   onNewChat?: () => void;
   onConversationsChange?: (convs: Conversation[]) => void;
   refreshKey?: number;
 }
 
-export default function AppSidebar({ activeConvId, onConvSelect, onNewChat, onConversationsChange, refreshKey }: Props) {
+export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, onNewChat, onConversationsChange, refreshKey }: Props) {
   const router   = useRouter();
   const pathname = usePathname();
   const { user, refetchUser } = useAuth();
@@ -100,6 +101,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onNewChat, onCo
     try {
       await deleteConversation(id);
       await loadConversations();
+      onConvDelete?.(id);
     } catch { toast.error("Failed to delete conversation"); }
   };
 

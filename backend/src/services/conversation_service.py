@@ -97,7 +97,8 @@ async def ask(
     add_message(db, conv_id, "user", question)
 
     # Retrieve context
-    query_vector = await get_embedding(question)
+    raw_vector = await get_embedding(question)
+    query_vector = raw_vector.tolist() if hasattr(raw_vector, "tolist") else list(raw_vector)
     doc_id = filters.get("doc_id") if filters else None
     results = get_top_k_chunks(db, user_id, query_vector, top_k, doc_id)
     chunks = get_library_chunks(results)

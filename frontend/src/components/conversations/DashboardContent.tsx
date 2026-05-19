@@ -279,6 +279,9 @@ function DashboardInner() {
     setIsStreaming(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
+    let localContent = "";
+    let localMeta: Meta | null = null;
+
     try {
       await sseClient(`/v1/conversations/${convId}/ask`, {
         method: "POST",
@@ -291,7 +294,7 @@ function DashboardInner() {
             setMessages((prev) => {
               const last = prev[prev.length - 1];
               if (last?.role === "user") {
-                return [...prev, { id: Date.now() + 1, role: "assistant", content: streamingContent, meta: streamingMeta, created_at: new Date().toISOString() }];
+                return [...prev, { id: Date.now() + 1, role: "assistant", content: localContent, meta: localMeta, created_at: new Date().toISOString() }];
               }
               return prev;
             });
@@ -301,8 +304,8 @@ function DashboardInner() {
           if (ev.event === "error") { setIsStreaming(false); toast.error("AI response failed"); return; }
           try {
             const parsed = JSON.parse(ev.data);
-            if (parsed.meta) setStreamingMeta(parsed.meta);
-            if (parsed.token) setStreamingContent((prev) => prev + parsed.token);
+            if (parsed.meta) { localMeta = parsed.meta; setStreamingMeta(parsed.meta); }
+            if (parsed.token) { localContent += parsed.token; setStreamingContent((prev) => prev + parsed.token); }
           } catch { /* ignore */ }
         },
         onerror() { setIsStreaming(false); },
@@ -330,6 +333,7 @@ function DashboardInner() {
       <AppSidebar
         activeConvId={activeConvId}
         onConvSelect={setActiveConvId}
+        onConvDelete={(id) => { if (id === activeConvId) { setActiveConvId(null); setMessages([]); setStreamingContent(""); setStreamingMeta(null); } }}
         onNewChat={handleNewChat}
         refreshKey={sidebarRefresh}
       />

@@ -8,3 +8,4 @@ from .reset_token import ResetToken
 from .conversation import Conversation
 from .message import Message
 from .waitlist import Waitlist
+from .message_feedback import MessageFeedback

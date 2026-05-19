@@ -58,7 +58,7 @@ async def save_files(db: Session, user_id: int, files: list[UploadFile]) -> dict
                     library_id=library.id,
                     chunk_index=i,
                     chunk_text=chunk_txt,
-                    embedding=emb,
+                    embedding=emb.tolist() if hasattr(emb, "tolist") else list(emb),
                 )
                 for i, (chunk_txt, emb) in enumerate(zip(chunks, embeddings))
             ]
