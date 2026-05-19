@@ -29,8 +29,10 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
-        <div className="text-center">
+      <div className="relative min-h-screen flex items-center justify-center px-6 bg-bg overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+        <div className="absolute inset-0 pointer-events-none bg-vignette" />
+        <div className="relative z-10 card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 text-center">
           <p className="text-muted mb-4">Invalid or missing reset token.</p>
           <Link href="/forgot-password" className="link-accent">Request a new link</Link>
         </div>
@@ -49,8 +51,10 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
-      <div className="w-full max-w-[380px]">
+    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+      <div className="absolute inset-0 pointer-events-none bg-vignette" />
+      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
         <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 
         <h2 className="text-2xl font-bold mb-1">Set a new password</h2>
@@ -92,6 +96,7 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+
   return (
     <Suspense>
       <ResetPasswordContent />

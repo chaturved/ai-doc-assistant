@@ -74,9 +74,12 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="relative min-h-screen flex bg-bg overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+      <div className="absolute inset-0 pointer-events-none bg-vignette" />
+
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative overflow-hidden border-r-system">
+      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 relative overflow-hidden border-r-system z-10">
         <div className="absolute inset-0 pointer-events-none bg-login-gradient" />
 
         {/* Floating doc cards */}
@@ -113,8 +116,8 @@ function LoginContent() {
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[380px]">
+      <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
           {/* Mobile logo */}
           <span className="lg:hidden text-[15px] font-bold mb-8 block">Paperwise</span>
 

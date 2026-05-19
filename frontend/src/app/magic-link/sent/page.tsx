@@ -28,8 +28,10 @@ function MagicLinkSentContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-bg">
-      <div className="w-full max-w-[380px] text-center">
+    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
+      <div className="absolute inset-0 pointer-events-none bg-vignette" />
+      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10 text-center">
         <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
 
         <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5 bg-violet-800/[0.12]">
