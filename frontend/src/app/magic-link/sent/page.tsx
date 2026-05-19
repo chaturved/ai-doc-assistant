@@ -7,6 +7,7 @@ import Link from "next/link";
 import { sendMagicLink } from "@/lib/api/auth";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AuthBackground } from "@/components/auth/AuthBackground";
 
 
 function MagicLinkSentContent() {
@@ -29,8 +30,7 @@ function MagicLinkSentContent() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
-      <div className="absolute inset-0 pointer-events-none bg-vignette" />
+      <AuthBackground />
       <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10 text-center">
         <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
 

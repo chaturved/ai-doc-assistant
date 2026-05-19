@@ -10,6 +10,7 @@ import { Eye, EyeOff, User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { signup } from "@/lib/api/auth";
 import { useAuth } from "@/context/AuthContext";
+import { AuthBackground } from "@/components/auth/AuthBackground";
 
 
 const schema = z.object({
@@ -58,8 +59,7 @@ export default function SignupPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
-      <div className="absolute inset-0 pointer-events-none bg-vignette" />
+      <AuthBackground />
       <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
         <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 
