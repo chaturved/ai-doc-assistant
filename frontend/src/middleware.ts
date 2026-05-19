@@ -1,18 +1,31 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const ACCESS_TOKEN_KEY = "access_token";
-const protectedRoutes = ["/dashboard", "/profile", "/library"];
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/reset-password", "/magic-link", "/prototype", "/privacy", "/terms", "/pricing", "/api"];
+const AUTH_ONLY_PATHS = ["/login", "/signup"];
 
-export function middleware(req: NextRequest) {
-  const token = req.cookies.get(ACCESS_TOKEN_KEY); // Secure HttpOnly cookie
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get("access_token")?.value;
 
-  if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
-    if (!token) {
-      // no access token cookie, redirect to login
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p)) || pathname === "/";
+  const isAuthOnly = AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p));
+
+  if (!token && !isPublic) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (token && isAuthOnly) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+};

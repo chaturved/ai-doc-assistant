@@ -4,6 +4,7 @@ from typing import List
 import fitz
 import docx
 import tempfile
+from fastapi import HTTPException
 
 def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
@@ -40,4 +41,4 @@ def extract_text_from_bytes(contents: bytes, ext: str) -> str:
     if ext in ["txt", "md"]:
         return contents.decode("utf-8", errors="ignore")
 
-    return ""
+    raise HTTPException(status_code=400, detail=f"Unsupported file type: .{ext}")

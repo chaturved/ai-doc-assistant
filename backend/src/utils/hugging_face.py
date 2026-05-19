@@ -1,3 +1,12 @@
+import ssl
+import certifi
+
+# Fix SSL certificate verification on macOS with Python 3.11
+_orig_create_default_context = ssl.create_default_context
+ssl.create_default_context = lambda *args, **kwargs: _orig_create_default_context(
+    *args, cafile=certifi.where(), **{k: v for k, v in kwargs.items() if k != "cafile"}
+)
+
 from src.config import HF_API_KEY, HF_EMBEDDING_MODEL, HF_CHAT_MODEL
 from huggingface_hub import AsyncInferenceClient
 from typing import List, AsyncGenerator

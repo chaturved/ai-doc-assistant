@@ -17,11 +17,14 @@ async def ask(
     user_id: int = Depends(get_current_user_id)
 ):
     async def streamer():
-        async for event_type, data in ask_question(db, user_id, query, background_tasks):
-            if event_type == "meta":
-                yield f"data: {json.dumps({'meta': data})}\n\n"
-            elif event_type == "token":
-                yield f"data: {json.dumps({'token': data})}\n\n"
-        yield "data: [DONE]\n\n"
+        try:
+            async for event_type, data in ask_question(db, user_id, query, background_tasks):
+                if event_type == "meta":
+                    yield f"data: {json.dumps({'meta': data})}\n\n"
+                elif event_type == "token":
+                    yield f"data: {json.dumps({'token': data})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
 
     return StreamingResponse(streamer(), media_type="text/event-stream")

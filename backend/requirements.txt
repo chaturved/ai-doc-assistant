@@ -14,3 +14,10 @@ pgvector
 python-dotenv
 boto3
 huggingface_hub[inference]
+authlib
+httpx
+jinja2
+certifi
+slowapi
+limits
+itsdangerous

@@ -1,4 +1,4 @@
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 from src.utils.storage_utils import delete_file, save_raw_file
 from src.utils.text_utils import chunk_text, extract_text_from_bytes
@@ -7,70 +7,86 @@ from src.repositories.library_repository import (
     get_libraries,
     add_library,
     add_library_chunks,
-    clear_user_libraries
+    clear_user_libraries,
 )
 from src.models import Library, LibraryChunk
 
+
 def get_library_data(db: Session, user_id: int) -> dict:
     rows = get_libraries(db, user_id)
-    count = len(rows)
+    total_size = sum(r.size for r in rows)
+    sections = [
+        {
+            "id": r.id,
+            "name": r.name,
+            "type": r.type,
+            "size": r.size,
+            "created_at": r.created_at,
+        }
+        for r in rows
+    ]
+    return {"count": len(rows), "total_size_bytes": total_size, "sections": sections}
 
-    # Organize by type
-    sections = []
-    types = set(row.type for row in rows)
 
-    for t in types:
-        items = [{"name": r.name, "size": r.size} for r in rows if r.type == t]
-        sections.append({"title": t.capitalize(), "icon": t, "items": items})
-
-    return {"count": count, "sections": sections}
-
-async def save_files(db: Session, user_id: int, files: list[UploadFile]):
+async def save_files(db: Session, user_id: int, files: list[UploadFile]) -> dict:
+    uploaded = []
+    errors = []
     for f in files:
-        # Save raw file
-        file_url, contents = await save_raw_file(f, user_id)
+        try:
+            file_url, contents = await save_raw_file(f, user_id)
+            size_bytes = len(contents)
+            ext = (f.filename or "").split(".")[-1].lower()
+            extracted_text = extract_text_from_bytes(contents, ext)
 
-        size_kb = f"{len(contents) / 1024:.0f} KB"
-        ext = f.filename.split(".")[-1]
-
-        extracted_text = extract_text_from_bytes(contents, ext)
-
-        # Save library record
-        library = Library(
-            user_id=user_id,
-            name=f.filename,
-            type=ext,
-            size=size_kb,
-            path=file_url,
-            extracted_text=extracted_text,
-        )
-        library = add_library(db, library)
-
-        # Split text into chunks
-        chunks = chunk_text(extracted_text)
-
-        # Get embeddings for all chunks at once
-        embeddings = await get_embeddings(chunks)
-
-        # Prepare LibraryChunk records
-        chunk_records = [
-            LibraryChunk(
-                library_id=library.id,
-                chunk_index=i,
-                chunk_text=chunk_txt,
-                embedding=emb
+            library = Library(
+                user_id=user_id,
+                name=f.filename,
+                type=ext,
+                size=size_bytes,
+                path=file_url,
+                extracted_text=extracted_text,
             )
-            for i, (chunk_txt, emb) in enumerate(zip(chunks, embeddings))
-        ]
+            library = add_library(db, library)
 
-        add_library_chunks(db, chunk_records)
+            chunks = chunk_text(extracted_text)
+            embeddings = await get_embeddings(chunks)
 
-        # Reset file pointer
-        f.file.seek(0)
+            chunk_records = [
+                LibraryChunk(
+                    library_id=library.id,
+                    chunk_index=i,
+                    chunk_text=chunk_txt,
+                    embedding=emb,
+                )
+                for i, (chunk_txt, emb) in enumerate(zip(chunks, embeddings))
+            ]
+            add_library_chunks(db, chunk_records)
+            f.file.seek(0)
+            uploaded.append({"id": library.id, "name": library.name, "type": library.type, "size": library.size})
+        except HTTPException:
+            raise
+        except Exception as e:
+            errors.append({"file": f.filename, "error": str(e)})
 
-def clear_all(db: Session, user_id: int):
+    return {"uploaded": uploaded, "errors": errors}
+
+
+def delete_document(db: Session, doc_id: int, user_id: int) -> dict:
+    lib = db.query(Library).filter(Library.id == doc_id, Library.user_id == user_id).first()
+    if not lib:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    delete_file(lib.path)
+    db.delete(lib)
+    db.commit()
+    return {"message": "Document deleted"}
+
+
+def clear_all(db: Session, user_id: int) -> dict:
     libraries = get_libraries(db, user_id)
     for lib in libraries:
-        delete_file(lib.path)
-
+        try:
+            delete_file(lib.path)
+        except Exception:
+            pass
     clear_user_libraries(db, user_id)
+    return {"message": "Library cleared"}

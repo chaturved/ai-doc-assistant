@@ -1,10 +1,4 @@
 from typing import List, Optional
-from requests import Session
-
-from src.models.library import Library
-from src.models.library_chunk import LibraryChunk
-
-from typing import List
 from sqlalchemy.orm import Session
 from src.models import Library, LibraryChunk
 

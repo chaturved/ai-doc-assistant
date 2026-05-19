@@ -2,3 +2,9 @@ from .library import Library
 from .user import User
 from .library_chunk import LibraryChunk
 from .recent_query import RecentQuery
+from .oauth_account import OAuthAccount
+from .magic_token import MagicToken
+from .reset_token import ResetToken
+from .conversation import Conversation
+from .message import Message
+from .waitlist import Waitlist
