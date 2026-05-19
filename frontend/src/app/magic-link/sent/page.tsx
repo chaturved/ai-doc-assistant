@@ -30,8 +30,7 @@ function MagicLinkSentContent() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
       <div className="w-full max-w-[380px] text-center">
-        <div className="flex items-center justify-center gap-[9px] mb-10">          <span className="text-[15px] font-bold">Paperwise</span>
-        </div>
+        <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
 
         <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5"
              style={{ background: "rgba(91,33,182,0.12)" }}>

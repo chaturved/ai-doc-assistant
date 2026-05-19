@@ -98,8 +98,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: "#080810" }}>
       <div className="w-full max-w-[500px]">
         {/* Logo */}
-        <div className="flex items-center gap-[9px] mb-10">          <span className="text-[15px] font-bold">Paperwise</span>
-        </div>
+        <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
 
         {/* Progress */}
         <div className="flex items-center gap-2 mb-3">

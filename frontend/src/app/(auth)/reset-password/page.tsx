@@ -51,8 +51,7 @@ function ResetPasswordContent() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#080810" }}>
       <div className="w-full max-w-[380px]">
-        <div className="flex items-center gap-[9px] mb-8">          <span className="text-[15px] font-bold">Paperwise</span>
-        </div>
+        <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 
         <h2 className="text-2xl font-bold mb-1">Set a new password</h2>
         <p className="text-sm text-muted mb-8">Choose a strong password for your account.</p>

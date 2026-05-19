@@ -114,8 +114,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[380px]">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">            <span className="text-[15px] font-bold">Paperwise</span>
-          </div>
+          <span className="lg:hidden text-[15px] font-bold mb-8 block">Paperwise</span>
 
           <h2 className="text-2xl font-bold mb-1">Sign in</h2>
           <p className="text-sm text-muted mb-8">Welcome back to Paperwise.</p>

@@ -59,8 +59,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: "#080810" }}>
       <div className="w-full max-w-[400px]">
-        <div className="flex items-center gap-[9px] mb-8">          <span className="text-[15px] font-bold">Paperwise</span>
-        </div>
+        <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
 
         <h2 className="text-2xl font-bold mb-1">Create your account</h2>
         <p className="text-sm text-muted mb-8">Start chatting with your documents for free.</p>

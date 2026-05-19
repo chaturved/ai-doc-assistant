@@ -5,28 +5,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Plus, Search, Settings, LogOut, Send, FileText,
-  ChevronDown, Copy, ThumbsUp, ThumbsDown,
-  Paperclip, Trash2, MessageSquare, Upload,
+  ChevronDown, ChevronRight, Copy, ThumbsUp, ThumbsDown,
+  Paperclip, Trash2, Upload, MessageSquare,
 } from "lucide-react";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useAuth } from "@/context/AuthContext";
 import {
-  clearLibrary, createConversation, deleteConversation, deleteDocument,
-  formatBytes, getConversations, getLibrary, getMessages,
+  createConversation, deleteConversation, deleteDocument,
+  getConversations, getLibrary, getMessages,
   logout, renameConversation, uploadFiles,
 } from "@/lib/paperwise-api";
 import type { Conversation, LibraryDoc, Message, Meta, Source } from "@/lib/types";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const BORDER = "rgba(255,255,255,0.08)";
 
 function groupByDate(convs: Conversation[]) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const now       = new Date();
+  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today.getTime() - 86400000);
-  const lastWeek = new Date(today.getTime() - 7 * 86400000);
-
+  const lastWeek  = new Date(today.getTime() - 7 * 86400000);
   const groups: { label: string; items: Conversation[] }[] = [
     { label: "Today", items: [] },
     { label: "Yesterday", items: [] },
@@ -35,92 +37,81 @@ function groupByDate(convs: Conversation[]) {
   ];
   for (const c of convs) {
     const d = new Date(c.updated_at);
-    if (d >= today) groups[0].items.push(c);
+    if (d >= today)      groups[0].items.push(c);
     else if (d >= yesterday) groups[1].items.push(c);
-    else if (d >= lastWeek) groups[2].items.push(c);
-    else groups[3].items.push(c);
+    else if (d >= lastWeek)  groups[2].items.push(c);
+    else                     groups[3].items.push(c);
   }
   return groups.filter((g) => g.items.length > 0);
 }
 
-function Avatar({ initials }: { initials: string }) {
-  return (
-    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center flex-shrink-0">
-      <span className="text-[10px] font-bold text-white">{initials}</span>
-    </div>
-  );
-}
-
 function DocIcon({ type }: { type: string }) {
-  const color = type === "pdf" ? "text-rose-400" : type === "docx" ? "text-blue-400" : "text-zinc-400";
-  return <FileText className={`h-4 w-4 ${color}`} />;
+  const color = type === "pdf" ? "#f87171" : type === "docx" ? "#60a5fa" : "rgba(255,255,255,0.35)";
+  return <FileText style={{ width: 13, height: 13, color }} />;
 }
 
-// ─── Source badge (inline clickable [N]) ─────────────────────────────────────
-
-function SourceBadge({ n, onClick }: { n: number; onClick: () => void }) {
+function SourceBadge({ n }: { n: number }) {
   return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold font-mono cursor-pointer mx-px hover:bg-indigo-500/35 transition-colors"
+    <span
+      className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded text-[10px] font-bold font-mono mx-px"
+      style={{ background: "rgba(91,33,182,0.25)", border: "1px solid rgba(91,33,182,0.4)", color: "#a78bfa" }}
     >
       {n}
-    </button>
+    </span>
   );
 }
 
-// ─── AI Message ──────────────────────────────────────────────────────────────
+// ─── AI Message ───────────────────────────────────────────────────────────────
 
 interface AIMessageProps {
   content: string;
   meta: Meta | null;
   streaming?: boolean;
-  onSourceClick?: (n: number) => void;
   timestamp: string;
 }
 
-function AIMessage({ content, meta, streaming, onSourceClick, timestamp }: AIMessageProps) {
+function AIMessage({ content, meta, streaming, timestamp }: AIMessageProps) {
   const handleCopy = () => { navigator.clipboard.writeText(content); toast.success("Copied!"); };
+  const [expandedSource, setExpandedSource] = useState<number | null>(null);
 
   return (
-    <div className="msg-in rounded-2xl bg-zinc-900/50 ring-1 ring-white/[0.07] overflow-hidden">
-      <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.06]">
-        <div className="h-5 w-5 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-          <span className="text-[8px] font-bold text-white">P</span>
-        </div>
-        <span className="text-xs font-semibold text-zinc-300">Paperwise</span>
+    <div className="msg-in card overflow-hidden">
+      <div className="flex items-center gap-2.5 px-5 py-3 border-b-system">
+        <span className="text-xs font-bold" style={{ color: "#a78bfa" }}>Paperwise</span>
         {streaming ? (
-          <div className="ml-auto flex items-center gap-1.5">
-            {[0, 200, 400].map((d) => (
-              <span key={d} className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500 shimmer-line" style={{ animationDelay: `${d}ms` }} />
+          <div className="ml-auto flex items-center gap-1">
+            {[0, 180, 360].map((d) => (
+              <span key={d} className="inline-block h-1.5 w-1.5 rounded-full shimmer-dot"
+                    style={{ background: "#7c3aed", animationDelay: `${d}ms` }} />
             ))}
           </div>
         ) : (
-          <span className="text-[10px] text-zinc-700 ml-auto">{new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="text-[10px] text-faint ml-auto">
+            {new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
         )}
       </div>
 
       {streaming && !content ? (
         <div className="px-5 py-4 space-y-3">
           {[100, 83, 91].map((w, i) => (
-            <div key={i} className={`h-3.5 rounded-full bg-zinc-800/80 shimmer-line`} style={{ width: `${w}%`, animationDelay: `${i * 150}ms` }} />
+            <div key={i} className="h-3 rounded-full shimmer-line" style={{ width: `${w}%` }} />
           ))}
         </div>
       ) : (
-        <div className="px-5 py-4 text-sm text-zinc-300 leading-relaxed prose prose-invert prose-sm max-w-none">
+        <div className="px-5 py-4 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" style={{ color: "rgba(255,255,255,0.78)" }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // Render [N] source badges
               text: ({ children }) => {
-                if (!meta?.sources || !onSourceClick) return <>{children}</>;
+                if (!meta?.sources) return <>{children}</>;
                 const text = String(children);
                 const parts = text.split(/(\[\d+\])/g);
                 return (
                   <>
                     {parts.map((p, i) => {
                       const match = p.match(/^\[(\d+)\]$/);
-                      if (match) return <SourceBadge key={i} n={Number(match[1])} onClick={() => onSourceClick(Number(match[1]))} />;
+                      if (match) return <SourceBadge key={i} n={Number(match[1])} />;
                       return <span key={i}>{p}</span>;
                     })}
                   </>
@@ -130,18 +121,41 @@ function AIMessage({ content, meta, streaming, onSourceClick, timestamp }: AIMes
           >
             {content}
           </ReactMarkdown>
-          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 bg-indigo-400 rounded-sm align-text-bottom ml-0.5" />}
+          {streaming && <span className="cursor-blink inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5" style={{ background: "#a78bfa" }} />}
         </div>
       )}
 
+      {/* Inline sources */}
       {meta?.sources && meta.sources.length > 0 && !streaming && (
-        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center gap-1">
-          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all">
-            <Copy className="h-3.5 w-3.5" /> Copy
+        <div className="px-5 pb-4 space-y-2">
+          <p className="text-[10px] font-semibold text-faint uppercase tracking-wider mb-2">Sources</p>
+          {meta.sources.map((src: Source, i: number) => (
+            <div key={i}
+              onClick={() => setExpandedSource(expandedSource === i + 1 ? null : i + 1)}
+              className="rounded-[8px] p-2.5 cursor-pointer transition-all"
+              style={{ background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.07)` }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold flex-shrink-0"
+                      style={{ background: "rgba(91,33,182,0.2)", color: "#a78bfa" }}>{i + 1}</span>
+                <span className="text-[11px] text-muted truncate">{src.name}</span>
+              </div>
+              <p className={`text-[11px] text-faint leading-relaxed ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>
+                {src.quote}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!streaming && (
+        <div className="px-5 py-2.5 border-t-system flex items-center gap-1">
+          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-xs text-faint hover:text-muted hover:bg-white/[0.04] transition-all">
+            <Copy style={{ width: 13, height: 13 }} /> Copy
           </button>
-          <div className="ml-auto flex items-center gap-1">
-            <button className="p-1.5 rounded-lg text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"><ThumbsUp className="h-3.5 w-3.5" /></button>
-            <button className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"><ThumbsDown className="h-3.5 w-3.5" /></button>
+          <div className="ml-auto flex items-center gap-0.5">
+            <button className="p-1.5 rounded-[7px] text-faint hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"><ThumbsUp style={{ width: 13, height: 13 }} /></button>
+            <button className="p-1.5 rounded-[7px] text-faint hover:text-red-400 hover:bg-red-500/10 transition-all"><ThumbsDown style={{ width: 13, height: 13 }} /></button>
           </div>
         </div>
       )}
@@ -154,15 +168,33 @@ function AIMessage({ content, meta, streaming, onSourceClick, timestamp }: AIMes
 function UserMessage({ content, timestamp }: { content: string; timestamp: string }) {
   return (
     <div className="msg-in flex justify-end">
-      <div className="max-w-[70%]">
-        <div className="rounded-2xl rounded-tr-sm bg-indigo-600/15 border border-indigo-500/20 px-4 py-3">
-          <p className="text-sm text-zinc-200">{content}</p>
+      <div className="max-w-[72%]">
+        <div className="rounded-[14px] rounded-tr-[5px] px-4 py-3"
+             style={{ background: "rgba(91,33,182,0.14)", border: "1px solid rgba(91,33,182,0.2)" }}>
+          <p className="text-sm text-white/80">{content}</p>
         </div>
         <div className="flex justify-end mt-1">
-          <span className="text-[10px] text-zinc-700">{new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="text-[10px] text-faint">
+            {new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Suggestion chip ─────────────────────────────────────────────────────────
+
+function Chip({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-[12.5px] text-muted hover:text-white whitespace-nowrap transition-all"
+      style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}` }}
+    >
+      <span className="text-[13px]">{icon}</span>
+      {label}
+    </button>
   );
 }
 
@@ -181,33 +213,23 @@ function DashboardContent() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"sources" | "library">("sources");
   const [library, setLibrary] = useState<LibraryDoc[]>([]);
-  const [highlightedSource, setHighlightedSource] = useState<number | null>(null);
-  const [expandedSource, setExpandedSource] = useState<number | null>(null);
   const [hoveredConv, setHoveredConv] = useState<number | null>(null);
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [uploadingDocs, setUploadingDocs] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Current conversation's last AI message meta (for right panel sources)
-  const lastAIMeta = messages.filter((m) => m.role === "assistant").slice(-1)[0]?.meta ?? streamingMeta;
-
   const loadConversations = useCallback(async () => {
-    try {
-      const data = await getConversations();
-      setConversations(data);
-    } catch { /* silent */ }
+    try { setConversations(await getConversations()); } catch { /* silent */ }
   }, []);
 
   const loadLibrary = useCallback(async () => {
-    try {
-      const data = await getLibrary();
-      setLibrary(data.sections);
-    } catch { /* silent */ }
+    try { const data = await getLibrary(); setLibrary(data.sections); } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
@@ -218,11 +240,8 @@ function DashboardContent() {
   }, [loadConversations, loadLibrary, params]);
 
   useEffect(() => {
-    if (activeConvId) {
-      getMessages(activeConvId).then(setMessages).catch(() => {});
-    } else {
-      setMessages([]);
-    }
+    if (activeConvId) getMessages(activeConvId).then(setMessages).catch(() => {});
+    else setMessages([]);
   }, [activeConvId]);
 
   useEffect(() => {
@@ -251,22 +270,12 @@ function DashboardContent() {
 
   const handleRenameSubmit = async (id: number) => {
     if (!renameValue.trim()) { setRenamingId(null); return; }
-    try {
-      await renameConversation(id, renameValue.trim());
-      await loadConversations();
-    } catch { /* silent */ }
+    try { await renameConversation(id, renameValue.trim()); await loadConversations(); } catch { /* silent */ }
     setRenamingId(null);
   };
 
-  const handleSourceClick = (n: number) => {
-    setActiveTab("sources");
-    setHighlightedSource(n);
-    setExpandedSource(n);
-    setTimeout(() => setHighlightedSource(null), 2000);
-  };
-
-  const handleSend = async () => {
-    const q = inputValue.trim();
+  const handleSend = async (question?: string) => {
+    const q = (question ?? inputValue).trim();
     if (!q || isStreaming) return;
 
     let convId = activeConvId;
@@ -285,7 +294,6 @@ function DashboardContent() {
     setStreamingContent("");
     setStreamingMeta(null);
     setIsStreaming(true);
-
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     try {
@@ -301,13 +309,7 @@ function DashboardContent() {
             setMessages((prev) => {
               const last = prev[prev.length - 1];
               if (last?.role === "user") {
-                return [...prev, {
-                  id: Date.now() + 1,
-                  role: "assistant",
-                  content: streamingContent,
-                  meta: streamingMeta,
-                  created_at: new Date().toISOString(),
-                }];
+                return [...prev, { id: Date.now() + 1, role: "assistant", content: streamingContent, meta: streamingMeta, created_at: new Date().toISOString() }];
               }
               return prev;
             });
@@ -345,300 +347,339 @@ function DashboardContent() {
   };
 
   const handleDeleteDoc = async (id: number) => {
-    try {
-      await deleteDocument(id);
-      await loadLibrary();
-    } catch { toast.error("Delete failed"); }
-  };
-
-  const handleClearLibrary = async () => {
-    if (!confirm("Delete all documents? This cannot be undone.")) return;
-    try {
-      await clearLibrary();
-      await loadLibrary();
-      toast.success("Library cleared");
-    } catch { toast.error("Failed to clear library"); }
+    try { await deleteDocument(id); await loadLibrary(); } catch { toast.error("Delete failed"); }
   };
 
   const filteredConvs = conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
   const grouped = groupByDate(filteredConvs);
+  const inChat = activeConvId !== null || messages.length > 0;
+
+  const SUGGESTIONS = [
+    { icon: "📄", label: "Summarize my Q3 report" },
+    { icon: "🔍", label: "Find key risks" },
+    { icon: "📋", label: "List action items" },
+    { icon: "💡", label: "What are the conclusions?" },
+    { icon: "⚖️", label: "Compare two documents" },
+    { icon: "🔗", label: "Extract all citations" },
+  ];
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-zinc-100 overflow-hidden">
+    <div className="flex h-screen overflow-hidden text-white relative" style={{ background: "#080810" }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 140% 110% at 50% 100%, #4c1db0 0%, #2a0e6e 20%, #7a3d00 42%, #080810 72%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 45%, rgba(8,8,16,0.75) 100%)" }} />
       <style>{`
-        @keyframes cursor-blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
-        @keyframes fade-in-up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes shimmer { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
-        @keyframes source-glow { 0% { box-shadow:0 0 0 2px rgba(99,102,241,0.8); } 100% { box-shadow:0 0 0 2px rgba(99,102,241,0); } }
-        .cursor-blink { animation: cursor-blink 1.1s ease-in-out infinite; }
-        .msg-in { animation: fade-in-up 0.3s ease-out forwards; }
-        .shimmer-line { animation: shimmer 1.5s ease-in-out infinite; }
-        .source-highlighted { animation: source-glow 2s ease-out forwards; }
-        .conv-item { transition: background 0.15s ease; }
-        .conv-item:hover { background: rgba(255,255,255,0.04); }
-        .conv-item.active { background: rgba(99,102,241,0.08); border-left: 2px solid #6366f1; }
-        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-        textarea::-webkit-scrollbar { display: none; }
-        .prose p { margin: 0.5em 0; }
-        .prose ul { margin: 0.5em 0; padding-left: 1.5em; }
-        .prose li { margin: 0.25em 0; }
-        .prose strong { color: #e4e4e7; }
-        .prose code { background: rgba(255,255,255,0.08); padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.85em; }
-        .prose pre { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1em; overflow-x: auto; }
+        @keyframes cursor-blink { 0%,100%{opacity:1}50%{opacity:0} }
+        @keyframes fade-in-up { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { 0%,100%{opacity:0.35}50%{opacity:0.7} }
+        @keyframes source-glow { 0%{box-shadow:0 0 0 2px rgba(91,33,182,0.8)}100%{box-shadow:0 0 0 2px rgba(91,33,182,0)} }
+        .cursor-blink{animation:cursor-blink 1.1s ease-in-out infinite}
+        .msg-in{animation:fade-in-up 0.28s ease-out forwards}
+        .shimmer-dot{animation:shimmer 1.4s ease-in-out infinite}
+        .shimmer-line{background:rgba(255,255,255,0.06);animation:shimmer 1.5s ease-in-out infinite}
+        .source-highlighted{animation:source-glow 2s ease-out forwards}
+        .conv-row{transition:background 0.12s}
+        .conv-row:hover{background:rgba(255,255,255,0.04)}
+        .conv-row.active{background:rgba(91,33,182,0.1);border-left:2px solid #7c3aed}
+        .thin-scroll::-webkit-scrollbar{width:3px}
+        .thin-scroll::-webkit-scrollbar-track{background:transparent}
+        .thin-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+        textarea::-webkit-scrollbar{display:none}
+        .prose p{margin:0.45em 0}
+        .prose ul{margin:0.45em 0;padding-left:1.4em}
+        .prose li{margin:0.2em 0}
+        .prose strong{color:rgba(255,255,255,0.9)}
+        .prose code{background:rgba(255,255,255,0.07);padding:0.1em 0.3em;border-radius:4px;font-size:0.84em}
+        .prose pre{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.9em;overflow-x:auto}
       `}</style>
 
-      {/* ═══ LEFT SIDEBAR ═══ */}
-      <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-white/[0.06] bg-[#0d0d10]">
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-white/[0.06]">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0">
-            <span className="text-white text-xs font-bold">P</span>
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-zinc-100">Paperwise</span>
+      {/* ══════════ LEFT SIDEBAR ══════════ */}
+      <aside className="w-[255px] flex-shrink-0 flex flex-col thin-scroll relative z-10"
+             style={{ background: "rgba(8,8,16,0.65)", borderRight: `1px solid ${BORDER}` }}>
+        {/* Brand */}
+        <div className="flex items-center justify-between px-4 py-[14px]" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <span className="text-[15px] font-bold tracking-tight">Paperwise</span>
         </div>
 
+        {/* New chat */}
         <div className="px-3 pt-3 pb-2">
-          <button onClick={handleNewChat} className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 transition-colors px-3 py-2 text-sm font-medium text-white shadow-md shadow-indigo-500/20">
-            <Plus className="h-4 w-4" /> New chat
+          <button onClick={handleNewChat}
+            className="btn-primary w-full !rounded-[9px] !text-[13px] !font-semibold">
+            <Plus style={{ width: 14, height: 14 }} /> New Chat
           </button>
         </div>
 
+        {/* Search */}
         <div className="px-3 pb-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-600" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search conversations…" className="w-full rounded-lg bg-zinc-900/60 border border-white/[0.06] pl-8 pr-3 py-1.5 text-xs text-zinc-400 placeholder:text-zinc-700 outline-none focus:ring-1 focus:ring-indigo-500/40 transition" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" style={{ width: 13, height: 13 }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
+              className="w-full h-8 rounded-[8px] pl-8 pr-3 text-xs text-muted placeholder:text-faint outline-none transition"
+              style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}` }} />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin px-2 pb-2">
-          {grouped.length === 0 ? (
-            <p className="px-2 py-4 text-xs text-zinc-700 text-center">No conversations yet.<br />Start one above.</p>
-          ) : (
-            grouped.map(({ label, items }) => (
-              <div key={label} className="mb-3">
-                <div className="px-2 py-1 text-[10px] font-medium text-zinc-700 uppercase tracking-wider">{label}</div>
-                {items.map((conv) => (
-                  <div
-                    key={conv.id}
-                    className={`conv-item relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer mb-0.5 ${activeConvId === conv.id ? "active" : ""}`}
-                    onClick={() => setActiveConvId(conv.id)}
-                    onMouseEnter={() => setHoveredConv(conv.id)}
-                    onMouseLeave={() => setHoveredConv(null)}
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 text-zinc-700 flex-shrink-0" />
-                    {renamingId === conv.id ? (
-                      <input
-                        autoFocus
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={() => handleRenameSubmit(conv.id)}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex-1 text-xs bg-transparent text-zinc-200 outline-none border-b border-indigo-500/50"
-                      />
-                    ) : (
-                      <span className={`text-xs truncate flex-1 ${activeConvId === conv.id ? "text-zinc-200" : "text-zinc-500"}`} onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(conv.id); setRenameValue(conv.title); }}>
-                        {conv.title}
-                      </span>
-                    )}
-                    {hoveredConv === conv.id && renamingId !== conv.id && (
-                      <button onClick={(e) => handleDeleteConv(conv.id, e)} className="flex-shrink-0 p-0.5 rounded text-zinc-600 hover:text-rose-400 transition-colors">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+        {/* Scrollable nav area */}
+        <div className="flex-1 overflow-y-auto thin-scroll px-2 pb-2 space-y-1">
+
+          {/* Documents section */}
+          <div>
+            <button onClick={() => setDocsOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-2 py-1.5 rounded-[7px] text-xs font-semibold text-muted uppercase tracking-wider hover:text-white hover:bg-white/[0.03] transition">
+              <span>Documents</span>
+              <div className="flex items-center gap-1">
+                <span className="text-faint font-normal normal-case tracking-normal">{library.length}</span>
+                {docsOpen ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}
               </div>
-            ))
-          )}
-        </div>
-
-        <div className="border-t border-white/[0.06] px-3 py-3">
-          <div className="flex items-center gap-2.5">
-            <Avatar initials={user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "??"} />
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-zinc-300 truncate">{user?.full_name}</div>
-              <div className="text-[10px] text-zinc-600 truncate">{user?.email}</div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => router.push("/settings/profile")} className="p-1.5 rounded-md text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/60 transition-colors">
-                <Settings className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={handleLogout} className="p-1.5 rounded-md text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors">
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* ═══ CHAT AREA ═══ */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
-        <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-6 space-y-6">
-          {!activeConvId && messages.length === 0 ? (
-            /* Welcome state */
-            <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4">
-                <span className="text-white text-lg font-bold">P</span>
-              </div>
-              <h2 className="text-xl font-semibold text-zinc-200 mb-2">Chat with your documents</h2>
-              <p className="text-sm text-zinc-600 mb-8">Upload documents and ask anything about them.</p>
-              {library.length > 0 && (
-                <div className="rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.07] px-4 py-3 mb-6 text-sm text-zinc-500">
-                  {library.length} document{library.length !== 1 ? "s" : ""} in your library 📄
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-2 max-w-sm w-full">
-                {["Summarize my Q3 report", "What are the action items?", "Compare docs A and B", "Find the key risks"].map((q) => (
-                  <button key={q} onClick={() => setInputValue(q)} className="text-left text-xs text-zinc-500 rounded-xl bg-zinc-900/60 ring-1 ring-white/[0.07] px-3 py-2.5 hover:ring-indigo-500/30 hover:text-zinc-300 hover:bg-indigo-500/5 transition-all">
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <>
-              {messages.map((msg) =>
-                msg.role === "user" ? (
-                  <UserMessage key={msg.id} content={msg.content} timestamp={msg.created_at} />
-                ) : (
-                  <AIMessage key={msg.id} content={msg.content} meta={msg.meta} timestamp={msg.created_at} onSourceClick={handleSourceClick} />
-                )
-              )}
-              {isStreaming && (
-                <AIMessage content={streamingContent} meta={streamingMeta} streaming timestamp={new Date().toISOString()} onSourceClick={handleSourceClick} />
-              )}
-            </>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Input bar */}
-        <div className="flex-shrink-0 border-t border-white/[0.06] bg-[#09090b] px-6 py-4">
-          <div className="rounded-2xl bg-zinc-900/60 ring-1 ring-white/[0.07] focus-within:ring-indigo-500/30 transition-all overflow-hidden">
-            <textarea
-              ref={textareaRef}
-              rows={1}
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Ask anything about your documents…"
-              className="w-full bg-transparent px-4 pt-3.5 pb-2 text-sm text-zinc-200 placeholder:text-zinc-700 resize-none outline-none min-h-[52px]"
-              style={{ overflow: "hidden" }}
-            />
-            <div className="flex items-center justify-between px-3 pb-2.5">
-              <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-zinc-900/60 px-2.5 py-1.5 text-xs text-zinc-500 hover:text-zinc-300 hover:border-white/15 transition-all">
-                <Paperclip className="h-3.5 w-3.5" /> All docs <ChevronDown className="h-3 w-3" />
-              </button>
-              <button
-                onClick={handleSend}
-                disabled={isStreaming || !inputValue.trim()}
-                className="flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-40 transition-all shadow-md shadow-indigo-500/20"
-              >
-                {isStreaming ? <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <Send className="h-3.5 w-3.5 text-white" />}
-              </button>
-            </div>
-          </div>
-          <p className="text-center text-[10px] text-zinc-800 mt-2">Paperwise answers from your documents only.</p>
-        </div>
-      </main>
-
-      {/* ═══ RIGHT PANEL ═══ */}
-      <aside className="w-[300px] flex-shrink-0 flex flex-col border-l border-white/[0.06] bg-[#0d0d10]">
-        <div className="flex border-b border-white/[0.06] px-4">
-          {(["sources", "library"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`py-3.5 text-xs font-medium mr-5 transition-colors border-b-2 ${activeTab === tab ? "text-zinc-200 border-indigo-500" : "text-zinc-600 border-transparent"}`}
-            >
-              {tab === "sources" ? `Sources${lastAIMeta?.sources?.length ? ` (${lastAIMeta.sources.length})` : ""}` : "Library"}
             </button>
-          ))}
-        </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin p-3">
-          {activeTab === "sources" && (
-            <div className="space-y-2.5">
-              {!lastAIMeta?.sources?.length ? (
-                <p className="text-xs text-zinc-700 text-center py-8">Ask a question to see sources here.</p>
-              ) : (
-                lastAIMeta.sources.map((src: Source, i: number) => (
-                  <div
-                    key={i}
-                    className={`rounded-xl ring-1 overflow-hidden transition-all cursor-pointer ${highlightedSource === i + 1 ? "ring-indigo-500/60 bg-indigo-500/5 source-highlighted" : "ring-white/[0.07] bg-zinc-900/40 hover:ring-white/15"}`}
-                    onClick={() => setExpandedSource(expandedSource === i + 1 ? null : i + 1)}
-                  >
-                    <div className="p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-indigo-500/20 text-indigo-300 text-[10px] font-bold flex-shrink-0">{i + 1}</span>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <FileText className="h-3 w-3 text-rose-400 flex-shrink-0" />
-                          <span className="text-xs text-zinc-300 truncate">{src.name}</span>
-                        </div>
-                      </div>
-                      <p className={`text-xs text-zinc-500 leading-relaxed ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>{src.quote}</p>
-                      <button className="mt-1 text-[10px] text-indigo-400 hover:text-indigo-300">
-                        {expandedSource === i + 1 ? "Show less ↑" : "View full ↓"}
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === "library" && (
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <span className="text-xs text-zinc-500">{library.length} document{library.length !== 1 ? "s" : ""}</span>
+            {docsOpen && (
+              <div className="mt-0.5">
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingDocs}
-                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 transition-colors px-2.5 py-1.5 text-[11px] font-medium text-white disabled:opacity-50"
-                >
-                  {uploadingDocs ? <span className="h-3 w-3 rounded-full border border-white/30 border-t-white animate-spin" /> : <Upload className="h-3 w-3" />}
-                  Upload
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[7px] text-xs text-muted hover:text-white hover:bg-white/[0.04] transition disabled:opacity-50">
+                  {uploadingDocs
+                    ? <span className="h-3 w-3 rounded-full border border-white/20 border-t-white/60 animate-spin" />
+                    : <Upload style={{ width: 13, height: 13 }} />}
+                  Upload document
                 </button>
                 <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
-              </div>
-              {library.length === 0 ? (
-                <p className="text-xs text-zinc-700 text-center py-8">No documents yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {library.map((doc) => (
-                    <div key={doc.id} className="flex items-center gap-2.5 rounded-xl bg-zinc-900/40 ring-1 ring-white/[0.07] p-3 hover:ring-white/15 transition-all group">
-                      <div className="h-8 w-8 rounded-lg bg-zinc-800 ring-1 ring-white/[0.08] flex items-center justify-center flex-shrink-0">
-                        <DocIcon type={doc.type} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-zinc-300 truncate">{doc.name}</div>
-                        <div className="text-[10px] text-zinc-600">{formatBytes(doc.size)}</div>
-                      </div>
-                      <button onClick={() => handleDeleteDoc(doc.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all">
-                        <Trash2 className="h-3.5 w-3.5" />
+
+                {library.length === 0 ? (
+                  <p className="px-2 py-2 text-[11px] text-faint">No documents yet.</p>
+                ) : (
+                  library.slice(0, 8).map((doc) => (
+                    <div key={doc.id}
+                      className="group flex items-center gap-2 px-2 py-1.5 rounded-[7px] hover:bg-white/[0.04] transition cursor-default">
+                      <DocIcon type={doc.type} />
+                      <span className="flex-1 text-xs text-muted truncate group-hover:text-white transition">{doc.name}</span>
+                      <button onClick={() => handleDeleteDoc(doc.id)}
+                        className="opacity-0 group-hover:opacity-100 text-faint hover:text-red-400 transition p-0.5 rounded">
+                        <Trash2 style={{ width: 11, height: 11 }} />
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
-              {library.length > 0 && (
-                <button onClick={handleClearLibrary} className="mt-4 w-full text-center text-xs text-rose-400/60 hover:text-rose-400 transition-colors py-2 rounded-lg hover:bg-rose-500/5">
-                  Clear all documents
-                </button>
-              )}
+                  ))
+                )}
+                {library.length > 8 && (
+                  <p className="px-2 py-1 text-[11px] text-faint">+{library.length - 8} more</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div style={{ height: 1, background: BORDER, margin: "6px 8px" }} />
+
+          {/* Chat section */}
+          <div>
+            <button onClick={() => setChatOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-2 py-1.5 rounded-[7px] text-xs font-semibold text-muted uppercase tracking-wider hover:text-white hover:bg-white/[0.03] transition">
+              <span>Chat</span>
+              {chatOpen ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}
+            </button>
+
+            {chatOpen && (
+              <div className="mt-0.5">
+                {grouped.length === 0 ? (
+                  <p className="px-2 py-2 text-[11px] text-faint">No conversations yet.</p>
+                ) : (
+                  grouped.map(({ label, items }) => (
+                    <div key={label} className="mb-2">
+                      <div className="px-2 py-0.5 text-[10px] text-faint uppercase tracking-widest">{label}</div>
+                      {items.map((conv) => (
+                        <div
+                          key={conv.id}
+                          onClick={() => setActiveConvId(conv.id)}
+                          onMouseEnter={() => setHoveredConv(conv.id)}
+                          onMouseLeave={() => setHoveredConv(null)}
+                          className={`conv-row relative flex items-center gap-2 px-2 py-1.5 rounded-[7px] cursor-pointer mb-px ${activeConvId === conv.id ? "active" : ""}`}
+                        >
+                          <MessageSquare className="text-faint flex-shrink-0" style={{ width: 12, height: 12 }} />
+                          {renamingId === conv.id ? (
+                            <input
+                              autoFocus value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onBlur={() => handleRenameSubmit(conv.id)}
+                              onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 text-xs bg-transparent text-white outline-none border-b"
+                              style={{ borderColor: "#7c3aed" }}
+                            />
+                          ) : (
+                            <span
+                              className={`text-xs truncate flex-1 transition ${activeConvId === conv.id ? "text-white" : "text-muted"}`}
+                              onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(conv.id); setRenameValue(conv.title); }}
+                            >
+                              {conv.title}
+                            </span>
+                          )}
+                          {hoveredConv === conv.id && renamingId !== conv.id && (
+                            <button onClick={(e) => handleDeleteConv(conv.id, e)} className="flex-shrink-0 text-faint hover:text-red-400 transition p-0.5 rounded">
+                              <Trash2 style={{ width: 11, height: 11 }} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom — upgrade card + user */}
+        <div style={{ borderTop: `1px solid ${BORDER}` }}>
+          {/* Upgrade nudge */}
+          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3" style={{ background: "rgba(91,33,182,0.12)", border: "1px solid rgba(91,33,182,0.22)" }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#5b21b6", color: "white" }}>Free</span>
+              <span className="text-[11px] text-muted">20 queries / month</span>
             </div>
-          )}
+            <p className="text-[11px] text-faint mb-2 leading-relaxed">Upgrade to Growth for unlimited queries and documents.</p>
+            <Link href="/pricing" className="block w-full text-center text-[12px] font-semibold py-1.5 rounded-[7px] transition hover:opacity-85"
+                  style={{ background: "white", color: "#080810" }}>
+              View Plan
+            </Link>
+          </div>
+
+          {/* User row */}
+          <div className="flex items-center gap-2.5 px-3 py-3">
+            <div className="logo-grad h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+              {user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "??"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium truncate">{user?.full_name}</div>
+              <div className="text-[10px] text-faint truncate">{user?.email}</div>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <button onClick={() => router.push("/settings/profile")} className="p-1.5 rounded-[6px] text-faint hover:text-muted hover:bg-white/[0.05] transition">
+                <Settings style={{ width: 13, height: 13 }} />
+              </button>
+              <button onClick={handleLogout} className="p-1.5 rounded-[6px] text-faint hover:text-red-400 hover:bg-red-500/10 transition">
+                <LogOut style={{ width: 13, height: 13 }} />
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
+
+      {/* ══════════ MAIN CHAT ══════════ */}
+      <main className="flex-1 flex flex-col min-w-0 relative z-10" style={{ background: "rgba(8,8,16,0.65)" }}>
+
+        {/* Active chat messages */}
+        {inChat ? (
+          <>
+            <div className="flex-1 overflow-y-auto thin-scroll px-8 py-7 space-y-5 max-w-[780px] w-full mx-auto">
+              {messages.map((msg) =>
+                msg.role === "user"
+                  ? <UserMessage key={msg.id} content={msg.content} timestamp={msg.created_at} />
+                  : <AIMessage key={msg.id} content={msg.content} meta={msg.meta} timestamp={msg.created_at} />
+              )}
+              {isStreaming && (
+                <AIMessage content={streamingContent} meta={streamingMeta} streaming timestamp={new Date().toISOString()} />
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input bar — fixed to bottom in chat mode */}
+            <div className="flex-shrink-0 px-8 py-4 max-w-[780px] w-full mx-auto">
+              <InputBox
+                value={inputValue}
+                onChange={setInputValue}
+                onSend={() => handleSend()}
+                isStreaming={isStreaming}
+                textareaRef={textareaRef}
+              />
+              <p className="text-center text-[10px] text-faint mt-2">
+                Paperwise answers are grounded in your uploaded documents only.
+              </p>
+            </div>
+          </>
+        ) : (
+          /* ── Welcome / empty state ── */
+          <div className="flex-1 flex flex-col justify-center px-8 relative">
+            <div className="w-full max-w-[660px] mx-auto relative z-10">
+              <h1 className="text-[2.8rem] font-black text-center mb-8 leading-[1.06] tracking-[-0.03em] animate-fu">
+                What&apos;s on your mind today?
+              </h1>
+
+              {/* Large input */}
+              <div className="animate-fu-1">
+                <InputBox
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onSend={() => handleSend()}
+                  isStreaming={isStreaming}
+                  textareaRef={textareaRef}
+                  large
+                />
+              </div>
+
+              {/* Suggestion chips — single scrollable row */}
+              <div className="animate-fu-2 flex flex-wrap gap-2 mt-5">
+                {SUGGESTIONS.map((s) => (
+                  <Chip key={s.label} icon={s.icon} label={s.label} onClick={() => { setInputValue(s.label); handleSend(s.label); }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
     </div>
   );
 }
+
+// ─── Reusable Input Box ───────────────────────────────────────────────────────
+
+function InputBox({
+  value, onChange, onSend, isStreaming, textareaRef, large = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSend: () => void;
+  isStreaming: boolean;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  large?: boolean;
+}) {
+  const BORDER = "rgba(255,255,255,0.07)";
+  return (
+    <div className="rounded-[16px] overflow-hidden transition-all"
+         style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}` }}>
+      <textarea
+        ref={textareaRef}
+        rows={large ? 3 : 1}
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          e.target.style.height = "auto";
+          e.target.style.height = Math.min(e.target.scrollHeight, 180) + "px";
+        }}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
+        placeholder="Ask anything about your documents…"
+        className="w-full bg-transparent px-4 pt-4 pb-2 text-[14px] text-white placeholder:text-faint resize-none outline-none"
+        style={{ minHeight: large ? 88 : 52, overflow: "hidden" }}
+      />
+      <div className="flex items-center justify-between px-3 pb-3">
+        <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted hover:text-white transition"
+                style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${BORDER}` }}>
+          <Paperclip style={{ width: 12, height: 12 }} /> All docs <ChevronDown style={{ width: 11, height: 11 }} />
+        </button>
+        <button
+          onClick={onSend}
+          disabled={isStreaming || !value.trim()}
+          className="btn-primary !p-0 rounded-[10px] disabled:opacity-35" style={{ height: 34, width: 34 }}
+        >
+          {isStreaming
+            ? <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            : <Send style={{ width: 14, height: 14 }} />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   return (
