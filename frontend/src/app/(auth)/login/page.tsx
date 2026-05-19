@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -25,11 +25,23 @@ const floatingDocs = [
   { title: "Onboarding Guide",     type: "MD",  rot: "-4deg",  pos: "bottom-[14%] right-[10%]", delay: "1.8s" },
 ];
 
-export default function LoginPage() {
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_link: "This sign-in link has expired or already been used.",
+  no_account: "No account found for that email. Please sign up.",
+  oauth_failed: "Google sign-in failed. Please try again.",
+};
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refetchUser } = useAuth();
   const [showPw, setShowPw] = useState(false);
   const [magicEmail, setMagicEmail] = useState("");
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error && ERROR_MESSAGES[error]) toast.error(ERROR_MESSAGES[error]);
+  }, [searchParams]);
   const [magicLoading, setMagicLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, getValues } = useForm<FormData>({
@@ -207,5 +219,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

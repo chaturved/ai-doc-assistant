@@ -5,9 +5,6 @@ interface Section {
   content: React.ReactNode;
 }
 
-const body = "text-sm text-zinc-400 leading-relaxed";
-const strong = "text-zinc-200 font-medium";
-
 const BULLET_ITEMS: Record<string, string[]> = {
   "Acceptable use": [
     "Upload content that is illegal, abusive, harassing, or infringes third-party intellectual property rights.",
@@ -39,8 +36,8 @@ const SECTIONS: Section[] = [
     title: "Acceptance of terms",
     content: (
       <div className="space-y-3">
-        <p className={body}>By creating a Paperwise account or using the Paperwise service, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
-        <p className={body}>These terms may be updated from time to time. Continued use after changes means you accept the new terms. We&apos;ll notify you of material changes by email or by displaying a notice in the app.</p>
+        <p className="text-sm text-muted leading-relaxed">By creating a Paperwise account or using the Paperwise service, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
+        <p className="text-sm text-muted leading-relaxed">These terms may be updated from time to time. Continued use after changes means you accept the new terms. We&apos;ll notify you of material changes by email or by displaying a notice in the app.</p>
       </div>
     ),
   },
@@ -48,11 +45,11 @@ const SECTIONS: Section[] = [
     title: "Acceptable use",
     content: (
       <div className="space-y-3">
-        <p className={body}>You may use Paperwise to upload documents and ask questions about them for lawful purposes. You agree not to:</p>
+        <p className="text-sm text-muted leading-relaxed">You may use Paperwise to upload documents and ask questions about them for lawful purposes. You agree not to:</p>
         <ul className="space-y-2">
           {BULLET_ITEMS["Acceptable use"].map((item) => (
-            <li key={item} className={`${body} flex gap-2`}>
-              <span className="text-zinc-600 flex-shrink-0">•</span>
+            <li key={item} className="text-sm text-muted leading-relaxed flex gap-2">
+              <span className="text-faint flex-shrink-0">•</span>
               <span>{item}</span>
             </li>
           ))}
@@ -64,16 +61,16 @@ const SECTIONS: Section[] = [
     title: "Free tier limits",
     content: (
       <div className="space-y-3">
-        <p className={body}>The Free plan includes:</p>
+        <p className="text-sm text-muted leading-relaxed">The Free plan includes:</p>
         <ul className="space-y-2">
           {FREE_LIMITS.map((item) => (
-            <li key={item} className={`${body} flex gap-2`}>
-              <span className="text-zinc-600 flex-shrink-0">•</span>
+            <li key={item} className="text-sm text-muted leading-relaxed flex gap-2">
+              <span className="text-faint flex-shrink-0">•</span>
               <span>{item}</span>
             </li>
           ))}
         </ul>
-        <p className={body}>We reserve the right to adjust free tier limits with reasonable notice. If you exceed limits, queries will be blocked until the next reset or until you upgrade.</p>
+        <p className="text-sm text-muted leading-relaxed">We reserve the right to adjust free tier limits with reasonable notice. If you exceed limits, queries will be blocked until the next reset or until you upgrade.</p>
       </div>
     ),
   },
@@ -81,8 +78,8 @@ const SECTIONS: Section[] = [
     title: "Your content",
     content: (
       <div className="space-y-3">
-        <p className={body}>You own your documents. By uploading content to Paperwise, you grant us a limited, non-exclusive license to store, process, and index your content for the sole purpose of providing the service to you.</p>
-        <p className={body}>We do not claim ownership of your documents. We do not use your documents to train AI models. When you delete content or your account, we remove it from our systems as described in our Privacy Policy.</p>
+        <p className="text-sm text-muted leading-relaxed">You own your documents. By uploading content to Paperwise, you grant us a limited, non-exclusive license to store, process, and index your content for the sole purpose of providing the service to you.</p>
+        <p className="text-sm text-muted leading-relaxed">We do not claim ownership of your documents. We do not use your documents to train AI models. When you delete content or your account, we remove it from our systems as described in our Privacy Policy.</p>
       </div>
     ),
   },
@@ -90,11 +87,11 @@ const SECTIONS: Section[] = [
     title: "Prohibited content",
     content: (
       <div className="space-y-3">
-        <p className={body}>You must not upload or process the following types of content:</p>
+        <p className="text-sm text-muted leading-relaxed">You must not upload or process the following types of content:</p>
         <ul className="space-y-2">
           {BULLET_ITEMS["Prohibited content"].map((item) => (
-            <li key={item} className={`${body} flex gap-2`}>
-              <span className="text-zinc-600 flex-shrink-0">•</span>
+            <li key={item} className="text-sm text-muted leading-relaxed flex gap-2">
+              <span className="text-faint flex-shrink-0">•</span>
               <span>{item}</span>
             </li>
           ))}
@@ -106,9 +103,9 @@ const SECTIONS: Section[] = [
     title: "Account termination",
     content: (
       <div className="space-y-3">
-        <p className={body}>You may delete your account at any time from Settings → Profile → Danger Zone. All your data will be permanently deleted within 30 days.</p>
-        <p className={body}>We may suspend or terminate accounts that violate these terms, with or without notice depending on the severity of the violation. Severe violations (illegal content, fraud, abuse) may result in immediate termination without refund.</p>
-        <p className={body}>If your account is terminated erroneously, contact <a href="mailto:hello@paperwise.ai" className="text-indigo-400 hover:text-indigo-300 transition">hello@paperwise.ai</a> within 14 days.</p>
+        <p className="text-sm text-muted leading-relaxed">You may delete your account at any time from Settings → Profile → Danger Zone. All your data will be permanently deleted within 30 days.</p>
+        <p className="text-sm text-muted leading-relaxed">We may suspend or terminate accounts that violate these terms, with or without notice depending on the severity of the violation. Severe violations (illegal content, fraud, abuse) may result in immediate termination without refund.</p>
+        <p className="text-sm text-muted leading-relaxed">If your account is terminated erroneously, contact <a href="mailto:hello@paperwise.ai" className="text-accent hover:opacity-80 transition">hello@paperwise.ai</a> within 14 days.</p>
       </div>
     ),
   },
@@ -116,8 +113,8 @@ const SECTIONS: Section[] = [
     title: "Limitation of liability",
     content: (
       <div className="space-y-3">
-        <p className={body}>Paperwise is provided &quot;as is&quot; without warranty of any kind. We make no guarantees about uptime, accuracy of AI-generated responses, or fitness for any particular purpose. Always verify important information from primary sources.</p>
-        <p className={body}>To the maximum extent permitted by law, Paperwise and its operators shall not be liable for indirect, incidental, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you paid us in the 12 months preceding the claim.</p>
+        <p className="text-sm text-muted leading-relaxed">Paperwise is provided &quot;as is&quot; without warranty of any kind. We make no guarantees about uptime, accuracy of AI-generated responses, or fitness for any particular purpose. Always verify important information from primary sources.</p>
+        <p className="text-sm text-muted leading-relaxed">To the maximum extent permitted by law, Paperwise and its operators shall not be liable for indirect, incidental, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you paid us in the 12 months preceding the claim.</p>
       </div>
     ),
   },
@@ -125,17 +122,17 @@ const SECTIONS: Section[] = [
     title: "Governing law",
     content: (
       <div className="space-y-3">
-        <p className={body}>These terms are governed by the laws of the jurisdiction in which Paperwise is operated, without regard to conflict of law principles. Any disputes shall be resolved through binding arbitration, except where prohibited by law.</p>
-        <p className={body}>If any provision of these terms is found unenforceable, the remaining provisions remain in full effect.</p>
+        <p className="text-sm text-muted leading-relaxed">These terms are governed by the laws of the jurisdiction in which Paperwise is operated, without regard to conflict of law principles. Any disputes shall be resolved through binding arbitration, except where prohibited by law.</p>
+        <p className="text-sm text-muted leading-relaxed">If any provision of these terms is found unenforceable, the remaining provisions remain in full effect.</p>
       </div>
     ),
   },
   {
     title: "Contact",
     content: (
-      <p className={body}>
+      <p className="text-sm text-muted leading-relaxed">
         Questions about these terms? Email{" "}
-        <a href="mailto:hello@paperwise.ai" className="text-indigo-400 hover:text-indigo-300 transition">hello@paperwise.ai</a>.
+        <a href="mailto:hello@paperwise.ai" className="text-accent hover:opacity-80 transition">hello@paperwise.ai</a>.
         {" "}We aim to respond within 2 business days.
       </p>
     ),
@@ -144,41 +141,35 @@ const SECTIONS: Section[] = [
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <nav className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">P</span>
-            </div>
-            <span className="text-sm font-semibold text-zinc-100">Paperwise</span>
-          </Link>
-          <Link href="/privacy" className="text-sm text-zinc-500 hover:text-zinc-300 transition">Privacy Policy</Link>
-        </div>
+    <div className="min-h-screen bg-bg text-white">
+      <nav className="sticky top-0 z-50 h-[60px] flex items-center px-9 bg-bg/90 backdrop-blur-xl border-b-system">
+        <Link href="/" className="text-[15px] font-bold">Paperwise</Link>
+        <Link href="/privacy" className="ml-auto text-sm text-faint hover:text-muted transition">Privacy Policy</Link>
       </nav>
 
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-12">
-          <h1 className="text-3xl font-bold text-zinc-100 mb-3">Terms of Service</h1>
-          <p className="text-zinc-500 text-sm">Last updated: May 2026</p>
+          <p className="section-label mb-3">Legal</p>
+          <h1 className="heading-md mb-2">Terms of Service</h1>
+          <p className="text-faint text-sm">Last updated: May 2026</p>
         </div>
 
-        <p className={`${body} mb-10`}>
+        <p className="text-sm text-muted leading-relaxed mb-10">
           These Terms of Service govern your access to and use of Paperwise. Please read them carefully.
         </p>
 
         <div className="space-y-10">
           {SECTIONS.map((s) => (
             <div key={s.title}>
-              <h2 className="text-base font-semibold text-zinc-100 mb-3">{s.title}</h2>
+              <h2 className="text-[15px] font-semibold text-white mb-3">{s.title}</h2>
               {s.content}
             </div>
           ))}
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/[0.06] flex items-center justify-between">
-          <Link href="/privacy" className="text-sm text-zinc-600 hover:text-zinc-400 transition">← Privacy Policy</Link>
-          <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-400 transition">Back to Paperwise →</Link>
+        <div className="mt-16 pt-8 border-t-system flex items-center justify-between">
+          <Link href="/privacy" className="text-sm text-faint hover:text-muted transition">← Privacy Policy</Link>
+          <Link href="/" className="text-sm text-faint hover:text-muted transition">Back to Paperwise →</Link>
         </div>
       </div>
     </div>

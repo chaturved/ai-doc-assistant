@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/api/auth";
+import { toast } from "sonner";
 
 
 const schema = z.object({ email: z.string().email("Enter a valid email address") });
@@ -19,8 +20,12 @@ export default function ForgotPasswordPage() {
   });
 
   const onSubmit = async (data: FormData) => {
-    await forgotPassword(data.email);
-    setSent(true);
+    try {
+      await forgotPassword(data.email);
+      setSent(true);
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (

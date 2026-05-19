@@ -120,34 +120,36 @@ async def google_redirect(request: Request):
 
 
 async def google_callback(request: Request, response: Response, db: Session):
-    token = await _oauth.google.authorize_access_token(request)
-    userinfo = token.get("userinfo") or await _oauth.google.userinfo(token=token)
-
-    email = userinfo["email"]
-    provider_user_id = userinfo["sub"]
-    full_name = userinfo.get("name", email.split("@")[0])
-
-    # Find or create user
-    oauth_acct = get_oauth_account(db, "google", provider_user_id)
-    if oauth_acct:
-        user = get_user_by_id(db, oauth_acct.user_id)
-    else:
-        user = get_user_by_email(db, email)
-        if not user:
-            from ..services.user_service import create_user_oauth
-            user = create_user_oauth(db, email, full_name)
-            try:
-                from ..utils.email_utils import send_welcome_email
-                send_welcome_email(user.email, user.full_name.split()[0])
-            except Exception:
-                pass
-        create_oauth_account(db, user.id, "google", provider_user_id,
-                             token.get("access_token"), token.get("refresh_token"))
-
-    _set_auth_cookies(response, user.id)
-    redirect_to = APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(redirect_to)
+    try:
+        token = await _oauth.google.authorize_access_token(request)
+        userinfo = token.get("userinfo") or await _oauth.google.userinfo(token=token)
+
+        email = userinfo["email"]
+        provider_user_id = userinfo["sub"]
+        full_name = userinfo.get("name", email.split("@")[0])
+
+        oauth_acct = get_oauth_account(db, "google", provider_user_id)
+        if oauth_acct:
+            user = get_user_by_id(db, oauth_acct.user_id)
+        else:
+            user = get_user_by_email(db, email)
+            if not user:
+                from ..services.user_service import create_user_oauth
+                user = create_user_oauth(db, email, full_name)
+                try:
+                    from ..utils.email_utils import send_welcome_email
+                    send_welcome_email(user.email, user.full_name.split()[0])
+                except Exception:
+                    pass
+            create_oauth_account(db, user.id, "google", provider_user_id,
+                                 token.get("access_token"), token.get("refresh_token"))
+
+        _set_auth_cookies(response, user.id)
+        redirect_to = APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
+        return RedirectResponse(redirect_to)
+    except Exception:
+        return RedirectResponse(APP_URL + "/login?error=oauth_failed")
 
 
 # Magic link
