@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -8,10 +9,15 @@ from src.repositories.analytics_repository import AnalyticsRepository, IAnalytic
 
 
 class IAnalyticsService(Protocol):
+    @abstractmethod
     def get_overview(self, user_id: int) -> dict: ...
+    @abstractmethod
     def get_query_volume(self, user_id: int, days: int) -> list[dict]: ...
+    @abstractmethod
     def get_top_cited_docs(self, user_id: int) -> list[dict]: ...
+    @abstractmethod
     def set_feedback(self, message_id: int, user_id: int, value: str) -> MessageFeedback: ...
+    @abstractmethod
     def get_feedbacks(self, user_id: int, message_ids: list[int]) -> dict[int, str]: ...
 
 

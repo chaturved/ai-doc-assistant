@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -8,7 +9,9 @@ from src.models.waitlist import Waitlist
 
 
 class IWaitlistRepository(Protocol):
+    @abstractmethod
     def add(self, email: str) -> Waitlist: ...
+    @abstractmethod
     def exists(self, email: str) -> bool: ...
 
 

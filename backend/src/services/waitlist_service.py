@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -7,6 +8,7 @@ from src.schemas.user import MessageResponse
 
 
 class IWaitlistService(Protocol):
+    @abstractmethod
     def join(self, email: str) -> MessageResponse: ...
 
 

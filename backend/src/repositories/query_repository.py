@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -8,7 +9,9 @@ from src.models import RecentQuery
 
 
 class IQueryRepository(Protocol):
+    @abstractmethod
     def add_recent_query(self, user_id: int, query: str) -> RecentQuery: ...
+    @abstractmethod
     def get_recent_queries(self, user_id: int, limit: int) -> list[RecentQuery]: ...
 
 

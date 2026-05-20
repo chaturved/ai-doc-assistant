@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import AsyncGenerator, Protocol
 
 from fastapi import Depends
@@ -19,11 +20,17 @@ from src.utils.query_utils import (
 
 
 class IConversationService(Protocol):
+    @abstractmethod
     def list_conversations(self, user_id: int) -> list[ConversationOut]: ...
+    @abstractmethod
     def new_conversation(self, user_id: int, title: str) -> ConversationOut: ...
+    @abstractmethod
     def rename_conversation(self, conv_id: int, user_id: int, title: str) -> ConversationOut: ...
+    @abstractmethod
     def remove_conversation(self, conv_id: int, user_id: int) -> MessageResponse: ...
+    @abstractmethod
     def list_messages(self, conv_id: int, user_id: int) -> list[MessageOut]: ...
+    @abstractmethod
     def ask(
         self,
         conv_id: int,

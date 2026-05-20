@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends, UploadFile
@@ -13,9 +14,13 @@ from src.utils.text_utils import chunk_text, extract_text_from_bytes
 
 
 class ILibraryService(Protocol):
+    @abstractmethod
     def get_library_data(self, user_id: int) -> LibraryResponse: ...
+    @abstractmethod
     async def save_files(self, user_id: int, files: list[UploadFile]) -> UploadResponse: ...
+    @abstractmethod
     def delete_document(self, doc_id: int, user_id: int) -> MessageResponse: ...
+    @abstractmethod
     def clear_all(self, user_id: int) -> MessageResponse: ...
 
 

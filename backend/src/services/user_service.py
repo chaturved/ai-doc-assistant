@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -23,13 +24,21 @@ def _make_initials(full_name: str) -> str:
 
 
 class IUserService(Protocol):
+    @abstractmethod
     def create_user(self, user_in: UserCreate) -> User: ...
+    @abstractmethod
     def create_user_oauth(self, email: str, full_name: str) -> User: ...
+    @abstractmethod
     def update_profile(self, user_id: int, full_name: str) -> ProfileResponse: ...
+    @abstractmethod
     def change_password(self, user_id: int, current_password: str, new_password: str) -> MessageResponse: ...
+    @abstractmethod
     def set_password(self, user_id: int, new_password: str) -> MessageResponse: ...
+    @abstractmethod
     def remove_account(self, user_id: int, confirmation: str) -> MessageResponse: ...
+    @abstractmethod
     def complete_onboarding(self, user_id: int) -> MessageResponse: ...
+    @abstractmethod
     def get_usage(self, user_id: int) -> UsageResponse: ...
 
 
