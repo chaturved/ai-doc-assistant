@@ -4,16 +4,16 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .api import router
-from .config import ALLOWED_ORIGINS, JWT_SECRET_KEY
+from .config import settings
 from .core.exceptions import AppError
 
 app = FastAPI(title="Paperwise API")
 
-app.add_middleware(SessionMiddleware, secret_key=JWT_SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET_KEY)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

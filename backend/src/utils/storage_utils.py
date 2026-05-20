@@ -1,15 +1,22 @@
 import boto3
 import botocore.exceptions
 from botocore.client import Config
-from fastapi import HTTPException, UploadFile
-from ..config import S3_ENDPOINT, S3_REGION, S3_ACCESS_KEY, S3_SECRET_ACCESS_KEY, S3_LIBRARY_BUCKET
+from fastapi import UploadFile
+from ..config import settings
+from ..core.exceptions import AppError
+
+
+class StorageError(AppError):
+    def __init__(self, message: str):
+        super().__init__(message, "STORAGE_ERROR", 502)
+
 
 s3_client = boto3.client(
     "s3",
-    endpoint_url=S3_ENDPOINT,
-    region_name=S3_REGION,
-    aws_access_key_id=S3_ACCESS_KEY,
-    aws_secret_access_key=S3_SECRET_ACCESS_KEY,
+    endpoint_url=settings.S3_ENDPOINT,
+    region_name=settings.S3_REGION,
+    aws_access_key_id=settings.S3_ACCESS_KEY,
+    aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
     config=Config(signature_version="v4"),
 )
 
@@ -19,22 +26,18 @@ async def save_raw_file(file: UploadFile, user_id: int) -> tuple[str, bytes]:
     key = f"{user_id}/{file.filename}"
 
     try:
-        s3_client.put_object(
-            Bucket=S3_LIBRARY_BUCKET,
-            Key=key,
-            Body=contents,
-        )
+        s3_client.put_object(Bucket=settings.S3_LIBRARY_BUCKET, Key=key, Body=contents)
     except botocore.exceptions.ClientError as e:
-        raise HTTPException(status_code=502, detail=f"Storage error: {e.response['Error']['Message']}")
+        raise StorageError(f"Storage error: {e.response['Error']['Message']}")
 
-    public_url = f"{S3_ENDPOINT}/object/{S3_LIBRARY_BUCKET}/{key}"
+    public_url = f"{settings.S3_ENDPOINT}/object/{settings.S3_LIBRARY_BUCKET}/{key}"
     file.file.seek(0)
     return public_url, contents
 
 
 def delete_file(file_path: str) -> None:
-    key = file_path.split(f"/{S3_LIBRARY_BUCKET}/")[-1]
+    key = file_path.split(f"/{settings.S3_LIBRARY_BUCKET}/")[-1]
     try:
-        s3_client.delete_object(Bucket=S3_LIBRARY_BUCKET, Key=key)
+        s3_client.delete_object(Bucket=settings.S3_LIBRARY_BUCKET, Key=key)
     except botocore.exceptions.ClientError as e:
-        raise HTTPException(status_code=502, detail=f"Storage error: {e.response['Error']['Message']}")
+        raise StorageError(f"Storage error: {e.response['Error']['Message']}")

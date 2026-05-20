@@ -7,21 +7,21 @@ ssl.create_default_context = lambda *args, **kwargs: _orig_create_default_contex
     *args, cafile=certifi.where(), **{k: v for k, v in kwargs.items() if k != "cafile"}
 )
 
-from src.config import HF_API_KEY, HF_EMBEDDING_MODEL, HF_CHAT_MODEL
+from src.config import settings
 from huggingface_hub import AsyncInferenceClient
-from typing import List, AsyncGenerator
+from typing import Any, AsyncGenerator, List
 
-client = AsyncInferenceClient(api_key=HF_API_KEY)
+client = AsyncInferenceClient(api_key=settings.HF_API_KEY)
 
-async def get_embeddings(texts: List[str], model: str = HF_EMBEDDING_MODEL) -> List[List[float]]:
-    return await client.feature_extraction(texts, model=model)
+async def get_embeddings(texts: List[str], model: str = settings.HF_EMBEDDING_MODEL) -> Any:
+    return await client.feature_extraction(texts, model=model)  # type: ignore
 
-async def get_embedding(text: str, model: str = HF_EMBEDDING_MODEL) -> List[float]:
+async def get_embedding(text: str, model: str = settings.HF_EMBEDDING_MODEL) -> Any:
     return await client.feature_extraction(text, model=model)
 
 async def stream_chat(
     prompt: str,
-    model: str = HF_CHAT_MODEL,
+    model: str = settings.HF_CHAT_MODEL,
     temperature: float = 0.7,
     max_tokens: int = 500
 ) -> AsyncGenerator[str, None]:
@@ -46,7 +46,7 @@ async def stream_chat(
 
 async def chat(
     prompt: str,
-    model: str = HF_CHAT_MODEL,
+    model: str = settings.HF_CHAT_MODEL,
     temperature: float = 0.7,
     max_tokens: int = 200
 ) -> str:
@@ -63,4 +63,4 @@ async def chat(
         stream=False
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content or ""

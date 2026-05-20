@@ -1,14 +1,27 @@
+from typing import Protocol
+
+from fastapi import Depends
 from sqlalchemy.orm import Session
+
+from src.database.db import get_db
 from src.models.waitlist import Waitlist
 
 
-def add_to_waitlist(db: Session, email: str) -> Waitlist:
-    entry = Waitlist(email=email)
-    db.add(entry)
-    db.commit()
-    db.refresh(entry)
-    return entry
+class IWaitlistRepository(Protocol):
+    def add(self, email: str) -> Waitlist: ...
+    def exists(self, email: str) -> bool: ...
 
 
-def email_on_waitlist(db: Session, email: str) -> bool:
-    return db.query(Waitlist).filter(Waitlist.email == email).first() is not None
+class WaitlistRepository(IWaitlistRepository):
+    def __init__(self, db: Session = Depends(get_db)):
+        self.db = db
+
+    def add(self, email: str) -> Waitlist:
+        entry = Waitlist(email=email)
+        self.db.add(entry)
+        self.db.commit()
+        self.db.refresh(entry)
+        return entry
+
+    def exists(self, email: str) -> bool:
+        return self.db.query(Waitlist).filter(Waitlist.email == email).first() is not None

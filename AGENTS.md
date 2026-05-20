@@ -82,79 +82,102 @@ Related components, hooks, and API calls are named and organized consistently so
 
 ```
 backend/src/
+  config.py             ← Pydantic Settings — single source of truth for env vars
+  main.py               ← App factory, middleware, router registration, exception handlers
   core/
-    config.py          ← Pydantic Settings — single source of truth for env vars
-    security.py        ← JWT encoding/decoding, password hashing
-    exceptions.py      ← Custom exception types (NotFoundError, UnauthorizedError, etc.)
-    dependencies.py    ← FastAPI Depends() — db session, current_user, rate limiter
+    dependencies.py     ← FastAPI Depends() — get_db, get_current_user_id
+    exceptions.py       ← Typed exception classes (NotFoundError, UnauthorizedError, etc.)
   database/
-    engine.py          ← SQLAlchemy engine + session factory
-    base.py            ← Declarative base
-  models/              ← SQLAlchemy ORM models (shared across domains)
-  domains/
-    auth/
-      router.py        ← FastAPI routes (HTTP only — no logic)
-      service.py       ← Business logic
-      schemas.py       ← Pydantic request + response models
-    users/
-      router.py
-      service.py
-      repository.py    ← All DB queries for this domain
-      schemas.py
-    documents/
-      router.py
-      service.py
-      repository.py
-      schemas.py
-    conversations/
-      router.py
-      service.py
-      repository.py
-      schemas.py
-  utils/               ← Truly shared helpers (file parsing, storage, embeddings)
-  migrations/          ← Alembic migration files
-  main.py              ← App factory + router registration
+    db.py               ← SQLAlchemy engine, SessionLocal, Base
+  models/               ← SQLAlchemy ORM models (one file per model)
+  api/
+    __init__.py         ← Root router (mounts v1 + internal)
+    v1/
+      __init__.py       ← /api/v1 router (registers all domain routers)
+      auth.py           ← Auth routes
+      users.py          ← User routes
+      conversations.py  ← Conversation routes
+      library.py        ← Document library routes
+      analytics.py      ← Analytics routes
+      misc.py           ← Misc/waitlist routes
+    internal/
+      health.py         ← Internal health check
+  services/             ← Business logic (one file per domain)
+    auth_service.py
+    user_service.py
+    conversation_service.py
+    library_service.py
+    token_service.py
+    query_service.py
+  repositories/         ← All DB queries (one file per domain)
+    user_repository.py
+    conversation_repository.py
+    library_repository.py
+    analytics_repository.py
+    query_repository.py
+    waitlist_repository.py
+  schemas/              ← Pydantic request + response models
+    user.py
+    conversation.py
+    query.py
+  utils/                ← Shared helpers (file parsing, storage, embeddings, email)
+    email_utils.py
+    hugging_face.py
+    jwt.py
+    query_utils.py
+    security.py
+    storage_utils.py
+    text_utils.py
+  migrations/           ← Alembic migration files
 ```
 
 ### Layer Rules
 
-**`core/config.py`** — Pydantic `BaseSettings` class. Every environment variable is declared here with a type. Nothing in the app reads `os.environ` directly — everything imports from `core.config`.
+**`config.py`** — Pydantic `BaseSettings` class. Every environment variable is declared here with a type and accessed via the `settings` singleton. Nothing in the app reads `os.environ` directly.
 
-**`core/dependencies.py`** — All `Depends()` functions live here: `get_db`, `get_current_user`, `require_admin`. Route handlers import from here and never manage sessions inline.
+**`core/dependencies.py`** — All `Depends()` functions live here: `get_db`, `get_current_user_id`. Route handlers import from here and never manage sessions inline.
 
-**`core/exceptions.py`** — Define typed exceptions (`NotFoundError`, `UnauthorizedError`, `ConflictError`). Register exception handlers in `main.py` that map these to consistent JSON error responses: `{ "error": "message", "code": "ERROR_CODE" }`. Route handlers never catch `Exception` broadly — the global handler does it.
+**`core/exceptions.py`** — Typed exceptions (`NotFoundError`, `UnauthorizedError`, `ConflictError`, `BadRequestError`, `ForbiddenError`). All inherit from `AppError`. The global handler in `main.py` maps them to consistent JSON: `{ "error": "message", "code": "ERROR_CODE" }`. Services raise these — never `HTTPException`.
 
-**Route handlers** — Handle HTTP and nothing else: extract request data, call a service, return a response. No business logic. No DB queries. No `if/else` beyond input validation.
+**Route handlers (`api/v1/`)** — Handle HTTP and nothing else: extract request data, call a service, return a response. No business logic. No DB queries. No `if/else` beyond input validation.
 
 ```python
 # ✅ Correct
-@router.post("/conversations/{id}/query")
-async def query(
-    id: UUID,
-    body: QueryRequest,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    result = await conversation_service.query(db, id, user.id, body.message)
-    return StreamingResponse(result, media_type="text/event-stream")
+@router.get("/{conv_id}/messages")
+def messages(conv_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    return list_messages(db, conv_id, user_id)
 
 # ❌ Wrong — business logic inside a route handler
-@router.post("/conversations/{id}/query")
-async def query(id: UUID, body: QueryRequest, db: Session = Depends(get_db)):
-    conversation = db.query(Conversation).filter_by(id=id).first()
-    if not conversation:
+@router.get("/{conv_id}/messages")
+def messages(conv_id: int, db: Session = Depends(get_db)):
+    conv = db.query(Conversation).filter_by(id=conv_id).first()
+    if not conv:
         raise HTTPException(404)
-    chunks = embed_and_search(body.message)
     ...
 ```
 
-**Services** — Own all business logic. Accept a `db` session and typed inputs. Never write SQLAlchemy queries directly — delegate to repositories. Never return ORM model instances — always convert to Pydantic response schemas before returning.
+**Services (`services/`)** — Own all business logic. Accept a `db` session and typed inputs. Never write SQLAlchemy queries directly — delegate to repositories. Never return ORM model instances — always convert to Pydantic response schemas before returning. Raise typed exceptions from `core/exceptions.py`, never `HTTPException`.
 
-**Repositories** — All SQLAlchemy queries live here. One repository per domain. Each method does one focused DB operation. Returns ORM models internally. The service converts them to schemas — repositories do not know about schemas.
+```python
+# ✅ Correct
+def rename_conversation(db: Session, conv_id: int, user_id: int, title: str) -> ConversationResponse:
+    conv = get_conversation(db, conv_id, user_id)
+    if not conv:
+        raise NotFoundError("Conversation not found")
+    conv = update_conversation_title(db, conv, title)
+    return ConversationResponse.model_validate(conv)
 
-**Models** — SQLAlchemy ORM models only. No methods, no business logic, no Pydantic. A model is a table definition.
+# ❌ Wrong — raises HTTPException in a service
+def rename_conversation(...):
+    ...
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Conversation not found")
+```
 
-**Schemas** — Pydantic models for request/response. Use separate `CreateRequest`, `UpdateRequest`, and `Response` schemas. Never reuse the same schema for input and output. Never expose internal fields that shouldn't be public (hashed passwords, raw foreign keys, internal flags).
+**Repositories (`repositories/`)** — All SQLAlchemy queries live here. One file per domain. Each function does one focused DB operation. Returns ORM models internally. The service converts them to schemas — repositories do not know about schemas.
+
+**Models (`models/`)** — SQLAlchemy ORM models only. No methods, no business logic, no Pydantic. A model is a table definition.
+
+**Schemas (`schemas/`)** — Pydantic models for request/response. Use separate `CreateRequest`, `UpdateRequest`, and `Response` types. Never reuse the same schema for input and output. Never expose internal fields (hashed passwords, raw foreign keys, internal flags).
 
 ---
 
@@ -164,90 +187,96 @@ async def query(id: UUID, body: QueryRequest, db: Session = Depends(get_db)):
 
 ```
 frontend/src/
-  app/                     ← Routing ONLY (Next.js App Router)
-    (auth)/                ← Route group — unauthenticated pages
+  app/                        ← Routing ONLY (Next.js App Router)
+    (auth)/                   ← Route group — unauthenticated pages
+      layout.tsx
       login/page.tsx
       signup/page.tsx
       forgot-password/page.tsx
       reset-password/page.tsx
-    (app)/                 ← Route group — authenticated pages, shared layout
-      layout.tsx           ← AppShell (sidebar, header)
+    (app)/                    ← Route group — authenticated pages, shared layout
+      layout.tsx              ← AppShell (sidebar, header)
       dashboard/page.tsx
       settings/
+        layout.tsx
         profile/page.tsx
+        password/page.tsx
         billing/page.tsx
-    (marketing)/           ← Route group — public pages
-      page.tsx             ← Landing
-      pricing/page.tsx
-    layout.tsx             ← Root layout (fonts, providers)
+      analytics/page.tsx
+    layout.tsx                ← Root layout (fonts, providers)
+    page.tsx                  ← Landing
+    pricing/page.tsx
+    privacy/page.tsx
+    terms/page.tsx
+    onboarding/page.tsx
+    magic-link/sent/page.tsx
     error.tsx
     not-found.tsx
 
-  components/              ← All reusable UI components
-    ui/                    ← Primitives: Button, Input, Modal, Spinner, Badge, Skeleton
-    layout/                ← AppShell, Sidebar, Header, PageHeader
-    auth/                  ← LoginForm, SignupForm, GoogleButton
-    documents/             ← DocumentCard, UploadZone, LibrarySidebar, EmptyLibrary
-    conversations/         ← MessageBubble, SourceCitation, ConversationItem, InputBar
+  components/                 ← All reusable UI components
+    ui/                       ← Primitives (no app logic, no API calls, generic props)
+    auth/                     ← Auth-specific UI (AuthCard, AuthBackground, form fields)
+    conversations/            ← DashboardContent and chat sub-components
+    Header/                   ← Header with sub-components (Brand, Actions, UserDropdown)
+    LibrarySidebar/           ← Document library sidebar with sub-components
+    InsightsSidebar/          ← Insights panel with sub-components
+    Workspace/                ← Main chat workspace with sub-components
 
-  hooks/                   ← All custom React hooks
-    useAuth.ts             ← Wraps AuthContext
+  hooks/                      ← All custom React hooks
+    useAuth.ts
     useLibrary.ts
-    useUpload.ts
     useConversation.ts
     useSSEStream.ts
-    useDebounce.ts
 
   lib/
-    api-client.ts          ← Single typed fetch wrapper — base URL, auth header, error handling
+    api-client.ts             ← Axios base client — base URL, cookie auth, token refresh
     api/
-      auth.ts              ← API calls for auth domain
-      documents.ts         ← API calls for documents domain
-      conversations.ts     ← API calls for conversations domain
+      auth.ts
+      users.ts
+      conversations.ts
+      documents.ts
+      analytics.ts
+      misc.ts
 
   context/
-    AuthContext.tsx        ← Global auth state — user, token, loading
+    AuthContext.tsx           ← Global auth state — user, loading, refetchUser
+    AppLayoutContext.tsx      ← Shared app layout state (sidebar open/close, etc.)
 
   types/
-    index.ts               ← All shared TypeScript types
+    index.ts                  ← All shared TypeScript types
 
-  config/
-    env.ts                 ← Client-side env validation (NEXT_PUBLIC_ vars)
-
-  styles/
-    globals.css
+  middleware.ts               ← Route protection (reads cookie, redirects unauthenticated)
 ```
 
 ### Layer Rules
 
-**`app/`** — routing only. Pages compose components and call hooks. A page file should be mostly layout and wiring. If it grows past ~80 lines of JSX, something should be extracted to `components/`.
+**`app/`** — routing only. Pages compose components and call hooks. A page file should be mostly layout and wiring. If it grows past ~80 lines of JSX, extract to `components/`. Pages should be Server Components by default — push `"use client"` down into the interactive leaf components.
 
-**`components/`** — organized by domain subdirectory. `components/ui/` holds primitives that know nothing about the app — no API calls, no auth imports, generic props only. `components/auth/`, `components/documents/`, `components/conversations/` hold domain-specific UI. Components receive props and render — they do not call API functions directly.
+**`components/`** — organized by domain subdirectory. `components/ui/` holds primitives: no API calls, no auth imports, generic props only. Domain-specific components (`auth/`, `conversations/`, etc.) receive props and render — they do not call API functions directly. Hooks do the data work; components do the rendering.
 
-**`hooks/`** — all custom hooks, named by what they do. A hook owns the stateful logic for a concern: loading state, error state, derived values, side effects. Components stay thin because hooks do the work. Hooks may call `lib/api/` functions.
+**`hooks/`** — all custom hooks. A hook owns stateful logic for one concern: loading state, error state, derived values, side effects. Components stay thin. Hooks call `lib/api/` functions — never raw fetch.
 
-**`lib/api-client.ts`** — single base client. Handles: base URL, attaching the auth token, parsing responses, and mapping HTTP errors to typed `ApiError` objects. Domain files in `lib/api/` import from it and expose typed functions. Components and hooks only ever import from `lib/api/` — never build their own fetch calls.
+**`lib/api-client.ts`** — single Axios base client. Handles: base URL (`NEXT_PUBLIC_BACKEND_URL`), `withCredentials` for cookie auth, and a 401 interceptor that attempts a token refresh before redirecting to `/login`. The `sseClient` wrapper lives here too for SSE connections. Do not create a second API client.
+
+**`lib/api/`** — domain-specific typed functions that import from `api-client.ts`. Components and hooks only ever import from here — never build their own fetch calls.
 
 ```typescript
-// lib/api/conversations.ts — domain-specific API functions
-import { apiClient } from "@/lib/api-client";
-import type { Conversation } from "@/types";
-
-export const conversationsApi = {
-  list: () => apiClient.get<Conversation[]>("/conversations"),
-  create: (title: string) => apiClient.post<Conversation>("/conversations", { title }),
-  delete: (id: string) => apiClient.delete(`/conversations/${id}`),
+// ✅ Correct — typed function in lib/api/conversations.ts
+export const createConversation = async (title = "New conversation"): Promise<Conversation> => {
+  const res = await apiClient.post("/v1/conversations", { title });
+  return res.data;
 };
 
 // ❌ Wrong — raw fetch built inside a component or hook
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/conversations`, {
-  headers: { Authorization: `Bearer ${token}` },
+const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/conversations`, {
+  method: "POST",
+  body: JSON.stringify({ title }),
 });
 ```
 
-**`context/`** — minimal. Only `AuthContext.tsx` for now. Do not add context unless the state is genuinely global and needed across unrelated parts of the tree. Prefer passing props or hooks for everything else.
+**`context/`** — minimal. `AuthContext.tsx` for global auth state. `AppLayoutContext.tsx` for shared layout state (sidebar visibility etc.). Do not add new contexts unless the state is genuinely global and needed across unrelated parts of the tree.
 
-**`types/index.ts`** — all shared TypeScript types in one file to start. Split by domain (`types/conversations.ts`, etc.) only when the file becomes unwieldy. Frontend types must stay in sync with the backend Pydantic response schemas — when a backend schema changes, update the corresponding frontend type.
+**`types/index.ts`** — all shared TypeScript types. Frontend types must stay in sync with the backend Pydantic response schemas — when a backend schema changes, update the corresponding frontend type.
 
 ---
 
@@ -264,7 +293,7 @@ Design system:
 
 When a design reference is provided, match it exactly — layout, spacing, color, font size, proportions. Do not approximate. Do not simplify unless explicitly asked.
 
-Extract repeated Tailwind class clusters into `@layer utilities` in `globals.css` when the same combination appears in three or more places. Use BEM-style naming for utilities.
+Extract repeated Tailwind class clusters into `@layer utilities` in `globals.css` when the same combination appears in three or more places.
 
 ---
 
@@ -280,16 +309,12 @@ Server Components are the default in Next.js 15. A component should only become 
 Place `"use client"` as deep in the component tree as possible — not at the page level, not at a layout level. If only one part of a page needs interactivity, extract that part into its own Client Component and keep the page itself a Server Component.
 
 ```tsx
-// ✅ Correct — page stays a Server Component, only the interactive widget is a Client Component
+// ✅ Correct — page is a Server Component, interactive widget is a Client Component
 // app/(app)/dashboard/page.tsx
-import { ConversationInput } from "@/components/conversations/ConversationInput"; // "use client" inside
+import DashboardContent from "@/components/conversations/DashboardContent"; // "use client" inside
 
-export default async function DashboardPage() {
-  return (
-    <main>
-      <ConversationInput />
-    </main>
-  );
+export default function DashboardPage() {
+  return <DashboardContent />;
 }
 
 // ❌ Wrong — entire page becomes a Client Component because of one useState
@@ -315,26 +340,26 @@ export default function DashboardPage() {
 ## Error Handling
 
 **Backend:**
-- Typed exceptions defined in `core/exceptions.py`
+- Typed exceptions defined in `core/exceptions.py` — `NotFoundError`, `UnauthorizedError`, `ConflictError`, `BadRequestError`, `ForbiddenError`
+- Services raise these typed exceptions, never `HTTPException`
 - Global exception handlers in `main.py` return consistent JSON: `{ "error": "Human-readable message", "code": "SNAKE_CASE_CODE" }`
 - Route handlers do not `try/except Exception` — the global handler catches what services don't explicitly handle
 - Never return a raw `500` with a stack trace in production
 
 **Frontend:**
-- `lib/api-client.ts` maps HTTP error responses to typed `ApiError` objects — hooks receive structured errors, not raw exceptions
-- Hooks return `{ data, error, loading }` — never silently swallow errors
-- User-visible errors use `sonner` toasts
-- Page-level failures use `error.tsx` boundaries
+- `lib/api-client.ts` handles auth errors via the 401 interceptor (refresh → retry → redirect)
+- Hooks surface errors to components; components display them via `sonner` toasts
 - Form errors surface through React Hook Form's field-level error state
+- Page-level failures use `error.tsx` boundaries
 
 ---
 
 ## Auth Rules
 
-- JWT stored in a cookie, managed by `js-cookie` on the client
-- `AuthContext.tsx` provides `user`, `loading`, and `logout` to client components
+- JWT stored as an `httponly` cookie, set by the backend on login/signup
+- `AuthContext.tsx` provides `user`, `loading`, and `refetchUser` to client components
 - `middleware.ts` protects authenticated routes — reads the cookie and redirects unauthenticated requests before the page renders
-- The API client reads the token once from the cookie and attaches it as a Bearer header — tokens are never passed as component props
+- The Axios client sends credentials with every request via `withCredentials: true` — no manual token attachment needed in components
 - Do not build a parallel auth system — extend the existing one
 
 ---
@@ -342,10 +367,10 @@ export default function DashboardPage() {
 ## SSE / Streaming Rules
 
 - AI responses stream over SSE from the backend via `@microsoft/fetch-event-source`
-- All SSE logic lives in `hooks/useSSEStream.ts` — not inline in a component
-- The hook exposes `{ content, sources, isStreaming, error, send }`
-- The component that consumes the stream is a Client Component
-- The backend SSE endpoint lives at `/api/v1/conversations/{id}/query`
+- The `sseClient` wrapper in `lib/api-client.ts` handles auth refresh for SSE connections
+- SSE logic in components calls `sseClient` directly from within the component (or a hook) — not via `lib/api/` functions since SSE is stateful and event-driven
+- The backend SSE endpoint: `POST /api/v1/conversations/{conv_id}/ask`
+- SSE event format: `data: {"meta": {...}}` then `data: {"token": "..."}` then `data: [DONE]`
 
 ---
 
@@ -368,7 +393,7 @@ When building any feature:
 Before creating a new component, ask:
 - Is this used in more than one place? If no — keep it inline for now.
 - Does extracting it make the parent meaningfully easier to read? If no — keep it inline.
-- Is it a clear UI concept with a stable boundary? (`DocumentCard`, `MessageBubble`, `SourceCitation`) — then extract it.
+- Is it a clear UI concept with a stable boundary? (`MessageBubble`, `SourceCitation`, `LibrarySection`) — then extract it.
 
 Never create a component just to give a piece of markup a name.
 
@@ -378,13 +403,15 @@ Never create a component just to give a piece of markup a name.
 
 - Do not put business logic in route handlers
 - Do not put DB queries in services
-- Do not return ORM model instances from services or repositories
+- Do not return ORM model instances from services (convert to Pydantic response schemas)
+- Do not raise `HTTPException` in services — raise typed exceptions from `core/exceptions.py`
 - Do not make API calls inside `components/ui/` primitives
 - Do not add `"use client"` to an entire page because one button needs `onClick`
-- Do not build separate fetch logic in components — use `lib/api/`
-- Do not read `os.environ` directly in the backend — use `core.config`
+- Do not build raw fetch calls in components or hooks — use `lib/api/`
+- Do not read `os.environ` directly in the backend — import `settings` from `config.py`
 - Do not expose internal fields (hashed passwords, raw foreign keys, internal flags) in API responses
 - Do not create a second API client file — there is one base client in `lib/api-client.ts`
+- Do not add module-level aliases to `config.py` — import `settings.FIELD` directly
 
 ---
 

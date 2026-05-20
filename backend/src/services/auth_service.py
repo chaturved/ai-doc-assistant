@@ -1,218 +1,201 @@
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import Any, Protocol
 
 from authlib.integrations.starlette_client import OAuth
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Depends, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-
-from ..config import (
-    ACCESS_TOKEN_KEY,
-    APP_URL,
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI,
-    REFRESH_TOKEN_KEY,
-)
-from ..repositories.user_repository import (
-    create_magic_token,
-    create_oauth_account,
-    create_reset_token,
-    get_magic_token,
-    get_oauth_account,
-    get_reset_token,
-    get_user_by_email,
-    get_user_by_id,
-    mark_magic_token_used,
-    mark_reset_token_used,
-    update_user,
-)
-from ..schemas.user import UserCreate
-from ..services.token_service import (
+from src.config import settings
+from src.core.exceptions import BadRequestError, NotFoundError, UnauthorizedError
+from src.repositories.user_repository import IUserRepository, UserRepository
+from src.schemas.user import AuthResponse, MessageResponse, TokenResponse, UserCreate, UserResponse
+from src.services.token_service import (
     create_access_token,
     create_refresh_token,
-    validate_access_token,
     validate_refresh_token,
 )
-from ..services.user_service import create_user
-from ..utils.email_utils import send_magic_link_email, send_password_reset_email
-from ..utils.security import hash_password, verify_password
+from src.services.user_service import IUserService, UserService
+from src.utils.email_utils import send_magic_link_email, send_password_reset_email
+from src.utils.security import hash_password, verify_password
 
-# Google OAuth client (lazy init)
 _oauth = OAuth()
 _oauth.register(
     name="google",
-    client_id=GOOGLE_CLIENT_ID,
-    client_secret=GOOGLE_CLIENT_SECRET,
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
-    redirect_uri=GOOGLE_REDIRECT_URI,
+    redirect_uri=settings.GOOGLE_REDIRECT_URI,
 )
 
 
-def _set_auth_cookies(response: Response, user_id: int) -> None:
-    response.set_cookie(ACCESS_TOKEN_KEY, create_access_token(user_id), httponly=True, secure=True, samesite="lax")
-    response.set_cookie(REFRESH_TOKEN_KEY, create_refresh_token(user_id), httponly=True, secure=True, samesite="lax")
+class IAuthService(Protocol):
+    def signup(self, user_in: UserCreate, response: Response) -> AuthResponse: ...
+    def login(self, response: Response, form_data: OAuth2PasswordRequestForm) -> AuthResponse: ...
+    def authorize_token(self, form_data: OAuth2PasswordRequestForm) -> TokenResponse: ...
+    def refresh(self, request: Request, response: Response) -> MessageResponse: ...
+    def logout(self, response: Response) -> MessageResponse: ...
+    def get_me(self, user_id: int) -> UserResponse: ...
+    async def google_redirect(self, request: Request) -> Any: ...
+    async def google_callback(self, request: Request, response: Response) -> Any: ...
+    def send_magic_link(self, email: str) -> MessageResponse: ...
+    def verify_magic_link(self, token: str, response: Response) -> Any: ...
+    def forgot_password(self, email: str) -> MessageResponse: ...
+    def reset_password(self, token: str, new_password: str) -> MessageResponse: ...
 
 
-def signup(user_in: UserCreate, db: Session, response: Response) -> dict:
-    if get_user_by_email(db, user_in.email):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "An account with this email already exists")
-    user = create_user(db, user_in)
-    _set_auth_cookies(response, user.id)
-    try:
-        from ..utils.email_utils import send_welcome_email
-        send_welcome_email(user.email, user.full_name.split()[0])
-    except Exception:
-        pass
-    return {"user": {"id": user.id, "email": user.email, "full_name": user.full_name, "plan": user.plan}}
+class AuthService(IAuthService):
+    def __init__(
+        self,
+        repo: IUserRepository = Depends(UserRepository),
+        user_service: IUserService = Depends(UserService),
+    ):
+        self.repo = repo
+        self.user_service = user_service
 
+    def _set_auth_cookies(self, response: Response, user_id: int) -> None:
+        response.set_cookie(settings.ACCESS_TOKEN_KEY, create_access_token(user_id), httponly=True, secure=True, samesite="lax")
+        response.set_cookie(settings.REFRESH_TOKEN_KEY, create_refresh_token(user_id), httponly=True, secure=True, samesite="lax")
 
-def login(response: Response, form_data: OAuth2PasswordRequestForm, db: Session) -> dict:
-    user = get_user_by_email(db, form_data.username)
-    if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect email or password")
-    _set_auth_cookies(response, user.id)
-    return {"user": {"id": user.id, "email": user.email, "full_name": user.full_name, "plan": user.plan}}
-
-
-def authorize_token(form_data: OAuth2PasswordRequestForm, db: Session) -> dict:
-    user = get_user_by_email(db, form_data.username)
-    if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect email or password")
-    return {"access_token": create_access_token(user.id), "token_type": "bearer"}
-
-
-def refresh(request: Request, response: Response) -> dict:
-    token = request.cookies.get(REFRESH_TOKEN_KEY)
-    if not token:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing refresh token")
-    user_id = validate_refresh_token(token)
-    response.set_cookie(ACCESS_TOKEN_KEY, create_access_token(user_id), httponly=True, secure=True, samesite="lax")
-    return {"message": "Token refreshed"}
-
-
-def logout(response: Response) -> dict:
-    response.delete_cookie(ACCESS_TOKEN_KEY)
-    response.delete_cookie(REFRESH_TOKEN_KEY)
-    return {"message": "Logged out"}
-
-
-def get_me(db: Session, user_id: int) -> dict:
-    user = get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-    return {
-        "id": user.id,
-        "email": user.email,
-        "full_name": user.full_name,
-        "plan": user.plan,
-        "avatar_initials": user.avatar_initials,
-        "onboarding_completed": user.onboarding_completed,
-    }
-
-
-# Google OAuth
-
-async def google_redirect(request: Request):
-    return await _oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
-
-
-async def google_callback(request: Request, response: Response, db: Session):
-    from fastapi.responses import RedirectResponse
-    try:
-        token = await _oauth.google.authorize_access_token(request)
-        userinfo = token.get("userinfo") or await _oauth.google.userinfo(token=token)
-
-        email = userinfo["email"]
-        provider_user_id = userinfo["sub"]
-        full_name = userinfo.get("name", email.split("@")[0])
-
-        oauth_acct = get_oauth_account(db, "google", provider_user_id)
-        if oauth_acct:
-            user = get_user_by_id(db, oauth_acct.user_id)
-        else:
-            user = get_user_by_email(db, email)
-            if not user:
-                from ..services.user_service import create_user_oauth
-                user = create_user_oauth(db, email, full_name)
-                try:
-                    from ..utils.email_utils import send_welcome_email
-                    send_welcome_email(user.email, user.full_name.split()[0])
-                except Exception:
-                    pass
-            create_oauth_account(db, user.id, "google", provider_user_id,
-                                 token.get("access_token"), token.get("refresh_token"))
-
-        _set_auth_cookies(response, user.id)
-        redirect_to = APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
-        return RedirectResponse(redirect_to)
-    except Exception:
-        return RedirectResponse(APP_URL + "/login?error=oauth_failed")
-
-
-# Magic link
-
-def send_magic_link(email: str, db: Session) -> dict:
-    raw_token = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
-    create_magic_token(db, email, token_hash, expires_at)
-    try:
-        send_magic_link_email(email, raw_token)
-    except Exception:
-        pass
-    return {"message": "If an account exists, a link has been sent."}
-
-
-def verify_magic_link(token: str, db: Session, response: Response):
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    mt = get_magic_token(db, token_hash)
-
-    if not mt or mt.used_at or mt.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(APP_URL + "/login?error=invalid_link")
-
-    user = get_user_by_email(db, mt.email)
-    if not user:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(APP_URL + "/login?error=no_account")
-
-    mark_magic_token_used(db, mt)
-    _set_auth_cookies(response, user.id)
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(APP_URL + "/dashboard")
-
-
-# Password reset
-
-def forgot_password(email: str, db: Session) -> dict:
-    user = get_user_by_email(db, email)
-    if user:
-        raw_token = secrets.token_urlsafe(32)
-        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-        create_reset_token(db, user.id, token_hash, expires_at)
+    def signup(self, user_in: UserCreate, response: Response) -> AuthResponse:
+        if self.repo.get_by_email(user_in.email):
+            raise BadRequestError("An account with this email already exists")
+        user = self.user_service.create_user(user_in)
+        self._set_auth_cookies(response, user.id)
         try:
-            send_password_reset_email(email, raw_token)
+            from src.utils.email_utils import send_welcome_email
+            send_welcome_email(user.email, user.full_name.split()[0])
         except Exception:
             pass
-    return {"message": "If an account exists, a reset link has been sent."}
+        return AuthResponse(user=UserResponse.model_validate(user))
 
+    def login(self, response: Response, form_data: OAuth2PasswordRequestForm) -> AuthResponse:
+        user = self.repo.get_by_email(form_data.username)
+        if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
+            raise UnauthorizedError("Incorrect email or password")
+        self._set_auth_cookies(response, user.id)
+        return AuthResponse(user=UserResponse.model_validate(user))
 
-def reset_password(token: str, new_password: str, db: Session) -> dict:
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    rt = get_reset_token(db, token_hash)
+    def authorize_token(self, form_data: OAuth2PasswordRequestForm) -> TokenResponse:
+        user = self.repo.get_by_email(form_data.username)
+        if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
+            raise UnauthorizedError("Incorrect email or password")
+        return TokenResponse(access_token=create_access_token(user.id))
 
-    if not rt or rt.used_at or rt.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid or expired reset token")
+    def refresh(self, request: Request, response: Response) -> MessageResponse:
+        token = request.cookies.get(settings.REFRESH_TOKEN_KEY)
+        if not token:
+            raise UnauthorizedError("Missing refresh token")
+        user_id = validate_refresh_token(token)
+        response.set_cookie(settings.ACCESS_TOKEN_KEY, create_access_token(user_id), httponly=True, secure=True, samesite="lax")
+        return MessageResponse(message="Token refreshed")
 
-    user = get_user_by_id(db, rt.user_id)
-    if not user:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    def logout(self, response: Response) -> MessageResponse:
+        response.delete_cookie(settings.ACCESS_TOKEN_KEY)
+        response.delete_cookie(settings.REFRESH_TOKEN_KEY)
+        return MessageResponse(message="Logged out")
 
-    user.hashed_password = hash_password(new_password)
-    mark_reset_token_used(db, rt)
-    update_user(db, user)
-    return {"message": "Password updated successfully"}
+    def get_me(self, user_id: int) -> UserResponse:
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            raise NotFoundError("User not found")
+        return UserResponse.model_validate(user)
+
+    # ─── Google OAuth ─────────────────────────────────────────────────────────
+
+    async def google_redirect(self, request: Request):
+        return await _oauth.google.authorize_redirect(request, settings.GOOGLE_REDIRECT_URI)
+
+    async def google_callback(self, request: Request, response: Response):
+        from fastapi.responses import RedirectResponse
+        try:
+            token = await _oauth.google.authorize_access_token(request)
+            userinfo = token.get("userinfo") or await _oauth.google.userinfo(token=token)
+
+            email = userinfo["email"]
+            provider_user_id = userinfo["sub"]
+            full_name = userinfo.get("name", email.split("@")[0])
+
+            oauth_acct = self.repo.get_oauth_account("google", provider_user_id)
+            if oauth_acct:
+                user = self.repo.get_by_id(oauth_acct.user_id)
+                if not user:
+                    raise ValueError("OAuth account references deleted user")
+            else:
+                user = self.repo.get_by_email(email)
+                if not user:
+                    user = self.user_service.create_user_oauth(email, full_name)
+                    try:
+                        from src.utils.email_utils import send_welcome_email
+                        send_welcome_email(user.email, user.full_name.split()[0])
+                    except Exception:
+                        pass
+                self.repo.create_oauth_account(user.id, "google", provider_user_id,
+                                               token.get("access_token"), token.get("refresh_token"))
+
+            self._set_auth_cookies(response, user.id)
+            redirect_to = settings.APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
+            return RedirectResponse(redirect_to)
+        except Exception:
+            return RedirectResponse(settings.APP_URL + "/login?error=oauth_failed")
+
+    # ─── Magic link ───────────────────────────────────────────────────────────
+
+    def send_magic_link(self, email: str) -> MessageResponse:
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+        self.repo.create_magic_token(email, token_hash, expires_at)
+        try:
+            send_magic_link_email(email, raw_token)
+        except Exception:
+            pass
+        return MessageResponse(message="If an account exists, a link has been sent.")
+
+    def verify_magic_link(self, token: str, response: Response):
+        from fastapi.responses import RedirectResponse
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        mt = self.repo.get_magic_token(token_hash)
+
+        if not mt or mt.used_at or mt.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            return RedirectResponse(settings.APP_URL + "/login?error=invalid_link")
+
+        user = self.repo.get_by_email(mt.email)
+        if not user:
+            return RedirectResponse(settings.APP_URL + "/login?error=no_account")
+
+        self.repo.mark_magic_token_used(mt)
+        self._set_auth_cookies(response, user.id)
+        return RedirectResponse(settings.APP_URL + "/dashboard")
+
+    # ─── Password reset ───────────────────────────────────────────────────────
+
+    def forgot_password(self, email: str) -> MessageResponse:
+        user = self.repo.get_by_email(email)
+        if user:
+            raw_token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+            self.repo.create_reset_token(user.id, token_hash, expires_at)
+            try:
+                send_password_reset_email(email, raw_token)
+            except Exception:
+                pass
+        return MessageResponse(message="If an account exists, a reset link has been sent.")
+
+    def reset_password(self, token: str, new_password: str) -> MessageResponse:
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        rt = self.repo.get_reset_token(token_hash)
+
+        if not rt or rt.used_at or rt.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            raise BadRequestError("Invalid or expired reset token")
+
+        user = self.repo.get_by_id(rt.user_id)
+        if not user:
+            raise NotFoundError("User not found")
+
+        user.hashed_password = hash_password(new_password)
+        self.repo.mark_reset_token_used(rt)
+        self.repo.update(user)
+        return MessageResponse(message="Password updated successfully")

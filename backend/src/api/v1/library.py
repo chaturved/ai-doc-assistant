@@ -1,31 +1,40 @@
-from fastapi import APIRouter, Depends, UploadFile, File
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, File, UploadFile
 
-from src.core.dependencies import get_current_user_id, get_db
-from src.services.library_service import clear_all, delete_document, get_library_data, save_files
+from src.core.dependencies import get_current_user_id, get_library_service
+from src.services.library_service import ILibraryService
 
 router = APIRouter(prefix="/library", tags=["Library"])
 
 
 @router.get("")
-def fetch_library(db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
-    return get_library_data(db, current_user_id)
+def fetch_library(
+    user_id: int = Depends(get_current_user_id),
+    service: ILibraryService = Depends(get_library_service),
+):
+    return service.get_library_data(user_id)
 
 
 @router.post("/upload")
 async def upload_library(
     files: list[UploadFile] = File(...),
-    db: Session = Depends(get_db),
-    current_user_id: int = Depends(get_current_user_id),
+    user_id: int = Depends(get_current_user_id),
+    service: ILibraryService = Depends(get_library_service),
 ):
-    return await save_files(db, current_user_id, files)
+    return await service.save_files(user_id, files)
 
 
 @router.delete("/clear")
-def clear_library(db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
-    return clear_all(db, current_user_id)
+def clear_library(
+    user_id: int = Depends(get_current_user_id),
+    service: ILibraryService = Depends(get_library_service),
+):
+    return service.clear_all(user_id)
 
 
 @router.delete("/{doc_id}")
-def delete_doc(doc_id: int, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
-    return delete_document(db, doc_id, current_user_id)
+def delete_doc(
+    doc_id: int,
+    user_id: int = Depends(get_current_user_id),
+    service: ILibraryService = Depends(get_library_service),
+):
+    return service.delete_document(doc_id, user_id)

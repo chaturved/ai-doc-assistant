@@ -1,53 +1,56 @@
-from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends
 
-from src.core.dependencies import get_current_user_id, get_db
-from src.repositories import analytics_repository
+from src.core.dependencies import get_analytics_service, get_current_user_id
+from src.services.analytics_service import IAnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 class FeedbackBody(BaseModel):
-    value: str  # 'up' | 'down'
+    value: str
 
 
 @router.get("/overview")
-def overview(db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
-    return analytics_repository.get_overview(db, user_id)
+def overview(
+    user_id: int = Depends(get_current_user_id),
+    service: IAnalyticsService = Depends(get_analytics_service),
+):
+    return service.get_overview(user_id)
 
 
 @router.get("/queries")
 def query_volume(
     days: int = 30,
-    db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
+    service: IAnalyticsService = Depends(get_analytics_service),
 ):
-    return analytics_repository.get_query_volume(db, user_id, days)
+    return service.get_query_volume(user_id, days)
 
 
 @router.get("/citations")
-def top_citations(db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
-    return analytics_repository.get_top_cited_docs(db, user_id)
+def top_citations(
+    user_id: int = Depends(get_current_user_id),
+    service: IAnalyticsService = Depends(get_analytics_service),
+):
+    return service.get_top_cited_docs(user_id)
 
 
 @router.post("/messages/{message_id}/feedback")
 def set_feedback(
     message_id: int,
     body: FeedbackBody,
-    db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
+    service: IAnalyticsService = Depends(get_analytics_service),
 ):
-    if body.value not in ("up", "down"):
-        raise HTTPException(status_code=422, detail="value must be 'up' or 'down'")
-    return analytics_repository.upsert_feedback(db, message_id, user_id, body.value)
+    return service.set_feedback(message_id, user_id, body.value)
 
 
 @router.get("/messages/feedbacks")
 def get_feedbacks(
     message_ids: str,
-    db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
+    service: IAnalyticsService = Depends(get_analytics_service),
 ):
     ids = [int(i) for i in message_ids.split(",") if i.strip().isdigit()]
-    return analytics_repository.get_user_feedbacks(db, user_id, ids)
+    return service.get_feedbacks(user_id, ids)

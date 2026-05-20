@@ -1,17 +1,20 @@
-from ..config import TEXT_CHUNK_SIZE, TEXT_CHUNK_OVERLAP
 import re
-from typing import List
-import fitz
-import docx
 import tempfile
-from fastapi import HTTPException
+from typing import List
+
+import docx
+import fitz
+
+from ..config import settings
+from ..core.exceptions import BadRequestError
+
 
 def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
-def chunk_text(text: str, chunk_size: int = TEXT_CHUNK_SIZE, overlap: int = TEXT_CHUNK_OVERLAP) -> List[str]:
+def chunk_text(text: str, chunk_size: int = settings.TEXT_CHUNK_SIZE, overlap: int = settings.TEXT_CHUNK_OVERLAP) -> List[str]:
     text = clean_text(text)
     chunks = []
     start = 0
@@ -41,4 +44,4 @@ def extract_text_from_bytes(contents: bytes, ext: str) -> str:
     if ext in ["txt", "md"]:
         return contents.decode("utf-8", errors="ignore")
 
-    raise HTTPException(status_code=400, detail=f"Unsupported file type: .{ext}")
+    raise BadRequestError(f"Unsupported file type: .{ext}")

@@ -29,3 +29,8 @@ class ConflictError(AppError):
 class BadRequestError(AppError):
     def __init__(self, message: str = "Bad request"):
         super().__init__(message, "BAD_REQUEST", 400)
+
+
+class UnprocessableEntityError(AppError):
+    def __init__(self, message: str = "Unprocessable entity"):
+        super().__init__(message, "UNPROCESSABLE_ENTITY", 422)
