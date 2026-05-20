@@ -67,7 +67,7 @@ export default function SignupPage() {
 
         <a
           href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/auth/google`}
-          className="flex items-center justify-center gap-3 w-full h-11 rounded-[10px] border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
+          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -90,7 +90,7 @@ export default function SignupPage() {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
               <input {...register("full_name")} placeholder="Jane Doe"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition" />
+                className="w-full h-11 input-base pl-10 pr-4 text-sm" />
             </div>
             {errors.full_name && <p className="mt-1 text-xs text-red-400">{errors.full_name.message}</p>}
           </div>
@@ -100,7 +100,7 @@ export default function SignupPage() {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
               <input {...register("email")} type="email" placeholder="you@example.com"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition" />
+                className="w-full h-11 input-base pl-10 pr-4 text-sm" />
             </div>
             {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
           </div>
@@ -110,7 +110,7 @@ export default function SignupPage() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
               <input {...register("password")} type={showPw ? "text" : "password"} placeholder="At least 8 characters"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition" />
+                className="w-full h-11 input-base pl-10 pr-10 text-sm" />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -119,7 +119,7 @@ export default function SignupPage() {
             <PasswordStrength pw={pw} />
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-[10px] disabled:opacity-50">
+          <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-btn-md disabled:opacity-50">
             {isSubmitting
               ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               : <>Create account <ArrowRight className="h-4 w-4" /></>}

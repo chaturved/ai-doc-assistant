@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import AppSidebar from "@/components/AppSidebar";
-
 const nav = [
   { label: "Profile",  href: "/settings/profile" },
   { label: "Password", href: "/settings/password" },
@@ -13,11 +11,11 @@ const nav = [
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="flex h-screen overflow-hidden text-white relative bg-bg">
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
-      <div className="absolute inset-0 pointer-events-none bg-vignette" />
-      <AppSidebar />
-      <main className="flex-1 flex flex-col min-w-0 relative z-10 bg-sidebar overflow-y-auto thin-scroll">
+      <main
+        className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative overflow-y-auto thin-scroll"
+        style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" style={{ filter: "blur(72px)" }} />
         <div className="absolute inset-0 pointer-events-none bg-amber-glow z-0" />
         <div className="max-w-3xl mx-auto w-full px-8 py-10 relative z-10">
           <div className="flex items-center gap-[9px] mb-8">
@@ -31,7 +29,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className={`block px-3 py-2 rounded-[8px] text-sm transition ${
+                      className={`block px-3 py-2 rounded-btn text-sm transition ${
                         pathname === item.href
                           ? "bg-white/[0.08] text-white font-medium"
                           : "text-muted hover:text-white hover:bg-white/[0.04]"
@@ -47,6 +45,5 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           </div>
         </div>
       </main>
-    </div>
   );
 }

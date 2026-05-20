@@ -71,7 +71,7 @@ function ResetPasswordContent() {
                   {...register(field)}
                   type={showPw ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                  className="w-full h-11 input-base pl-10 pr-10 text-sm"
                 />
                 {i === 0 && (
                   <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
@@ -83,7 +83,7 @@ function ResetPasswordContent() {
             </div>
           ))}
 
-          <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-[10px] disabled:opacity-50">
+          <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-btn-md disabled:opacity-50">
             {isSubmitting
               ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               : <>Update password <ArrowRight className="h-4 w-4" /></>}

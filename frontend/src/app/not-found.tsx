@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="text-muted text-[15px] mb-8 leading-relaxed">
           The page you&apos;re looking for doesn&apos;t exist.<br />It may have been moved or deleted.
         </p>
-        <Link href="/" className="btn-primary !rounded-[10px]">
+        <Link href="/" className="btn-primary !rounded-btn-md">
           ← Go home
         </Link>
       </div>

@@ -11,7 +11,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { logout } from "@/lib/api/auth";
 import {
-  getConversations, createConversation, deleteConversation, renameConversation,
+  getConversations, deleteConversation, renameConversation,
 } from "@/lib/api/conversations";
 import { getLibrary, uploadFiles, deleteDocument } from "@/lib/api/documents";
 import type { Conversation, LibraryDoc } from "@/types";
@@ -82,13 +82,9 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
 
   useEffect(() => { loadConversations(); loadLibrary(); }, [loadConversations, loadLibrary, refreshKey]);
 
-  const handleNewChat = async () => {
+  const handleNewChat = () => {
     if (onNewChat) { onNewChat(); return; }
-    try {
-      const conv = await createConversation();
-      await loadConversations();
-      router.push(`/dashboard?conv=${conv.id}`);
-    } catch { toast.error("Failed to create conversation"); }
+    router.push("/dashboard");
   };
 
   const handleConvSelect = (id: number) => {
@@ -132,26 +128,26 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
   const grouped = groupByDate(filteredConvs);
 
   const navItem = (active: boolean) =>
-    `w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[13px] font-medium transition ${
+    `w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-btn text-[13px] font-medium transition ${
       active ? "text-white bg-white/[0.09]" : "text-white/90 hover:text-white hover:bg-white/[0.06]"
     }`;
 
   return (
-    <aside className="w-[248px] flex-shrink-0 flex flex-col bg-black">
+    <aside className="w-[248px] flex-shrink-0 flex flex-col bg-card rounded-[18px] border border-white/[0.08]">
 
       {/* Header */}
       <div className="flex items-center px-4 py-4 mb-1">
-        <span className="text-[14px] font-semibold text-white/80 tracking-tight">Paperwise</span>
+        <span className="text-[15px] font-bold text-white">Paperwise</span>
       </div>
 
       {/* Nav */}
       <div className="px-2 space-y-px">
         <button onClick={handleNewChat}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/[0.06] transition-colors">
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-btn text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/[0.06] transition-colors">
           <Plus size={14} /> New Chat
         </button>
         <Link href="/analytics" className={navItem(pathname === "/analytics")}>
-          <BarChart2 size={14} className="flex-shrink-0 opacity-60" /> Analytics
+          <BarChart2 size={14} className="flex-shrink-0" /> Analytics
         </Link>
       </div>
 
@@ -165,7 +161,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
         {docsOpen && (
           <div className="space-y-px">
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadingDocs}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[13px] text-white/50 hover:text-white/80 hover:bg-white/[0.05] transition-colors disabled:opacity-40">
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-btn text-[13px] text-white/50 hover:text-white/80 hover:bg-white/[0.05] transition-colors disabled:opacity-40">
               {uploadingDocs
                 ? <span className="h-3 w-3 rounded-full border border-white/20 border-t-white/60 animate-spin" />
                 : <Upload size={13} className="opacity-60" />}
@@ -175,7 +171,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
             {library.length === 0
               ? <p className="px-3 py-1.5 text-[12px] text-white/28">No documents yet.</p>
               : library.slice(0, 8).map((doc) => (
-                <div key={doc.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-[8px] hover:bg-white/[0.05] transition-colors cursor-default">
+                <div key={doc.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-btn hover:bg-white/[0.05] transition-colors cursor-default">
                   <DocIcon type={doc.type} />
                   <span className="flex-1 text-[12.5px] font-medium text-white/85 truncate group-hover:text-white transition-colors">{doc.name}</span>
                   <button onClick={() => handleDeleteDoc(doc.id)}
@@ -198,7 +194,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
         <div className="relative mb-1.5">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/22" size={11} />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
-            className="w-full h-7 rounded-[8px] pl-7 pr-3 text-[12px] text-white/90 placeholder:text-white/35 outline-none bg-white/[0.04] border border-transparent focus:border-white/[0.10] transition-colors" />
+            className="w-full h-7 input-base rounded-btn pl-7 pr-3 text-[12px]" />
         </div>
 
         {grouped.length === 0
@@ -211,7 +207,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
                   onClick={() => handleConvSelect(conv.id)}
                   onMouseEnter={() => setHoveredConv(conv.id)}
                   onMouseLeave={() => setHoveredConv(null)}
-                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-[8px] cursor-pointer mb-px transition-colors ${
+                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-btn cursor-pointer mb-px transition-colors ${
                     activeConvId === conv.id ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
                   }`}
                 >
@@ -247,7 +243,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
       {/* Footer */}
       <div className="border-t border-white/[0.05]">
         {user?.plan === "free" && (
-          <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3 bg-amber-500/[0.06] border border-amber-500/[0.15]">
+          <div className="mx-3 mt-3 mb-2 rounded-btn-md p-3 bg-amber-500/[0.06] border border-amber-500/[0.15]">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent text-white">Free</span>
               <span className="text-[11px] text-white/50">20 queries / month</span>
@@ -264,7 +260,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-semibold truncate">{user?.full_name}</div>
             <div className="text-[11px] text-white/40 truncate flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
               {user?.plan === "free" ? "Free plan" : "Pro plan"}
             </div>
           </div>

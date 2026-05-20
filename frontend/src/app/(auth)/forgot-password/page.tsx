@@ -59,12 +59,12 @@ export default function ForgotPasswordPage() {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                   <input {...register("email")} type="email" placeholder="you@example.com"
-                    className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition" />
+                    className="w-full h-11 input-base pl-10 pr-4 text-sm" />
                 </div>
                 {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-[10px] disabled:opacity-50">
+              <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-btn-md disabled:opacity-50">
                 {isSubmitting
                   ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                   : <>Send reset link <ArrowRight className="h-4 w-4" /></>}

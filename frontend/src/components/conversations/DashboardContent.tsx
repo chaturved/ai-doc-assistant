@@ -8,7 +8,7 @@ import {
   Bot, Shield, Waves, Sparkles, Star, Zap, BookOpen, Link2,
   Check, AlertTriangle, ChevronRight,
 } from "lucide-react";
-import AppSidebar from "@/components/AppSidebar";
+import { useAppLayout } from "@/context/AppLayoutContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { sseClient } from "@/lib/api-client";
@@ -43,7 +43,7 @@ const BADGE_ICONS: Record<string, React.ReactNode> = {
 
 function BadgeChip({ badge }: { badge: Badge }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[10px] font-medium bg-white/[0.06] text-white/40 whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[10px] font-medium bg-white/[0.12] text-white/75 whitespace-nowrap">
       <span className="opacity-50">{BADGE_ICONS[badge.icon] ?? <Sparkles size={10} />}</span>
       {badge.label}
     </span>
@@ -57,10 +57,10 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
   return (
     <button onClick={() => setOpen((v) => !v)} className="w-full text-left group/snip">
       <div className="flex items-center gap-1.5">
-        <ChevronRight size={10} className={`text-white/20 flex-shrink-0 transition-transform ${open ? "rotate-90" : ""}`} />
-        <span className="text-[11.5px] text-white/32 group-hover/snip:text-white/52 truncate transition-colors">{snippet.name}</span>
+        <ChevronRight size={10} className={`text-white/50 flex-shrink-0 transition-transform ${open ? "rotate-90" : ""}`} />
+        <span className="text-[11.5px] text-white/70 group-hover/snip:text-white/90 truncate transition-colors">{snippet.name}</span>
       </div>
-      {open && <p className="mt-1.5 pl-4 text-[11px] text-white/22 leading-relaxed">{snippet.snippet}</p>}
+      {open && <p className="mt-1.5 pl-4 text-[11px] text-white/50 leading-relaxed">{snippet.snippet}</p>}
     </button>
   );
 }
@@ -113,7 +113,7 @@ function AIMessage({ messageId, content, meta, streaming, timestamp }: AIMessage
 
         {hasMeta && (
           <div className="mb-3 space-y-1.5">
-            {meta?.description && <p className="text-[12.5px] leading-relaxed text-white/30 italic">{meta.description}</p>}
+            {meta?.description && <p className="text-[12.5px] leading-relaxed text-white/55 italic">{meta.description}</p>}
             {meta?.badges && meta.badges.length > 0 && (
               <div className="flex flex-wrap gap-1">{meta.badges.map((b, i) => <BadgeChip key={i} badge={b} />)}</div>
             )}
@@ -156,23 +156,23 @@ function AIMessage({ messageId, content, meta, streaming, timestamp }: AIMessage
         )}
 
         {hasContext && (
-          <div className="mt-4 pt-3.5 border-t border-white/[0.06] space-y-2.5">
-            <span className="text-[10px] font-semibold tracking-[0.09em] uppercase text-white/20">Context used</span>
+          <div className="mt-4 pt-3.5 border-t-system space-y-2.5">
+            <span className="text-[10px] font-semibold tracking-[0.09em] uppercase text-white/60">Context used</span>
             {meta?.snippets && meta.snippets.length > 0 && (
               <div className="space-y-1.5 pl-1">{meta.snippets.map((s, i) => <SnippetCard key={i} snippet={s} />)}</div>
             )}
             {meta?.sources && meta.sources.length > 0 && (
               <div className="space-y-1.5 pl-1">
                 {meta.snippets && meta.snippets.length > 0 && (
-                  <div className="text-[10px] font-semibold tracking-[0.09em] uppercase text-white/20 pt-1">Documents</div>
+                  <div className="text-[10px] font-semibold tracking-[0.09em] uppercase text-white/60 pt-1">Documents</div>
                 )}
                 {meta.sources.map((src: Source, i: number) => (
                   <button key={i} onClick={() => setExpandedSource(expandedSource === i + 1 ? null : i + 1)} className="w-full text-left group/src">
                     <div className="flex items-start gap-1.5">
-                      <span className="text-[9px] font-bold text-amber-500/60 flex-shrink-0 mt-[2px]">[{i + 1}]</span>
+                      <span className="text-[9px] font-bold text-accent flex-shrink-0 mt-[2px]">[{i + 1}]</span>
                       <div className="min-w-0">
-                        <span className="text-[11.5px] text-white/30 group-hover/src:text-white/50 transition-colors truncate block">{src.name}</span>
-                        <p className={`text-[11px] text-white/20 leading-relaxed mt-0.5 ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>{src.quote}</p>
+                        <span className="text-[11.5px] text-white/70 group-hover/src:text-white/90 transition-colors truncate block">{src.name}</span>
+                        <p className={`text-[11px] text-white/50 leading-relaxed mt-0.5 ${expandedSource === i + 1 ? "" : "line-clamp-2"}`}>{src.quote}</p>
                       </div>
                     </div>
                   </button>
@@ -186,14 +186,14 @@ function AIMessage({ messageId, content, meta, streaming, timestamp }: AIMessage
           <div className="flex items-center gap-0.5 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1 rounded-[5px] px-1.5 py-1 text-[11px] text-white/20 hover:text-white/45 hover:bg-white/[0.05] transition-all"
+              className="flex items-center gap-1 rounded-[5px] px-1.5 py-1 text-[11px] text-white/50 hover:text-white/80 hover:bg-white/[0.07] transition-all"
             >
               <Copy size={11} /> Copy
             </button>
-            <button onClick={() => handleFeedback("up")} className={`p-1 rounded-[5px] transition-all ${feedback === "up" ? "text-emerald-400" : "text-white/18 hover:text-emerald-400"}`}>
+            <button onClick={() => handleFeedback("up")} className={`p-1 rounded-[5px] transition-all ${feedback === "up" ? "text-emerald-400" : "text-white/50 hover:text-emerald-400"}`}>
               <ThumbsUp size={11} />
             </button>
-            <button onClick={() => handleFeedback("down")} className={`p-1 rounded-[5px] transition-all ${feedback === "down" ? "text-red-400" : "text-white/18 hover:text-red-400"}`}>
+            <button onClick={() => handleFeedback("down")} className={`p-1 rounded-[5px] transition-all ${feedback === "down" ? "text-red-400" : "text-white/50 hover:text-red-400"}`}>
               <ThumbsDown size={11} />
             </button>
           </div>
@@ -286,7 +286,7 @@ function InputBox({
           disabled={isStreaming || !value.trim()}
           className={`h-[32px] w-[32px] rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
             value.trim() && !isStreaming
-              ? "bg-amber-500 text-black hover:opacity-85"
+              ? "bg-primary text-black hover:opacity-85"
               : "bg-white/[0.08] text-white/25 cursor-not-allowed"
           }`}
         >
@@ -303,6 +303,8 @@ function InputBox({
 
 function DashboardInner() {
   const params = useSearchParams();
+
+  const { setSidebarCallbacks } = useAppLayout();
 
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
   const [messages, setMessages]         = useState<Message[]>([]);
@@ -334,6 +336,24 @@ function DashboardInner() {
     setStreamingContent("");
     setStreamingMeta(null);
   };
+
+  useEffect(() => {
+    setSidebarCallbacks({
+      activeConvId,
+      onConvSelect: setActiveConvId,
+      onConvDelete: (id: number) => {
+        if (id === activeConvId) {
+          setActiveConvId(null);
+          setMessages([]);
+          setStreamingContent("");
+          setStreamingMeta(null);
+        }
+      },
+      onNewChat: handleNewChat,
+      refreshKey: sidebarRefresh,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeConvId, sidebarRefresh]);
 
   const handleSend = async (question?: string) => {
     const q = (question ?? inputValue).trim();
@@ -403,18 +423,6 @@ function DashboardInner() {
   ];
 
   return (
-    <div className="flex h-screen text-white p-2.5 gap-2.5 bg-black">
-
-      {/* ══════════ LEFT SIDEBAR ══════════ */}
-      <AppSidebar
-        activeConvId={activeConvId}
-        onConvSelect={setActiveConvId}
-        onConvDelete={(id) => { if (id === activeConvId) { setActiveConvId(null); setMessages([]); setStreamingContent(""); setStreamingMeta(null); } }}
-        onNewChat={handleNewChat}
-        refreshKey={sidebarRefresh}
-      />
-
-      {/* ══════════ MAIN PANEL ══════════ */}
       <main
         className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative"
         style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -436,7 +444,7 @@ function DashboardInner() {
               <div ref={chatEndRef} />
             </div>
 
-            <div className="relative z-10 flex-shrink-0 px-10 pb-5 pt-3 max-w-[740px] w-full mx-auto border-t border-white/[0.06]">
+            <div className="relative z-10 flex-shrink-0 px-10 pb-5 pt-3 max-w-[740px] w-full mx-auto border-t-system">
               <InputBox
                 value={inputValue}
                 onChange={setInputValue}
@@ -485,7 +493,6 @@ function DashboardInner() {
           </div>
         )}
       </main>
-    </div>
   );
 }
 

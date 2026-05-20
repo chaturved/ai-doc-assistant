@@ -82,7 +82,7 @@ function LoginContent() {
 
         <a
           href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/auth/google`}
-          className="flex items-center justify-center gap-3 w-full h-11 rounded-[10px] border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
+          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -108,7 +108,7 @@ function LoginContent() {
                 {...register("email")}
                 type="email"
                 placeholder="you@example.com"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                className="w-full h-11 input-base pl-10 pr-4 text-sm"
               />
             </div>
             {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
@@ -127,7 +127,7 @@ function LoginContent() {
                 {...register("password")}
                 type={showPw ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] pl-10 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                className="w-full h-11 input-base pl-10 pr-10 text-sm"
               />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -139,7 +139,7 @@ function LoginContent() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary w-full !rounded-[10px] disabled:opacity-50"
+            className="btn-primary w-full !rounded-btn-md disabled:opacity-50"
           >
             {isSubmitting
               ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -159,12 +159,12 @@ function LoginContent() {
             value={magicEmail}
             onChange={(e) => setMagicEmail(e.target.value)}
             placeholder="your@email.com"
-            className="flex-1 h-10 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+            className="flex-1 h-10 input-base px-3 text-sm"
           />
           <button
             onClick={handleMagicLink}
             disabled={magicLoading}
-            className="h-10 px-4 rounded-[10px] bg-white/[0.07] border-system text-sm text-white/70 hover:bg-white/[0.1] disabled:opacity-50 transition whitespace-nowrap"
+            className="h-10 px-4 rounded-btn-md bg-white/[0.07] border-system text-sm text-white/70 hover:bg-white/[0.1] disabled:opacity-50 transition whitespace-nowrap"
           >
             {magicLoading ? "Sending…" : "Send link"}
           </button>

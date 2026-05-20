@@ -58,20 +58,20 @@ export default function ProfilePage() {
         <div>
           <label className="block text-xs font-semibold text-muted mb-1.5">Full name</label>
           <input {...register("full_name")}
-            className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 text-sm text-white outline-none focus:border-primary/50 transition" />
+            className="w-full h-11 input-base px-4 text-sm" />
           {errors.full_name && <p className="mt-1 text-xs text-red-400">{errors.full_name.message}</p>}
         </div>
         <div>
           <label className="block text-xs font-semibold text-muted mb-1.5">Email</label>
           <div className="flex items-center gap-2">
             <input value={user?.email || ""} readOnly
-              className="flex-1 h-11 rounded-[10px] bg-white/[0.03] border border-white/[0.06] px-4 text-sm text-faint cursor-not-allowed" />
+              className="flex-1 h-11 rounded-btn-md bg-white/[0.03] border border-white/[0.06] px-4 text-sm text-faint cursor-not-allowed" />
             <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
               Verified
             </span>
           </div>
         </div>
-        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-[10px] disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-btn-md disabled:opacity-50">
           {isSubmitting ? "Saving…" : "Save changes"}
         </button>
       </form>
@@ -83,7 +83,7 @@ export default function ProfilePage() {
         </p>
         {!showDelete ? (
           <button onClick={() => setShowDelete(true)}
-            className="h-9 px-4 rounded-[8px] text-sm text-red-400 transition bg-red-500/[0.08] border border-red-500/[0.18]">
+            className="h-9 px-4 rounded-btn text-sm text-red-400 transition bg-red-500/[0.08] border border-red-500/[0.18]">
             Delete my account
           </button>
         ) : (
@@ -92,14 +92,14 @@ export default function ProfilePage() {
               Type <span className="font-mono text-white">DELETE</span> to confirm.
             </p>
             <input value={deleteInput} onChange={(e) => setDeleteInput(e.target.value)} placeholder="DELETE"
-              className="w-full h-10 rounded-[10px] bg-white/[0.05] px-4 text-sm text-white outline-none transition border border-red-500/25" />
+              className="w-full h-10 rounded-btn-md bg-white/[0.05] px-4 text-sm text-white outline-none transition border border-red-500/25" />
             <div className="flex gap-2">
               <button onClick={() => setShowDelete(false)}
-                className="h-9 px-4 rounded-[8px] text-sm text-muted hover:text-white border-system bg-white/[0.04] transition">
+                className="h-9 px-4 rounded-btn text-sm text-muted hover:text-white border-system bg-white/[0.04] transition">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleteInput !== "DELETE" || deleting}
-                className="h-9 px-4 rounded-[8px] text-sm text-white transition disabled:opacity-40 bg-red-600">
+                className="h-9 px-4 rounded-btn text-sm text-white transition disabled:opacity-40 bg-red-600">
                 {deleting ? "Deleting…" : "Confirm delete"}
               </button>
             </div>

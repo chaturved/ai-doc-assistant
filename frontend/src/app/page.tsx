@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 const T = {
 primary: "#ffffff",
   accent:  "#f59e0b",
-  bg:      "#080810",
+  bg:      "#000",
   muted:   "rgba(255,255,255,0.5)",
   faint:   "rgba(255,255,255,0.22)",
   border:  "rgba(255,255,255,0.08)",

@@ -9,7 +9,7 @@
 
 @theme {
   /* ── Colors ── */
-  --color-bg:      #080810;
+  --color-bg:      #000000;
   --color-card:    rgba(28, 28, 30, 0.85);
   --color-primary: #ffffff;
   --color-accent:  #f59e0b;
@@ -176,6 +176,17 @@
   color: var(--color-accent);
 }
 
+@utility input-base {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-btn-md);
+  color: #fff;
+  outline: none;
+  transition: border-color 150ms ease;
+  &:focus { border-color: rgba(255, 255, 255, 0.5); }
+  &::placeholder { color: rgba(255, 255, 255, 0.2); }
+}
+
 /* ═══════════════════════════════════════════════════
    ANIMATIONS
 ═══════════════════════════════════════════════════ */
@@ -230,7 +241,7 @@
 ═══════════════════════════════════════════════════ */
 
 @utility bg-hero-gradient {
-  background: radial-gradient(ellipse 140% 110% at 50% 100%, #4c1db0 0%, #2a0e6e 20%, #7a3d00 42%, #080810 72%);
+  background: radial-gradient(ellipse 140% 110% at 50% 100%, #1e0d4a 0%, #120830 12%, #c45200 36%, #f59e0b 50%, #000 72%);
 }
 
 @utility bg-vignette {
@@ -238,11 +249,11 @@
 }
 
 @utility bg-footer-gradient {
-  background: radial-gradient(ellipse 120% 90% at 50% 10%, #3b1f8a 0%, #6b3500 45%, #080810 75%);
+  background: radial-gradient(ellipse 120% 90% at 50% 10%, #1a0e40 0%, #c45200 38%, #f59e0b 52%, #000 72%);
 }
 
 @utility bg-login-gradient {
-  background: radial-gradient(ellipse 100% 80% at 50% 90%, #4c1db0 0%, #2a0e6e 25%, #080810 65%);
+  background: radial-gradient(ellipse 100% 80% at 50% 90%, #1e0d4a 0%, #120830 18%, #000 55%);
 }
 
 @utility bg-hero-fade {

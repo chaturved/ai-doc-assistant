@@ -50,7 +50,7 @@ export default function PasswordPage() {
                 {...register(f.id)}
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 pr-10 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                className="w-full h-11 input-base px-4 pr-10 text-sm"
               />
               {f.id === "current_password" && (
                 <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
@@ -68,7 +68,7 @@ export default function PasswordPage() {
             )}
           </div>
         ))}
-        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-[10px] disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-btn-md disabled:opacity-50">
           {isSubmitting ? "Updating…" : "Update password"}
         </button>
       </form>

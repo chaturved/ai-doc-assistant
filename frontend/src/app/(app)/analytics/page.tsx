@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { MessageSquare, FileText, Layers, Star } from "lucide-react";
-import AppSidebar from "@/components/AppSidebar";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -17,11 +16,11 @@ function StatCard({ icon, label, value, sub }: {
 }) {
   return (
     <div className="card p-5 flex flex-col gap-3">
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold text-accent uppercase tracking-[0.08em]">
         {icon} {label}
       </div>
-      <div className="text-3xl font-black tracking-tight text-soft">{value}</div>
-      {sub && <p className="text-xs text-white/35">{sub}</p>}
+      <div className="text-[32px] font-black leading-none tracking-tight text-white">{value}</div>
+      {sub && <p className="text-xs text-muted">{sub}</p>}
     </div>
   );
 }
@@ -30,8 +29,8 @@ const ChartTooltip = ({ active, payload, label }: { active?: boolean; payload?: 
   if (!active || !payload?.length) return null;
   return (
     <div className="card px-3 py-2 text-xs">
-      <p className="text-white/40 mb-0.5">{label}</p>
-      <p className="font-semibold text-soft">
+      <p className="text-muted mb-0.5">{label}</p>
+      <p className="font-bold text-white">
         {payload[0].value} {payload[0].name === "count" ? "queries" : "citations"}
       </p>
     </div>
@@ -56,17 +55,14 @@ export default function AnalyticsPage() {
   const hasQuality = (overview?.thumbs_up ?? 0) + (overview?.thumbs_down ?? 0) > 0;
 
   return (
-    <div className="flex h-screen overflow-hidden text-white relative bg-bg">
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient" />
-      <div className="absolute inset-0 pointer-events-none bg-vignette" />
-
-      <AppSidebar />
-
-      <main className="flex-1 overflow-y-auto thin-scroll relative z-10 bg-sidebar">
+      <main className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative overflow-y-auto thin-scroll"
+        style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" style={{ filter: "blur(72px)" }} />
         <div className="absolute inset-0 pointer-events-none bg-amber-glow z-0" />
-        <div className="max-w-4xl mx-auto px-8 py-10 relative z-10">
+        <div className="max-w-4xl mx-auto px-8 py-10 relative z-10 w-full">
 
-        <h1 className="text-xl font-bold mb-8">Analytics</h1>
+        <p className="section-label mb-2">Overview</p>
+        <h1 className="text-2xl font-black tracking-tight text-white mb-8">Analytics</h1>
 
         {/* Stat cards */}
         {loading ? (
@@ -95,8 +91,8 @@ export default function AnalyticsPage() {
 
         {/* Query Volume */}
         <div className="mb-10">
-          <p className="text-sm font-bold mb-0.5">Query Volume</p>
-          <p className="text-xs text-white/40 mb-4">Queries per day over the last 30 days</p>
+          <p className="text-[15px] font-bold mb-[6px]">Query Volume</p>
+          <p className="text-[13px] text-muted mb-4">Queries per day over the last 30 days</p>
           {loading ? (
             <div className="card p-5 h-[240px]">
               {[...Array(3)].map((_, i) => (
@@ -130,8 +126,8 @@ export default function AnalyticsPage() {
 
           {/* Top Cited Docs */}
           <div>
-            <p className="text-sm font-bold mb-0.5">Top Cited Documents</p>
-            <p className="text-xs text-white/40 mb-4">Most referenced in answers</p>
+            <p className="text-[15px] font-bold mb-[6px]">Top Cited Documents</p>
+            <p className="text-[13px] text-muted mb-4">Most referenced in answers</p>
             {loading ? (
               <div className="card p-5 space-y-3">
                 {[...Array(4)].map((_, i) => (
@@ -161,8 +157,8 @@ export default function AnalyticsPage() {
 
           {/* Answer Quality */}
           <div>
-            <p className="text-sm font-bold mb-0.5">Answer Quality</p>
-            <p className="text-xs text-white/40 mb-4">Based on thumbs up / down feedback</p>
+            <p className="text-[15px] font-bold mb-[6px]">Answer Quality</p>
+            <p className="text-[13px] text-muted mb-4">Based on thumbs up / down feedback</p>
             {loading ? (
               <div className="card p-5 h-[240px]">
                 <div className="h-2.5 rounded-full shimmer-line w-1/2 mb-3" />
@@ -205,6 +201,5 @@ export default function AnalyticsPage() {
         </div>
         </div>
       </main>
-    </div>
   );
 }

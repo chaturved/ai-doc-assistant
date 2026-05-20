@@ -5,11 +5,9 @@ import { getUsage } from "@/lib/api/users";
 import { useAuth } from "@/context/AuthContext";
 import type { Usage } from "@/types";
 
-const T = { primary: "#5b21b6", accent: "#f59e0b" };
-
 function UsageBar({ used, limit, label }: { used: number; limit: number; label: string }) {
   const pct = Math.min(100, Math.round((used / limit) * 100));
-  const barColor = pct > 85 ? "#ef4444" : T.primary;
+  const barColor = pct > 85 ? "#ef4444" : "#f59e0b";
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-xs">
@@ -58,7 +56,7 @@ export default function BillingPage() {
             </div>
             <div className="h-[5px] rounded-full bg-white/[0.06] overflow-hidden">
               <div className="h-full rounded-full transition-all"
-                   style={{ width: `${Math.min(100, (usage.storage_bytes.used / usage.storage_bytes.limit) * 100)}%`, background: T.primary }} />
+                   style={{ width: `${Math.min(100, (usage.storage_bytes.used / usage.storage_bytes.limit) * 100)}%`, background: "#f59e0b" }} />
             </div>
           </div>
         </div>
@@ -66,9 +64,9 @@ export default function BillingPage() {
 
       <div className="card p-5 max-w-sm border-amber-500/25">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-5 h-5 rounded flex items-center justify-center text-[11px] bg-amber-500/[0.15] text-accent">⚡</div>
+          <div className="w-5 h-5 rounded-btn flex items-center justify-center text-[11px] bg-accent/[0.15] text-accent">⚡</div>
           <p className="text-sm font-bold">Growth — $12/month</p>
-          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/[0.12] text-accent">Coming soon</span>
+          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/[0.12] text-accent">Coming soon</span>
         </div>
         <ul className="space-y-2 text-[13px] text-muted mb-5">
           {["Unlimited documents", "Unlimited queries", "50 MB per file", "DOCX support", "Conversation history forever", "Priority support"].map((f) => (
@@ -77,7 +75,7 @@ export default function BillingPage() {
             </li>
           ))}
         </ul>
-        <button className="btn-primary !h-9 !py-0 !rounded-[8px] !text-[13px]">
+        <button className="btn-primary !h-9 !py-0 !rounded-btn !text-[13px]">
           Join waitlist
         </button>
       </div>
