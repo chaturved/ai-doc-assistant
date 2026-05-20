@@ -144,13 +144,14 @@ class AuthService(IAuthService):
                         send_welcome_email(user.email, user.full_name.split()[0])
                     except Exception:
                         pass
-                self.repo.create_oauth_account(user.id, "google", provider_user_id,
-                                               token.get("access_token"), token.get("refresh_token"))
+                self.repo.create_oauth_account(user.id, "google", provider_user_id, None, None)
 
             self._set_auth_cookies(response, user.id)
             redirect_to = settings.APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
             return RedirectResponse(redirect_to)
         except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Unexpected error in google_callback")
             return RedirectResponse(settings.APP_URL + "/login?error=oauth_failed")
 
     # ─── Magic link ───────────────────────────────────────────────────────────
@@ -159,6 +160,7 @@ class AuthService(IAuthService):
         raw_token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+        self.repo.invalidate_magic_tokens(email)
         self.repo.create_magic_token(email, token_hash, expires_at)
         try:
             send_magic_link_email(email, raw_token)
@@ -190,6 +192,7 @@ class AuthService(IAuthService):
             raw_token = secrets.token_urlsafe(32)
             token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
             expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+            self.repo.invalidate_reset_tokens(user.id)
             self.repo.create_reset_token(user.id, token_hash, expires_at)
             try:
                 send_password_reset_email(email, raw_token)

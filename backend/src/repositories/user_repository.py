@@ -38,11 +38,15 @@ class IUserRepository(Protocol):
         refresh_token: Optional[str],
     ) -> OAuthAccount: ...
     @abstractmethod
+    def invalidate_magic_tokens(self, email: str) -> None: ...
+    @abstractmethod
     def create_magic_token(self, email: str, token_hash: str, expires_at: datetime) -> MagicToken: ...
     @abstractmethod
     def get_magic_token(self, token_hash: str) -> Optional[MagicToken]: ...
     @abstractmethod
     def mark_magic_token_used(self, mt: MagicToken) -> None: ...
+    @abstractmethod
+    def invalidate_reset_tokens(self, user_id: int) -> None: ...
     @abstractmethod
     def create_reset_token(self, user_id: int, token_hash: str, expires_at: datetime) -> ResetToken: ...
     @abstractmethod
@@ -113,6 +117,10 @@ class UserRepository(IUserRepository):
 
     # ─── Magic tokens ─────────────────────────────────────────────────────────
 
+    def invalidate_magic_tokens(self, email: str) -> None:
+        self.db.query(MagicToken).filter(MagicToken.email == email, MagicToken.used_at.is_(None)).delete()
+        self.db.commit()
+
     def create_magic_token(self, email: str, token_hash: str, expires_at: datetime) -> MagicToken:
         mt = MagicToken(email=email, token_hash=token_hash, expires_at=expires_at)
         self.db.add(mt)
@@ -128,6 +136,10 @@ class UserRepository(IUserRepository):
         self.db.commit()
 
     # ─── Reset tokens ─────────────────────────────────────────────────────────
+
+    def invalidate_reset_tokens(self, user_id: int) -> None:
+        self.db.query(ResetToken).filter(ResetToken.user_id == user_id, ResetToken.used_at.is_(None)).delete()
+        self.db.commit()
 
     def create_reset_token(self, user_id: int, token_hash: str, expires_at: datetime) -> ResetToken:
         rt = ResetToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at)

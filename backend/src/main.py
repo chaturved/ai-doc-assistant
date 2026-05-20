@@ -9,7 +9,7 @@ from .core.exceptions import AppError
 
 app = FastAPI(title="Paperwise API")
 
-app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET_KEY)
 
 app.add_middleware(
     CORSMiddleware,

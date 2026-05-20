@@ -1,3 +1,5 @@
+import os
+import uuid
 import boto3
 import botocore.exceptions
 from botocore.client import Config
@@ -23,7 +25,8 @@ s3_client = boto3.client(
 
 async def save_raw_file(file: UploadFile, user_id: int) -> tuple[str, bytes]:
     contents = await file.read()
-    key = f"{user_id}/{file.filename}"
+    safe_name = os.path.basename(file.filename or "") or "upload"
+    key = f"{user_id}/{uuid.uuid4()}/{safe_name}"
 
     try:
         s3_client.put_object(Bucket=settings.S3_LIBRARY_BUCKET, Key=key, Body=contents)

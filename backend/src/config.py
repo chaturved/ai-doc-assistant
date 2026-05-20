@@ -30,7 +30,8 @@ class Settings(BaseSettings):
 
     APP_URL: str = "http://localhost:3001"
 
-    JWT_SECRET_KEY: str = "supersecret"
+    JWT_SECRET_KEY: str
+    SESSION_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
 
     ACCESS_TOKEN_KEY: str = "access_token"
