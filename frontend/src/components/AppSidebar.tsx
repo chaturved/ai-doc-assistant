@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  Plus, Search, Settings, LogOut, FileText,
+  Plus, Search, Settings, LogOut,
   ChevronDown, ChevronRight, Trash2, Upload, BarChart2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -132,89 +132,87 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
   const grouped = groupByDate(filteredConvs);
 
   const navItem = (active: boolean) =>
-    `w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[13px] transition ${
-      active ? "text-white bg-white/[0.08]" : "text-white/75 hover:text-white hover:bg-white/[0.06]"
+    `w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[13px] font-medium transition ${
+      active ? "text-white bg-white/[0.09]" : "text-white/90 hover:text-white hover:bg-white/[0.06]"
     }`;
 
   return (
-    <aside className="w-[255px] flex-shrink-0 flex flex-col relative z-10 border-r-system before:absolute before:inset-0 before:bg-black/[0.25] before:pointer-events-none"
-      style={{ background: "rgba(8,8,16,0.72)" }}>
+    <aside className="w-[248px] flex-shrink-0 flex flex-col bg-black">
 
       {/* Header */}
-      <div className="relative z-10 flex items-center px-4 py-[14px]">
-        <span className="text-[15px] font-bold tracking-tight">Paperwise</span>
+      <div className="flex items-center px-4 py-4 mb-1">
+        <span className="text-[14px] font-semibold text-white/80 tracking-tight">Paperwise</span>
       </div>
 
-      {/* Top nav */}
-      <div className="relative z-10 px-2 pt-1 pb-1 space-y-px">
+      {/* Nav */}
+      <div className="px-2 space-y-px">
         <button onClick={handleNewChat}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[8px] text-[13px] font-medium text-white bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] hover:border-white/[0.16] transition">
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/[0.06] transition-colors">
           <Plus size={14} /> New Chat
         </button>
+        <Link href="/analytics" className={navItem(pathname === "/analytics")}>
+          <BarChart2 size={14} className="flex-shrink-0 opacity-60" /> Analytics
+        </Link>
+      </div>
 
-        <div className="pt-1 space-y-px">
-          <Link href="/analytics" className={navItem(pathname === "/analytics")}>
-            <BarChart2 size={14} className="text-white/40 flex-shrink-0" /> Analytics
-          </Link>
-          <button onClick={() => setDocsOpen((v) => !v)} className={navItem(false)}>
-            <FileText size={14} className="text-white/40 flex-shrink-0" />
-            <span className="flex-1 text-left">Documents</span>
-            {library.length > 0 && <span className="text-[11px] text-white/40 mr-0.5">{library.length}</span>}
-            {docsOpen ? <ChevronDown size={12} className="text-white/40" /> : <ChevronRight size={12} className="text-white/40" />}
-          </button>
-        </div>
-
+      {/* Library */}
+      <div className="px-2 mt-6">
+        <button onClick={() => setDocsOpen((v) => !v)} className="w-full flex items-center gap-1.5 px-3 py-1.5 mb-0.5 text-white/35 hover:text-white/55 transition-colors">
+          <span className="text-[10px] font-semibold tracking-[0.08em] uppercase flex-1 text-left">Library</span>
+          {library.length > 0 && <span className="text-[10px]">{library.length}</span>}
+          {docsOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        </button>
         {docsOpen && (
-          <div className="pl-2 space-y-px">
+          <div className="space-y-px">
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadingDocs}
-              className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[8px] text-[13px] text-white/75 hover:text-white hover:bg-white/[0.06] transition disabled:opacity-50">
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[13px] text-white/50 hover:text-white/80 hover:bg-white/[0.05] transition-colors disabled:opacity-40">
               {uploadingDocs
-                ? <span className="h-3.5 w-3.5 rounded-full border border-white/20 border-t-white/60 animate-spin" />
-                : <Upload size={14} className="text-white/40" />}
+                ? <span className="h-3 w-3 rounded-full border border-white/20 border-t-white/60 animate-spin" />
+                : <Upload size={13} className="opacity-60" />}
               Upload document
             </button>
             <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
             {library.length === 0
-              ? <p className="px-2 py-1.5 text-[12px] text-white/35">No documents yet.</p>
+              ? <p className="px-3 py-1.5 text-[12px] text-white/28">No documents yet.</p>
               : library.slice(0, 8).map((doc) => (
-                <div key={doc.id} className="group flex items-center gap-2.5 px-2 py-1.5 rounded-[8px] hover:bg-white/[0.06] transition cursor-default">
+                <div key={doc.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-[8px] hover:bg-white/[0.05] transition-colors cursor-default">
                   <DocIcon type={doc.type} />
-                  <span className="flex-1 text-[13px] text-white/75 truncate group-hover:text-white transition">{doc.name}</span>
+                  <span className="flex-1 text-[12.5px] font-medium text-white/85 truncate group-hover:text-white transition-colors">{doc.name}</span>
                   <button onClick={() => handleDeleteDoc(doc.id)}
-                    className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition p-0.5 rounded">
+                    className="opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400 transition p-0.5 rounded">
                     <Trash2 size={11} />
                   </button>
                 </div>
               ))
             }
-            {library.length > 8 && <p className="px-2 py-1 text-[11px] text-white/35">+{library.length - 8} more</p>}
+            {library.length > 8 && <p className="px-3 py-1 text-[11px] text-white/28">+{library.length - 8} more</p>}
           </div>
         )}
       </div>
 
       {/* Recents */}
-      <div className="relative z-10 flex-1 overflow-y-auto thin-scroll px-2 pb-2">
-        <div className="px-2 pt-3 pb-1.5">
-          <span className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Recents</span>
+      <div className="flex-1 overflow-y-auto thin-scroll px-2 pb-2 mt-6">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 mb-0.5">
+          <span className="text-[10px] font-semibold tracking-[0.08em] uppercase text-white/35 flex-1">Recent</span>
         </div>
         <div className="relative mb-1.5">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" size={12} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search conversations…"
-            className="w-full h-7 rounded-[7px] pl-7 pr-3 text-[12px] text-white/75 placeholder:text-white/30 outline-none transition bg-white/[0.04] border border-white/[0.08] focus:border-white/[0.16]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/22" size={11} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
+            className="w-full h-7 rounded-[8px] pl-7 pr-3 text-[12px] text-white/90 placeholder:text-white/35 outline-none bg-white/[0.04] border border-transparent focus:border-white/[0.10] transition-colors" />
         </div>
 
         {grouped.length === 0
-          ? <p className="px-2 py-2 text-[12px] text-white/35">No conversations yet.</p>
+          ? <p className="px-3 py-2 text-[12px] text-white/28">No conversations yet.</p>
           : grouped.map(({ label, items }) => (
-            <div key={label} className="mb-2">
-              <div className="px-2 py-0.5 text-[10px] text-white/35 uppercase tracking-widest">{label}</div>
+            <div key={label} className="mb-4">
+              <div className="px-3 pb-1 text-[9.5px] font-medium text-white/22 uppercase tracking-widest">{label}</div>
               {items.map((conv) => (
                 <div key={conv.id}
                   onClick={() => handleConvSelect(conv.id)}
                   onMouseEnter={() => setHoveredConv(conv.id)}
                   onMouseLeave={() => setHoveredConv(null)}
-                  className={`relative flex items-center gap-2 px-2 py-1.5 rounded-[8px] cursor-pointer mb-px transition-colors ${
-                    activeConvId === conv.id ? "bg-white/[0.08]" : "hover:bg-white/[0.05]"
+                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-[8px] cursor-pointer mb-px transition-colors ${
+                    activeConvId === conv.id ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
                   }`}
                 >
                   {renamingId === conv.id ? (
@@ -227,7 +225,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
                     />
                   ) : (
                     <span
-                      className={`text-[13px] truncate flex-1 transition ${activeConvId === conv.id ? "text-white font-medium" : "text-white/75"}`}
+                      className={`text-[13px] font-medium truncate flex-1 transition-colors ${activeConvId === conv.id ? "text-white" : "text-white/85"}`}
                       onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(conv.id); setRenameValue(conv.title); }}
                     >
                       {conv.title}
@@ -247,7 +245,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 border-t-system">
+      <div className="border-t border-white/[0.05]">
         {user?.plan === "free" && (
           <div className="mx-3 mt-3 mb-2 rounded-[10px] p-3 bg-amber-500/[0.06] border border-amber-500/[0.15]">
             <div className="flex items-center gap-2 mb-1">
