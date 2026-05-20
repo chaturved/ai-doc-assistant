@@ -2,7 +2,7 @@ import { FolderX } from "lucide-react";
 import {
   LibrarySection,
   LibrarySectionProps,
-} from "./LibrarySection/LibrarySection";
+} from "./library-section/library-section";
 
 export interface LibraryTabsProps {
   sections: LibrarySectionProps[];

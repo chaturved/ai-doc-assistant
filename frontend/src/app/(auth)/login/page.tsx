@@ -10,7 +10,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { login, sendMagicLink } from "@/lib/api/auth";
 import { useAuth } from "@/context/AuthContext";
-import { AuthBackground } from "@/components/auth/AuthBackground";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),

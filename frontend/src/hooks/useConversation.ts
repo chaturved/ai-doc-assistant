@@ -14,20 +14,31 @@ export function useConversation() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadConversations = useCallback(async () => {
+    setLoading(true);
     try {
       setConversations(await getConversations());
+      setError(null);
     } catch {
-      /* silent */
+      setError("Failed to load conversations");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const loadMessages = useCallback(async (id: number) => {
+    setLoading(true);
     try {
       setMessages(await getMessages(id));
+      setError(null);
     } catch {
       setMessages([]);
+      setError("Failed to load messages");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -72,6 +83,8 @@ export function useConversation() {
     conversations,
     messages,
     activeId,
+    loading,
+    error,
     setActiveId,
     setMessages,
     loadConversations,

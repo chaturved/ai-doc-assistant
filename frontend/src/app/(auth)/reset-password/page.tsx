@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { resetPassword } from "@/lib/api/auth";
-import { AuthBackground } from "@/components/auth/AuthBackground";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 
 const schema = z.object({

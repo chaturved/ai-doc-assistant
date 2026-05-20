@@ -1,6 +1,6 @@
 "use client";
 
-import AppSidebar from "@/components/AppSidebar";
+import AppSidebar from "@/components/app-sidebar";
 import { AppLayoutProvider, useAppLayout } from "@/context/AppLayoutContext";
 
 function AppShell({ children }: { children: React.ReactNode }) {

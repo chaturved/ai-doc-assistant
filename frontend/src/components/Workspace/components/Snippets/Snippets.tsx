@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import SnippetCard, { Snippet } from "./SnippetCard";
+import SnippetCard, { Snippet } from "./snippet-card";
 
 interface SnippetsProps {
   title?: string;

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { sendMagicLink } from "@/lib/api/auth";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AuthBackground } from "@/components/auth/AuthBackground";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 
 function MagicLinkSentContent() {

@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { LibraryData, LibraryDoc } from "@/types";
+import type { LibraryData, LibraryDoc, MessageResponse } from "@/types";
 
 export const getLibrary = async (): Promise<LibraryData> => {
   const res = await apiClient.get("/v1/library");
@@ -15,10 +15,12 @@ export const uploadFiles = async (files: File[]): Promise<LibraryDoc[]> => {
   return res.data.uploaded;
 };
 
-export const deleteDocument = async (id: number): Promise<void> => {
-  await apiClient.delete(`/v1/library/${id}`);
+export const deleteDocument = async (id: number): Promise<MessageResponse> => {
+  const res = await apiClient.delete(`/v1/library/${id}`);
+  return res.data;
 };
 
-export const clearLibrary = async (): Promise<void> => {
-  await apiClient.delete("/v1/library/clear");
+export const clearLibrary = async (): Promise<MessageResponse> => {
+  const res = await apiClient.delete("/v1/library/clear");
+  return res.data;
 };

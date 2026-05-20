@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { User } from "@/types";
+import type { MessageResponse, User } from "@/types";
 
 export const getMe = async (): Promise<User> => {
   const res = await apiClient.get("/v1/auth/me");
@@ -23,14 +23,17 @@ export const logout = async (): Promise<void> => {
   await apiClient.post("/v1/auth/logout");
 };
 
-export const forgotPassword = async (email: string): Promise<void> => {
-  await apiClient.post("/v1/auth/forgot-password", { email });
+export const forgotPassword = async (email: string): Promise<MessageResponse> => {
+  const res = await apiClient.post("/v1/auth/forgot-password", { email });
+  return res.data;
 };
 
-export const resetPassword = async (token: string, new_password: string): Promise<void> => {
-  await apiClient.post("/v1/auth/reset-password", { token, new_password });
+export const resetPassword = async (token: string, new_password: string): Promise<MessageResponse> => {
+  const res = await apiClient.post("/v1/auth/reset-password", { token, new_password });
+  return res.data;
 };
 
-export const sendMagicLink = async (email: string): Promise<void> => {
-  await apiClient.post("/v1/auth/magic-link", { email });
+export const sendMagicLink = async (email: string): Promise<MessageResponse> => {
+  const res = await apiClient.post("/v1/auth/magic-link", { email });
+  return res.data;
 };

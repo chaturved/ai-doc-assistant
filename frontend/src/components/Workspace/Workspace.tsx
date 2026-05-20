@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import BreadCrumb from "./components/BreadCrumb";
-import MainQueryBar from "./components/MainQueryBar";
-import CurrentQuestion, { Badge } from "./components/CurrentQuestion";
-import AIAnswerCard from "./components/AIAnswerCard";
-import Snippets from "./components/Snippets/Snippets";
-import Sources, { Source } from "./components/Sources";
-import Feedback from "./components/Feedback";
+import BreadCrumb from "./components/bread-crumb";
+import MainQueryBar from "./components/main-query-bar";
+import CurrentQuestion, { Badge } from "./components/current-question";
+import AIAnswerCard from "./components/ai-answer-card";
+import Snippets from "./components/snippets/snippets";
+import Sources, { Source } from "./components/sources";
+import Feedback from "./components/feedback";
 import { sseClient } from "@/lib/api-client";
-import { Snippet } from "./components/Snippets/SnippetCard";
+import { Snippet } from "./components/snippets/snippet-card";
 
 export default function Workspace() {
   const [question, setQuestion] = useState("");

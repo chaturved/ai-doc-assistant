@@ -5,8 +5,8 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { joinWaitlist } from "@/lib/api/misc";
 import { toast } from "sonner";
-import { SiteNav } from "@/components/SiteNav";
-import { SiteFooter } from "@/components/SiteFooter";
+import { SiteNav } from "@/components/site/site-nav";
+import { SiteFooter } from "@/components/site/site-footer";
 
 const T = {
   accent: "#f59e0b",

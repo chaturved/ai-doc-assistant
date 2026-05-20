@@ -8,7 +8,7 @@ import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/api/auth";
 import { toast } from "sonner";
-import { AuthBackground } from "@/components/auth/AuthBackground";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 
 const schema = z.object({ email: z.string().email("Enter a valid email address") });

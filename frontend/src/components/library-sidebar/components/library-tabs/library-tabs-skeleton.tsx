@@ -1,4 +1,4 @@
-import LibrarySectionSkeleton from "./LibrarySection/LibrarySectionSkeleton";
+import LibrarySectionSkeleton from "./library-section/library-section-skeleton";
 
 export default function LibraryTabsSkeleton() {
   return (

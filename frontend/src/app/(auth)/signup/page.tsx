@@ -10,7 +10,7 @@ import { Eye, EyeOff, User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { signup } from "@/lib/api/auth";
 import { useAuth } from "@/context/AuthContext";
-import { AuthBackground } from "@/components/auth/AuthBackground";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 const schema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),

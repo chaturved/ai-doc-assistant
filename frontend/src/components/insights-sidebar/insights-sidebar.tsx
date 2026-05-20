@@ -1,8 +1,8 @@
 "use client";
 
-import CalloutTip from "./components/CalloutTip";
-import RecentQueries from "./components/RecentQueries";
-import RelatedQuestions from "./components/RelatedQuestions/RelatedQuestions";
+import CalloutTip from "./components/callout-tip";
+import RecentQueries from "./components/recent-queries";
+import RelatedQuestions from "./components/related-questions/related-questions";
 
 export default function InsightsSidebar() {
   return (

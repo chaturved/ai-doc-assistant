@@ -1,5 +1,5 @@
-import { SiteNav } from "@/components/SiteNav";
-import { SiteFooter } from "@/components/SiteFooter";
+import { SiteNav } from "@/components/site/site-nav";
+import { SiteFooter } from "@/components/site/site-footer";
 
 function Section({ title, children, first }: { title: string; children: React.ReactNode; first?: boolean }) {
   return (

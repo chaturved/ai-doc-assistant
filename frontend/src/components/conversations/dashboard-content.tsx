@@ -7,9 +7,9 @@ import { useAppLayout } from "@/context/AppLayoutContext";
 import { useSSEStream } from "@/hooks/useSSEStream";
 import { createConversation, getMessages } from "@/lib/api/conversations";
 import type { Message } from "@/types";
-import { AIMessage } from "./AIMessage";
-import { InputBox } from "./InputBox";
-import { UserMessage } from "./UserMessage";
+import { AIMessage } from "./ai-message";
+import { InputBox } from "./input-box";
+import { UserMessage } from "./user-message";
 
 const SUGGESTIONS = [
   { icon: "📄", label: "Summarize my Q3 report" },

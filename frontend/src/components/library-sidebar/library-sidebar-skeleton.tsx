@@ -1,5 +1,5 @@
-import LibraryHeaderSkeleton from "./components/LibraryHeader/LibraryHeaderSkeleton";
-import LibraryTabsSkeleton from "./components/LibraryTabs/LibraryTabsSkeleton";
+import LibraryHeaderSkeleton from "./components/library-header/library-header-skeleton";
+import LibraryTabsSkeleton from "./components/library-tabs/library-tabs-skeleton";
 
 export default function LibrarySidebarSkeleton() {
   return (

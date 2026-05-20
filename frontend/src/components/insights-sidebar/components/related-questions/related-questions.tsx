@@ -1,4 +1,4 @@
-import RelatedLink from "./RelatedLink";
+import RelatedLink from "./related-link";
 
 export interface RelatedQuestionsProps {
   questions: string[];

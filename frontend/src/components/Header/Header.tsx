@@ -1,7 +1,7 @@
-import Actions, { ActionsProps } from "./components/Actions";
-import Brand from "./components/Brand";
-import Status from "./components/Status";
-import UserDropdown from "./components/UserDropdown";
+import Actions, { ActionsProps } from "./components/actions";
+import Brand from "./components/brand";
+import Status from "./components/status";
+import UserDropdown from "./components/user-dropdown";
 
 export interface HeaderProps {
   showStatus?: boolean;

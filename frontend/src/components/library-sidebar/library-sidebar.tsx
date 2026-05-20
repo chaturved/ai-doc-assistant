@@ -2,10 +2,10 @@
 
 import { useLibrary } from "@/hooks/useLibrary";
 import type { LibraryDoc } from "@/types";
-import type { LibrarySectionProps } from "./components/LibraryTabs/LibrarySection/LibrarySection";
-import LibraryHeader from "./components/LibraryHeader/LibraryHeader";
-import LibraryTabs from "./components/LibraryTabs/LibraryTabs";
-import LibrarySidebarSkeleton from "./LibrarySidebarSkeleton";
+import type { LibrarySectionProps } from "./components/library-tabs/library-section/library-section";
+import LibraryHeader from "./components/library-header/library-header";
+import LibraryTabs from "./components/library-tabs/library-tabs";
+import LibrarySidebarSkeleton from "./library-sidebar-skeleton";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
