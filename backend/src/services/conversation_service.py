@@ -1,13 +1,16 @@
 from abc import abstractmethod
+from datetime import datetime, timezone
 from typing import AsyncGenerator, Protocol
 
 from fastapi import Depends
 
+from src.core.enums import Plan
 from src.core.exceptions import NotFoundError
 from src.repositories.conversation_repository import ConversationRepository, IConversationRepository
 from src.repositories.library_repository import ILibraryRepository, LibraryRepository
-from src.schemas.conversation import ConversationOut, MessageOut
+from src.schemas.conversation import AskFilters, ConversationOut, DEFAULT_CONVERSATION_TITLE, MessageOut
 from src.schemas.user import MessageResponse
+from src.services.tier_service import ITierService, TierService
 from src.utils.hugging_face import get_embedding
 from src.utils.query_utils import (
     build_context_text,
@@ -29,15 +32,16 @@ class IConversationService(Protocol):
     @abstractmethod
     def remove_conversation(self, conv_id: int, user_id: int) -> MessageResponse: ...
     @abstractmethod
-    def list_messages(self, conv_id: int, user_id: int) -> list[MessageOut]: ...
+    def list_messages(self, conv_id: int, user_id: int, plan: Plan) -> list[MessageOut]: ...
     @abstractmethod
     def ask(
         self,
         conv_id: int,
         user_id: int,
         question: str,
-        filters: dict | None,
+        filters: AskFilters | None,
         top_k: int,
+        plan: Plan,
     ) -> AsyncGenerator[tuple[str, dict | str], None]: ...
 
 
@@ -46,14 +50,16 @@ class ConversationService(IConversationService):
         self,
         conv_repo: IConversationRepository = Depends(ConversationRepository),
         lib_repo: ILibraryRepository = Depends(LibraryRepository),
+        tier: ITierService = Depends(TierService),
     ):
         self.conv_repo = conv_repo
         self.lib_repo = lib_repo
+        self.tier = tier
 
     def list_conversations(self, user_id: int) -> list[ConversationOut]:
         return [ConversationOut.model_validate(c) for c in self.conv_repo.get_all(user_id)]
 
-    def new_conversation(self, user_id: int, title: str = "New conversation") -> ConversationOut:
+    def new_conversation(self, user_id: int, title: str = DEFAULT_CONVERSATION_TITLE) -> ConversationOut:
         conv = self.conv_repo.create(user_id, title)
         return ConversationOut.model_validate(conv)
 
@@ -71,10 +77,11 @@ class ConversationService(IConversationService):
         self.conv_repo.delete(conv)
         return MessageResponse(message="Conversation deleted")
 
-    def list_messages(self, conv_id: int, user_id: int) -> list[MessageOut]:
+    def list_messages(self, conv_id: int, user_id: int, plan: Plan) -> list[MessageOut]:
         conv = self.conv_repo.get_by_id(conv_id, user_id)
         if not conv:
             raise NotFoundError("Conversation not found")
+        self.tier.check_history(plan, conv.created_at or datetime.now(timezone.utc))
         return [MessageOut.model_validate(m) for m in self.conv_repo.get_messages(conv_id)]
 
     async def ask(
@@ -82,18 +89,21 @@ class ConversationService(IConversationService):
         conv_id: int,
         user_id: int,
         question: str,
-        filters: dict | None,
+        filters: AskFilters | None,
         top_k: int,
+        plan: Plan,
     ) -> AsyncGenerator[tuple[str, dict | str], None]:
         conv = self.conv_repo.get_by_id(conv_id, user_id)
         if not conv:
             raise NotFoundError("Conversation not found")
+        self.tier.check_history(plan, conv.created_at or datetime.now(timezone.utc))
+        self.tier.check_and_log_ask(plan, user_id)
 
         self.conv_repo.add_message(conv_id, "user", question)
 
         raw_vector = await get_embedding(question)
         query_vector = raw_vector.tolist() if hasattr(raw_vector, "tolist") else list(raw_vector)
-        doc_id = filters.get("doc_id") if filters else None
+        doc_id = filters.doc_id if filters else None
         results = self.lib_repo.get_top_k_chunks(user_id, query_vector, top_k, doc_id)
         chunks = get_library_chunks(results)
         context_text = build_context_text(chunks)

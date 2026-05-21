@@ -3,11 +3,13 @@ from typing import Protocol
 
 from fastapi import Depends, UploadFile
 
+from src.core.enums import Plan
 from src.core.exceptions import NotFoundError
 from src.models import Library, LibraryChunk
 from src.repositories.library_repository import ILibraryRepository, LibraryRepository
 from src.schemas.library import LibraryDocResponse, LibraryResponse, UploadErrorResponse, UploadItemResponse, UploadResponse
 from src.schemas.user import MessageResponse
+from src.services.tier_service import ITierService, TierService
 from src.utils.hugging_face import get_embeddings
 from src.utils.storage_utils import delete_file, save_raw_file
 from src.utils.text_utils import chunk_text, extract_text_from_bytes
@@ -17,7 +19,7 @@ class ILibraryService(Protocol):
     @abstractmethod
     def get_library_data(self, user_id: int) -> LibraryResponse: ...
     @abstractmethod
-    async def save_files(self, user_id: int, files: list[UploadFile]) -> UploadResponse: ...
+    async def save_files(self, user_id: int, plan: Plan, files: list[UploadFile]) -> UploadResponse: ...
     @abstractmethod
     def delete_document(self, doc_id: int, user_id: int) -> MessageResponse: ...
     @abstractmethod
@@ -25,8 +27,13 @@ class ILibraryService(Protocol):
 
 
 class LibraryService(ILibraryService):
-    def __init__(self, repo: ILibraryRepository = Depends(LibraryRepository)):
+    def __init__(
+        self,
+        repo: ILibraryRepository = Depends(LibraryRepository),
+        tier: ITierService = Depends(TierService),
+    ):
         self.repo = repo
+        self.tier = tier
 
     def get_library_data(self, user_id: int) -> LibraryResponse:
         rows = self.repo.get_all(user_id)
@@ -36,7 +43,10 @@ class LibraryService(ILibraryService):
             sections=[LibraryDocResponse.model_validate(r) for r in rows],
         )
 
-    async def save_files(self, user_id: int, files: list[UploadFile]) -> UploadResponse:
+    async def save_files(self, user_id: int, plan: Plan, files: list[UploadFile]) -> UploadResponse:
+        current_count = len(self.repo.get_all(user_id))
+        self.tier.check_upload(plan, files, current_count)
+
         uploaded: list[UploadItemResponse] = []
         errors: list[UploadErrorResponse] = []
 

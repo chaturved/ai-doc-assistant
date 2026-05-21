@@ -1,12 +1,8 @@
 from fastapi import APIRouter, Depends, File, UploadFile
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
-from src.core.dependencies import get_current_user, get_current_user_id, get_db, get_library_service, get_tier_service
-from src.models.library import Library
+from src.core.dependencies import get_current_user, get_current_user_id, get_library_service
 from src.models.user import User
 from src.services.library_service import ILibraryService
-from src.services.tier_service import ITierService
 
 router = APIRouter(prefix="/library", tags=["Library"])
 
@@ -23,13 +19,9 @@ def fetch_library(
 async def upload_library(
     files: list[UploadFile] = File(...),
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
     service: ILibraryService = Depends(get_library_service),
-    tier: ITierService = Depends(get_tier_service),
 ):
-    current_count = db.scalar(select(func.count()).select_from(Library).where(Library.user_id == user.id)) or 0
-    tier.check_upload(user.plan, files, current_count)
-    return await service.save_files(user.id, files)
+    return await service.save_files(user.id, user.plan, files)
 
 
 @router.delete("/clear")
