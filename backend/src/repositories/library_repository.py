@@ -27,7 +27,7 @@ class ILibraryRepository(Protocol):
         user_id: int,
         query_vector: list[float],
         top_k: int,
-        doc_id: Optional[str],
+        doc_id: Optional[int],
     ) -> list: ...
 
 
@@ -67,7 +67,7 @@ class LibraryRepository(ILibraryRepository):
         user_id: int,
         query_vector: list[float],
         top_k: int = 5,
-        doc_id: Optional[str] = None,
+        doc_id: Optional[int] = None,
     ) -> list:
         q = (
             self.db.query(LibraryChunk, Library)

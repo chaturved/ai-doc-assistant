@@ -1,20 +1,31 @@
 from abc import abstractmethod
-from typing import Protocol
+from datetime import datetime, timezone
+from typing import Optional, Protocol, TypedDict
 
-from fastapi import Depends
+from fastapi import Depends, UploadFile
 
+from src.core.enums import Plan
 from src.core.exceptions import PlanLimitError
 from src.repositories.tier_repository import ITierRepository, TierRepository
 
-LIMITS: dict[str, dict] = {
-    "free": {
+
+class PlanLimits(TypedDict):
+    max_docs: Optional[int]
+    max_file_mb: int
+    allowed_types: set[str]
+    max_queries_day: Optional[int]
+    history_days: Optional[int]
+
+
+LIMITS: dict[Plan, PlanLimits] = {
+    Plan.FREE: {
         "max_docs": 5,
         "max_file_mb": 10,
         "allowed_types": {"pdf", "txt", "md"},
         "max_queries_day": 20,
         "history_days": 7,
     },
-    "pro": {
+    Plan.PRO: {
         "max_docs": None,
         "max_file_mb": 50,
         "allowed_types": {"pdf", "docx", "txt", "md"},
@@ -26,49 +37,43 @@ LIMITS: dict[str, dict] = {
 
 class ITierService(Protocol):
     @abstractmethod
-    def check_upload(self, plan: str, files: list, current_doc_count: int) -> None: ...
+    def check_upload(self, plan: Plan, files: list[UploadFile], current_doc_count: int) -> None: ...
     @abstractmethod
-    def check_ask(self, plan: str, query_count_24h: int) -> None: ...
+    def check_and_log_ask(self, plan: Plan, user_id: int) -> None: ...
     @abstractmethod
-    def check_history(self, plan: str, conversation_age_days: float) -> None: ...
-    @abstractmethod
-    def count_queries_24h(self, user_id: int) -> int: ...
-    @abstractmethod
-    def log_query(self, user_id: int) -> None: ...
+    def check_history(self, plan: Plan, created_at: datetime) -> None: ...
 
 
 class TierService(ITierService):
     def __init__(self, repo: ITierRepository = Depends(TierRepository)):
         self.repo = repo
 
-    def _limits(self, plan: str) -> dict:
-        return LIMITS.get(plan, LIMITS["free"])
+    def _limits(self, plan: Plan) -> PlanLimits:
+        return LIMITS[plan]
 
-    def check_upload(self, plan: str, files: list, current_doc_count: int) -> None:
+    def check_upload(self, plan: Plan, files: list[UploadFile], current_doc_count: int) -> None:
         limits = self._limits(plan)
         if limits["max_docs"] is not None and current_doc_count + len(files) > limits["max_docs"]:
             raise PlanLimitError("documents")
         max_bytes = limits["max_file_mb"] * 1024 * 1024
         for f in files:
-            size = getattr(f, "size", None) or 0
-            if size > max_bytes:
+            if (f.size or 0) > max_bytes:
                 raise PlanLimitError("file_size")
-            ext = f.filename.rsplit(".", 1)[-1].lower() if "." in f.filename else ""
+            name = f.filename or ""
+            ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
             if ext not in limits["allowed_types"]:
                 raise PlanLimitError("file_type")
 
-    def check_ask(self, plan: str, query_count_24h: int) -> None:
+    def check_and_log_ask(self, plan: Plan, user_id: int) -> None:
         limits = self._limits(plan)
-        if limits["max_queries_day"] is not None and query_count_24h >= limits["max_queries_day"]:
+        if limits["max_queries_day"] is not None and self.repo.count_queries_24h(user_id) >= limits["max_queries_day"]:
             raise PlanLimitError("queries")
-
-    def check_history(self, plan: str, conversation_age_days: float) -> None:
-        limits = self._limits(plan)
-        if limits["history_days"] is not None and conversation_age_days > limits["history_days"]:
-            raise PlanLimitError("history")
-
-    def count_queries_24h(self, user_id: int) -> int:
-        return self.repo.count_queries_24h(user_id)
-
-    def log_query(self, user_id: int) -> None:
         self.repo.log_query(user_id)
+
+    def check_history(self, plan: Plan, created_at: datetime) -> None:
+        limits = self._limits(plan)
+        if limits["history_days"] is None:
+            return
+        age_days = (datetime.now(timezone.utc) - created_at.replace(tzinfo=timezone.utc)).days
+        if age_days > limits["history_days"]:
+            raise PlanLimitError("history")

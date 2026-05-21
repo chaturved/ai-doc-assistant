@@ -2,9 +2,11 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Any
 
+DEFAULT_CONVERSATION_TITLE = "New conversation"
+
 
 class ConversationCreate(BaseModel):
-    title: str = "New conversation"
+    title: str = DEFAULT_CONVERSATION_TITLE
 
 
 class ConversationRename(BaseModel):
@@ -30,7 +32,11 @@ class MessageOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class AskFilters(BaseModel):
+    doc_id: int | None = None
+
+
 class AskRequest(BaseModel):
     question: str
-    filters: dict | None = None
+    filters: AskFilters | None = None
     top_k: int = 5

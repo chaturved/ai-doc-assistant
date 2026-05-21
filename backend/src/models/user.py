@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from ..core.enums import Plan
 from ..database.db import Base
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255))
     hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     avatar_initials: Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
-    plan: Mapped[str] = mapped_column(String(20), default="free")
+    plan: Mapped[Plan] = mapped_column(String(20), default=Plan.FREE)
     onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
