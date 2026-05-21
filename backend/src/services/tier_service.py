@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -52,10 +52,14 @@ class TierService:
             raise PlanLimitError("history")
 
     def count_queries_24h(self, user_id: int, db: Session) -> int:
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-        stmt = select(func.count()).where(
-            QueryUsageLog.user_id == user_id,
-            QueryUsageLog.created_at >= cutoff,
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+        stmt = (
+            select(func.count())
+            .select_from(QueryUsageLog)
+            .where(
+                QueryUsageLog.user_id == user_id,
+                QueryUsageLog.created_at >= cutoff,
+            )
         )
         return db.scalar(stmt) or 0
 
