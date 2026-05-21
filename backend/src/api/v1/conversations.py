@@ -1,11 +1,23 @@
 import json
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
-from src.core.dependencies import get_conversation_service, get_current_user_id
+from src.core.dependencies import (
+    get_conversation_service,
+    get_current_user,
+    get_current_user_id,
+    get_db,
+    get_tier_service,
+)
+from src.core.exceptions import NotFoundError
+from src.models.conversation import Conversation
+from src.models.user import User
 from src.schemas.conversation import AskRequest, ConversationCreate, ConversationRename
 from src.services.conversation_service import IConversationService
+from src.services.tier_service import ITierService
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
@@ -49,22 +61,43 @@ def delete(
 @router.get("/{conv_id}/messages")
 def messages(
     conv_id: int,
-    user_id: int = Depends(get_current_user_id),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
     service: IConversationService = Depends(get_conversation_service),
+    tier: ITierService = Depends(get_tier_service),
 ):
-    return service.list_messages(conv_id, user_id)
+    conv = db.get(Conversation, conv_id)
+    if not conv or conv.user_id != user.id:
+        raise NotFoundError("Conversation not found")
+    age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
+    tier.check_history(user.plan, age_days)
+    return service.list_messages(conv_id, user.id)
 
 
 @router.post("/{conv_id}/ask")
 async def ask_question(
     conv_id: int,
     body: AskRequest,
-    user_id: int = Depends(get_current_user_id),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
     service: IConversationService = Depends(get_conversation_service),
+    tier: ITierService = Depends(get_tier_service),
 ):
+    conv = db.get(Conversation, conv_id)
+    if not conv or conv.user_id != user.id:
+        raise NotFoundError("Conversation not found")
+
+    age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
+    tier.check_history(user.plan, age_days)
+
+    count = tier.count_queries_24h(user.id)
+    tier.check_ask(user.plan, count)
+
+    tier.log_query(user.id)
+
     async def streamer():
         try:
-            async for event_type, data in service.ask(conv_id, user_id, body.question, body.filters, body.top_k):
+            async for event_type, data in service.ask(conv_id, user.id, body.question, body.filters, body.top_k):
                 if event_type == "meta":
                     yield f"data: {json.dumps({'meta': data})}\n\n"
                 elif event_type == "token":
