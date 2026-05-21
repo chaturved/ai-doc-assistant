@@ -6,7 +6,7 @@ from src.core.dependencies import get_current_user, get_current_user_id, get_db,
 from src.models.library import Library
 from src.models.user import User
 from src.services.library_service import ILibraryService
-from src.services.tier_service import TierService
+from src.services.tier_service import ITierService, TierService
 
 router = APIRouter(prefix="/library", tags=["Library"])
 
@@ -25,7 +25,7 @@ async def upload_library(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     service: ILibraryService = Depends(get_library_service),
-    tier: TierService = Depends(get_tier_service),
+    tier: ITierService = Depends(get_tier_service),
 ):
     current_count = db.scalar(select(func.count()).select_from(Library).where(Library.user_id == user.id)) or 0
     tier.check_upload(user.plan, files, current_count)

@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
+from abc import abstractmethod
+from typing import Protocol
 
-from sqlalchemy import func, select
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from src.core.exceptions import PlanLimitError
-from src.models.query_usage_log import QueryUsageLog
+from src.repositories.tier_repository import ITierRepository, TierRepository
 
 LIMITS: dict[str, dict] = {
     "free": {
@@ -24,7 +25,23 @@ LIMITS: dict[str, dict] = {
 }
 
 
+class ITierService(Protocol):
+    @abstractmethod
+    def check_upload(self, plan: str, files: list, current_doc_count: int) -> None: ...
+    @abstractmethod
+    def check_ask(self, plan: str, query_count_24h: int) -> None: ...
+    @abstractmethod
+    def check_history(self, plan: str, conversation_age_days: float) -> None: ...
+    @abstractmethod
+    def count_queries_24h(self, user_id: int, db: Session) -> int: ...
+    @abstractmethod
+    def log_query(self, user_id: int, db: Session) -> None: ...
+
+
 class TierService:
+    def __init__(self, repo: ITierRepository = Depends(TierRepository)):
+        self.repo = repo
+
     def _limits(self, plan: str) -> dict:
         return LIMITS.get(plan, LIMITS["free"])
 
@@ -52,17 +69,7 @@ class TierService:
             raise PlanLimitError("history")
 
     def count_queries_24h(self, user_id: int, db: Session) -> int:
-        cutoff = datetime.utcnow() - timedelta(hours=24)
-        stmt = (
-            select(func.count())
-            .select_from(QueryUsageLog)
-            .where(
-                QueryUsageLog.user_id == user_id,
-                QueryUsageLog.created_at >= cutoff,
-            )
-        )
-        return db.scalar(stmt) or 0
+        return self.repo.count_queries_24h(user_id, db)
 
     def log_query(self, user_id: int, db: Session) -> None:
-        db.add(QueryUsageLog(user_id=user_id))
-        db.commit()
+        self.repo.log_query(user_id, db)
