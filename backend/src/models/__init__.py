@@ -9,3 +9,4 @@ from .conversation import Conversation
 from .message import Message
 from .waitlist import Waitlist
 from .message_feedback import MessageFeedback
+from .query_usage_log import QueryUsageLog
