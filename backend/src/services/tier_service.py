@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
 
 from src.core.exceptions import PlanLimitError
 from src.repositories.tier_repository import ITierRepository, TierRepository
@@ -33,12 +32,12 @@ class ITierService(Protocol):
     @abstractmethod
     def check_history(self, plan: str, conversation_age_days: float) -> None: ...
     @abstractmethod
-    def count_queries_24h(self, user_id: int, db: Session) -> int: ...
+    def count_queries_24h(self, user_id: int) -> int: ...
     @abstractmethod
-    def log_query(self, user_id: int, db: Session) -> None: ...
+    def log_query(self, user_id: int) -> None: ...
 
 
-class TierService:
+class TierService(ITierService):
     def __init__(self, repo: ITierRepository = Depends(TierRepository)):
         self.repo = repo
 
@@ -68,8 +67,8 @@ class TierService:
         if limits["history_days"] is not None and conversation_age_days > limits["history_days"]:
             raise PlanLimitError("history")
 
-    def count_queries_24h(self, user_id: int, db: Session) -> int:
-        return self.repo.count_queries_24h(user_id, db)
+    def count_queries_24h(self, user_id: int) -> int:
+        return self.repo.count_queries_24h(user_id)
 
-    def log_query(self, user_id: int, db: Session) -> None:
-        self.repo.log_query(user_id, db)
+    def log_query(self, user_id: int) -> None:
+        self.repo.log_query(user_id)

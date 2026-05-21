@@ -6,7 +6,7 @@ from src.core.dependencies import get_current_user, get_current_user_id, get_db,
 from src.models.library import Library
 from src.models.user import User
 from src.services.library_service import ILibraryService
-from src.services.tier_service import ITierService, TierService
+from src.services.tier_service import ITierService
 
 router = APIRouter(prefix="/library", tags=["Library"])
 

@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import ANY, MagicMock
-from datetime import datetime, timedelta
+from unittest.mock import MagicMock
 
 from src.core.exceptions import PlanLimitError
 from src.repositories.tier_repository import TierRepository
@@ -9,7 +8,8 @@ from src.services.tier_service import TierService
 
 @pytest.fixture
 def svc():
-    return TierService(repo=TierRepository())
+    mock_repo = MagicMock()
+    return TierService(repo=mock_repo)
 
 
 # ── check_upload ──────────────────────────────────────────────────────────────
@@ -91,38 +91,34 @@ def test_history_pro_any_age(svc):
 
 # ── count_queries_24h ─────────────────────────────────────────────────────────
 
-def test_count_queries_calls_db(svc):
-    mock_repo = MagicMock()
-    mock_repo.count_queries_24h.return_value = 5
-    svc.repo = mock_repo
-    count = svc.count_queries_24h(user_id=1, db=MagicMock())
+def test_count_queries_calls_repo(svc):
+    svc.repo.count_queries_24h.return_value = 5
+    count = svc.count_queries_24h(user_id=1)
     assert count == 5
-    mock_repo.count_queries_24h.assert_called_once_with(1, ANY)
+    svc.repo.count_queries_24h.assert_called_once_with(1)
 
 
 # ── log_query ─────────────────────────────────────────────────────────────────
 
-def test_log_query_inserts_and_commits(svc):
-    mock_repo = MagicMock()
-    svc.repo = mock_repo
-    svc.log_query(user_id=1, db=MagicMock())
-    mock_repo.log_query.assert_called_once_with(1, ANY)
+def test_log_query_delegates_to_repo(svc):
+    svc.log_query(user_id=1)
+    svc.repo.log_query.assert_called_once_with(1)
 
 
 # ── TierRepository unit tests ─────────────────────────────────────────────────
 
 def test_tier_repo_count_queries_calls_scalar():
-    repo = TierRepository()
-    db = MagicMock()
-    db.scalar.return_value = 3
-    result = repo.count_queries_24h(user_id=1, db=db)
+    repo = TierRepository.__new__(TierRepository)
+    repo.db = MagicMock()
+    repo.db.scalar.return_value = 3
+    result = repo.count_queries_24h(user_id=1)
     assert result == 3
-    db.scalar.assert_called_once()
+    repo.db.scalar.assert_called_once()
 
 
 def test_tier_repo_log_query_adds_and_commits():
-    repo = TierRepository()
-    db = MagicMock()
-    repo.log_query(user_id=1, db=db)
-    db.add.assert_called_once()
-    db.commit.assert_called_once()
+    repo = TierRepository.__new__(TierRepository)
+    repo.db = MagicMock()
+    repo.log_query(user_id=1)
+    repo.db.add.assert_called_once()
+    repo.db.commit.assert_called_once()

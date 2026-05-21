@@ -2,21 +2,26 @@ from abc import abstractmethod
 from datetime import datetime, timedelta
 from typing import Protocol
 
+from fastapi import Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from src.database.db import get_db
 from src.models.query_usage_log import QueryUsageLog
 
 
 class ITierRepository(Protocol):
     @abstractmethod
-    def count_queries_24h(self, user_id: int, db: Session) -> int: ...
+    def count_queries_24h(self, user_id: int) -> int: ...
     @abstractmethod
-    def log_query(self, user_id: int, db: Session) -> None: ...
+    def log_query(self, user_id: int) -> None: ...
 
 
-class TierRepository:
-    def count_queries_24h(self, user_id: int, db: Session) -> int:
+class TierRepository(ITierRepository):
+    def __init__(self, db: Session = Depends(get_db)):
+        self.db = db
+
+    def count_queries_24h(self, user_id: int) -> int:
         cutoff = datetime.utcnow() - timedelta(hours=24)
         stmt = (
             select(func.count())
@@ -26,8 +31,8 @@ class TierRepository:
                 QueryUsageLog.created_at >= cutoff,
             )
         )
-        return db.scalar(stmt) or 0
+        return self.db.scalar(stmt) or 0
 
-    def log_query(self, user_id: int, db: Session) -> None:
-        db.add(QueryUsageLog(user_id=user_id))
-        db.commit()
+    def log_query(self, user_id: int) -> None:
+        self.db.add(QueryUsageLog(user_id=user_id))
+        self.db.commit()
