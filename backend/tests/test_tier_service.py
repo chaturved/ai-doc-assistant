@@ -1,124 +1,90 @@
+import io
+from datetime import datetime, timedelta, timezone
+
 import pytest
+from fastapi import UploadFile
 from unittest.mock import MagicMock
 
+from src.core.enums import Plan
 from src.core.exceptions import PlanLimitError
-from src.repositories.tier_repository import TierRepository
+from src.repositories.tier_repository import ITierRepository
 from src.services.tier_service import TierService
 
 
-@pytest.fixture
-def svc():
-    mock_repo = MagicMock()
-    return TierService(repo=mock_repo)
+class TestTierService:
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        self.mock_repo = MagicMock(spec_set=ITierRepository)
+        self.svc = TierService(repo=self.mock_repo)
 
+    # ── check_upload ──────────────────────────────────────────────────────────
 
-# ── check_upload ──────────────────────────────────────────────────────────────
+    def test_upload_free_doc_limit(self):
+        files = [UploadFile(filename="a.pdf", file=io.BytesIO(b""), size=1024)]
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_upload(Plan.FREE, files, current_doc_count=5)
+        assert exc.value.limit == "documents"
 
-def test_upload_free_doc_limit(svc):
-    files = [MagicMock(filename="a.pdf", size=1024)]
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_upload("free", files, current_doc_count=5)
-    assert exc.value.limit == "documents"
+    def test_upload_free_doc_limit_not_exceeded(self):
+        files = [UploadFile(filename="a.pdf", file=io.BytesIO(b""), size=1024)]
+        self.svc.check_upload(Plan.FREE, files, current_doc_count=4)
 
+    def test_upload_free_file_too_large(self):
+        files = [UploadFile(filename="a.pdf", file=io.BytesIO(b""), size=11 * 1024 * 1024)]
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_upload(Plan.FREE, files, current_doc_count=0)
+        assert exc.value.limit == "file_size"
 
-def test_upload_free_doc_limit_not_exceeded(svc):
-    files = [MagicMock(filename="a.pdf", size=1024)]
-    svc.check_upload("free", files, current_doc_count=4)  # 4 + 1 = 5, exactly at limit — ok
+    def test_upload_free_disallowed_type(self):
+        files = [UploadFile(filename="report.docx", file=io.BytesIO(b""), size=1024)]
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_upload(Plan.FREE, files, current_doc_count=0)
+        assert exc.value.limit == "file_type"
 
+    def test_upload_pro_no_doc_limit(self):
+        files = [UploadFile(filename="a.pdf", file=io.BytesIO(b""), size=1024)]
+        self.svc.check_upload(Plan.PRO, files, current_doc_count=1000)
 
-def test_upload_free_file_too_large(svc):
-    files = [MagicMock(filename="a.pdf", size=11 * 1024 * 1024)]  # 11MB
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_upload("free", files, current_doc_count=0)
-    assert exc.value.limit == "file_size"
+    def test_upload_pro_allows_docx(self):
+        files = [UploadFile(filename="report.docx", file=io.BytesIO(b""), size=1024)]
+        self.svc.check_upload(Plan.PRO, files, current_doc_count=0)
 
+    def test_upload_pro_file_size_limit(self):
+        files = [UploadFile(filename="big.pdf", file=io.BytesIO(b""), size=51 * 1024 * 1024)]
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_upload(Plan.PRO, files, current_doc_count=0)
+        assert exc.value.limit == "file_size"
 
-def test_upload_free_disallowed_type(svc):
-    files = [MagicMock(filename="report.docx", size=1024)]
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_upload("free", files, current_doc_count=0)
-    assert exc.value.limit == "file_type"
+    # ── check_and_log_ask ─────────────────────────────────────────────────────
 
+    def test_ask_free_at_limit(self):
+        self.mock_repo.count_queries_24h.return_value = 20
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_and_log_ask(Plan.FREE, user_id=1)
+        assert exc.value.limit == "queries"
 
-def test_upload_pro_no_doc_limit(svc):
-    files = [MagicMock(filename="a.pdf", size=1024)]
-    svc.check_upload("pro", files, current_doc_count=1000)  # no limit for pro
+    def test_ask_free_under_limit(self):
+        self.mock_repo.count_queries_24h.return_value = 19
+        self.svc.check_and_log_ask(Plan.FREE, user_id=1)
+        self.mock_repo.log_query.assert_called_once_with(1)
 
+    def test_ask_pro_no_limit(self):
+        self.mock_repo.count_queries_24h.return_value = 10000
+        self.svc.check_and_log_ask(Plan.PRO, user_id=1)
+        self.mock_repo.log_query.assert_called_once_with(1)
 
-def test_upload_pro_allows_docx(svc):
-    files = [MagicMock(filename="report.docx", size=1024)]
-    svc.check_upload("pro", files, current_doc_count=0)  # no error
+    # ── check_history ─────────────────────────────────────────────────────────
 
+    def test_history_free_too_old(self):
+        old = datetime.now(timezone.utc) - timedelta(days=8)
+        with pytest.raises(PlanLimitError) as exc:
+            self.svc.check_history(Plan.FREE, old)
+        assert exc.value.limit == "history"
 
-def test_upload_pro_file_size_limit(svc):
-    files = [MagicMock(filename="big.pdf", size=51 * 1024 * 1024)]  # 51MB
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_upload("pro", files, current_doc_count=0)
-    assert exc.value.limit == "file_size"
+    def test_history_free_within_limit(self):
+        recent = datetime.now(timezone.utc) - timedelta(days=7)
+        self.svc.check_history(Plan.FREE, recent)
 
-
-# ── check_ask ─────────────────────────────────────────────────────────────────
-
-def test_ask_free_at_limit(svc):
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_ask("free", query_count_24h=20)
-    assert exc.value.limit == "queries"
-
-
-def test_ask_free_under_limit(svc):
-    svc.check_ask("free", query_count_24h=19)  # no error
-
-
-def test_ask_pro_no_limit(svc):
-    svc.check_ask("pro", query_count_24h=10000)  # no error
-
-
-# ── check_history ─────────────────────────────────────────────────────────────
-
-def test_history_free_too_old(svc):
-    with pytest.raises(PlanLimitError) as exc:
-        svc.check_history("free", conversation_age_days=8)
-    assert exc.value.limit == "history"
-
-
-def test_history_free_within_limit(svc):
-    svc.check_history("free", conversation_age_days=7)  # exactly 7 days — ok
-
-
-def test_history_pro_any_age(svc):
-    svc.check_history("pro", conversation_age_days=365)  # no error
-
-
-# ── count_queries_24h ─────────────────────────────────────────────────────────
-
-def test_count_queries_calls_repo(svc):
-    svc.repo.count_queries_24h.return_value = 5
-    count = svc.count_queries_24h(user_id=1)
-    assert count == 5
-    svc.repo.count_queries_24h.assert_called_once_with(1)
-
-
-# ── log_query ─────────────────────────────────────────────────────────────────
-
-def test_log_query_delegates_to_repo(svc):
-    svc.log_query(user_id=1)
-    svc.repo.log_query.assert_called_once_with(1)
-
-
-# ── TierRepository unit tests ─────────────────────────────────────────────────
-
-def test_tier_repo_count_queries_calls_scalar():
-    repo = TierRepository.__new__(TierRepository)
-    repo.db = MagicMock()
-    repo.db.scalar.return_value = 3
-    result = repo.count_queries_24h(user_id=1)
-    assert result == 3
-    repo.db.scalar.assert_called_once()
-
-
-def test_tier_repo_log_query_adds_and_commits():
-    repo = TierRepository.__new__(TierRepository)
-    repo.db = MagicMock()
-    repo.log_query(user_id=1)
-    repo.db.add.assert_called_once()
-    repo.db.commit.assert_called_once()
+    def test_history_pro_any_age(self):
+        old = datetime.now(timezone.utc) - timedelta(days=365)
+        self.svc.check_history(Plan.PRO, old)
