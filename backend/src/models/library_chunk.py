@@ -1,14 +1,24 @@
-from sqlalchemy import Column, Integer, ForeignKey, Text
-from sqlalchemy.orm import relationship
+from typing import Optional
+
+from sqlalchemy import ForeignKey, Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from ..database.db import Base
-from pgvector.sqlalchemy import Vector
+
+try:
+    from pgvector.sqlalchemy import Vector
+    _has_vector = True
+except ImportError:
+    _has_vector = False
+
 
 class LibraryChunk(Base):
     __tablename__ = "library_chunks"
 
-    id = Column(Integer, primary_key=True, index=True)
-    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
-    chunk_index = Column(Integer, nullable=False)
-    chunk_text = Column(Text, nullable=False)
-    library = relationship("Library", back_populates="chunks")
-    embedding = Column(Vector(384))
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    library_id: Mapped[int] = mapped_column(ForeignKey("libraries.id"))
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    chunk_text: Mapped[str] = mapped_column(Text)
+    embedding = mapped_column(Vector(384) if _has_vector else Text, nullable=True)
+
+    library: Mapped["Library"] = relationship("Library", back_populates="chunks")
