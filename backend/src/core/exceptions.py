@@ -34,3 +34,9 @@ class BadRequestError(AppError):
 class UnprocessableEntityError(AppError):
     def __init__(self, message: str = "Unprocessable entity"):
         super().__init__(message, "UNPROCESSABLE_ENTITY", 422)
+
+
+class PlanLimitError(AppError):
+    def __init__(self, limit: str, message: str = "Plan limit exceeded"):
+        super().__init__(message, "LIMIT_EXCEEDED", 402)
+        self.limit = limit

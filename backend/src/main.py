@@ -5,7 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .api import router
 from .config import settings
-from .core.exceptions import AppError
+from .core.exceptions import AppError, PlanLimitError
 
 app = FastAPI(title="Paperwise API")
 
@@ -20,6 +20,20 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+
+@app.exception_handler(PlanLimitError)
+async def plan_limit_error_handler(request: Request, exc: PlanLimitError) -> JSONResponse:
+    return JSONResponse(
+        status_code=402,
+        content={
+            "error": {
+                "code": "LIMIT_EXCEEDED",
+                "limit": exc.limit,
+                "upgrade_url": "/settings/billing",
+            }
+        },
+    )
 
 
 @app.exception_handler(AppError)
