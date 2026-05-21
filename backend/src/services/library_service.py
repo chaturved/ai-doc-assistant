@@ -81,14 +81,16 @@ class LibraryService(ILibraryService):
         lib = self.repo.get_by_id(doc_id, user_id)
         if not lib:
             raise NotFoundError("Document not found")
-        delete_file(lib.path)
+        if lib.path:
+            delete_file(lib.path)
         self.repo.delete(lib)
         return MessageResponse(message="Document deleted")
 
     def clear_all(self, user_id: int) -> MessageResponse:
         for lib in self.repo.get_all(user_id):
             try:
-                delete_file(lib.path)
+                if lib.path:
+                    delete_file(lib.path)
             except Exception:
                 pass
         self.repo.clear_user_library(user_id)

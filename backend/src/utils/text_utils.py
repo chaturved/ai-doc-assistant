@@ -31,7 +31,7 @@ def extract_text_from_bytes(contents: bytes, ext: str) -> str:
         text = ""
         with fitz.open(stream=contents, filetype="pdf") as doc:
             for page in doc:
-                text += page.get_text()
+                text += page.get_text()  # type: ignore[attr-defined]
         return text
 
     if ext in ["docx", "doc"]:

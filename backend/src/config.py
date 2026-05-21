@@ -48,4 +48,4 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]
