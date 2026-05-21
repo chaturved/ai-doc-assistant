@@ -1744,10 +1744,10 @@ This section tracks the current implementation state so a new session can resume
 | Item | Status |
 |---|---|
 | `alembic upgrade head` (requires real DB connection) | ❌ Not run |
-| `query.py` old router removal (§15.3) | ❌ Still in codebase |
 | README.md | ❌ Not written |
-| `.env.example` | ❌ Not written |
 | Docker / docker-compose | ❌ Not written |
+| `.env.example` | ✅ Done (backend + frontend) |
+| Tier limit enforcement (§13) | ✅ Done |
 
 ### 16.2 Resuming a Session
 
