@@ -29,7 +29,7 @@ async def upload_library(
 ):
     current_count = db.scalar(select(func.count()).select_from(Library).where(Library.user_id == user.id)) or 0
     tier.check_upload(user.plan, files, current_count)
-    return await service.save_files(user.id, files)
+    return await service.save_files(int(user.id), files)
 
 
 @router.delete("/clear")

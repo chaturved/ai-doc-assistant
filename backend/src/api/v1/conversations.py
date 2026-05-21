@@ -67,11 +67,11 @@ def messages(
     tier: ITierService = Depends(get_tier_service),
 ):
     conv = db.get(Conversation, conv_id)
-    if not conv or conv.user_id != user.id:
+    if conv is None or int(conv.user_id) != int(user.id):
         raise NotFoundError("Conversation not found")
     age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
     tier.check_history(user.plan, age_days)
-    return service.list_messages(conv_id, user.id)
+    return service.list_messages(conv_id, int(user.id))
 
 
 @router.post("/{conv_id}/ask")
@@ -84,20 +84,20 @@ async def ask_question(
     tier: ITierService = Depends(get_tier_service),
 ):
     conv = db.get(Conversation, conv_id)
-    if not conv or conv.user_id != user.id:
+    if conv is None or int(conv.user_id) != int(user.id):
         raise NotFoundError("Conversation not found")
 
     age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
     tier.check_history(user.plan, age_days)
 
-    count = tier.count_queries_24h(user.id)
+    count = tier.count_queries_24h(int(user.id))
     tier.check_ask(user.plan, count)
 
-    tier.log_query(user.id)
+    tier.log_query(int(user.id))
 
     async def streamer():
         try:
-            async for event_type, data in service.ask(conv_id, user.id, body.question, body.filters, body.top_k):
+            async for event_type, data in service.ask(conv_id, int(user.id), body.question, body.filters, body.top_k):
                 if event_type == "meta":
                     yield f"data: {json.dumps({'meta': data})}\n\n"
                 elif event_type == "token":
