@@ -1,7 +1,7 @@
-from abc import abstractmethod
 from typing import Optional, Protocol
 
 from fastapi import Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
@@ -9,28 +9,19 @@ from src.models.conversation import Conversation
 from src.models.message import Message
 
 
-class IConversationRepository(Protocol):
-    @abstractmethod
+class ConversationRepositoryProtocol(Protocol):
     def create(self, user_id: int, title: str = "New conversation") -> Conversation: ...
-    @abstractmethod
     def get_all(self, user_id: int) -> list[Conversation]: ...
-    @abstractmethod
     def get_by_id(self, conv_id: int, user_id: int) -> Optional[Conversation]: ...
-    @abstractmethod
     def update_title(self, conv: Conversation, title: str) -> Conversation: ...
-    @abstractmethod
     def touch(self, conv: Conversation) -> None: ...
-    @abstractmethod
     def delete(self, conv: Conversation) -> None: ...
-    @abstractmethod
     def add_message(self, conversation_id: int, role: str, content: str, meta: dict | None = None) -> Message: ...
-    @abstractmethod
     def get_messages(self, conversation_id: int) -> list[Message]: ...
-    @abstractmethod
     def get_recent_messages(self, conversation_id: int, limit: int = 10) -> list[Message]: ...
 
 
-class ConversationRepository(IConversationRepository):
+class ConversationRepository(ConversationRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
@@ -63,7 +54,6 @@ class ConversationRepository(IConversationRepository):
         return conv
 
     def touch(self, conv: Conversation) -> None:
-        from sqlalchemy import func
         conv.updated_at = func.now()
         self.db.commit()
 

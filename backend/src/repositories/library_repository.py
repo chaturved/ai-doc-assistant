@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Optional, Protocol
 
 from fastapi import Depends
@@ -8,20 +7,13 @@ from src.database.db import get_db
 from src.models import Library, LibraryChunk
 
 
-class ILibraryRepository(Protocol):
-    @abstractmethod
+class LibraryRepositoryProtocol(Protocol):
     def get_all(self, user_id: int) -> list[Library]: ...
-    @abstractmethod
     def get_by_id(self, doc_id: int, user_id: int) -> Optional[Library]: ...
-    @abstractmethod
     def add(self, library: Library) -> Library: ...
-    @abstractmethod
     def add_chunks(self, chunks: list[LibraryChunk]) -> None: ...
-    @abstractmethod
     def delete(self, lib: Library) -> None: ...
-    @abstractmethod
     def clear_user_library(self, user_id: int) -> None: ...
-    @abstractmethod
     def get_top_k_chunks(
         self,
         user_id: int,
@@ -31,7 +23,7 @@ class ILibraryRepository(Protocol):
     ) -> list: ...
 
 
-class LibraryRepository(ILibraryRepository):
+class LibraryRepository(LibraryRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 

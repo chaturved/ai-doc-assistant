@@ -1,8 +1,8 @@
-from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Protocol
 
 from fastapi import Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
@@ -15,20 +15,13 @@ from src.models.reset_token import ResetToken
 from src.models.user import User
 
 
-class IUserRepository(Protocol):
-    @abstractmethod
+class UserRepositoryProtocol(Protocol):
     def add(self, user: User) -> User: ...
-    @abstractmethod
     def get_by_email(self, email: str) -> Optional[User]: ...
-    @abstractmethod
     def get_by_id(self, user_id: int) -> Optional[User]: ...
-    @abstractmethod
     def update(self, user: User) -> User: ...
-    @abstractmethod
     def delete(self, user: User) -> None: ...
-    @abstractmethod
     def get_oauth_account(self, provider: str, provider_user_id: str) -> Optional[OAuthAccount]: ...
-    @abstractmethod
     def create_oauth_account(
         self,
         user_id: int,
@@ -37,31 +30,20 @@ class IUserRepository(Protocol):
         access_token: Optional[str],
         refresh_token: Optional[str],
     ) -> OAuthAccount: ...
-    @abstractmethod
     def invalidate_magic_tokens(self, email: str) -> None: ...
-    @abstractmethod
     def create_magic_token(self, email: str, token_hash: str, expires_at: datetime) -> MagicToken: ...
-    @abstractmethod
     def get_magic_token(self, token_hash: str) -> Optional[MagicToken]: ...
-    @abstractmethod
     def mark_magic_token_used(self, mt: MagicToken) -> None: ...
-    @abstractmethod
     def invalidate_reset_tokens(self, user_id: int) -> None: ...
-    @abstractmethod
     def create_reset_token(self, user_id: int, token_hash: str, expires_at: datetime) -> ResetToken: ...
-    @abstractmethod
     def get_reset_token(self, token_hash: str) -> Optional[ResetToken]: ...
-    @abstractmethod
     def mark_reset_token_used(self, rt: ResetToken) -> None: ...
-    @abstractmethod
     def count_documents(self, user_id: int) -> int: ...
-    @abstractmethod
     def count_queries_today(self, user_id: int) -> int: ...
-    @abstractmethod
     def sum_storage_bytes(self, user_id: int) -> int: ...
 
 
-class UserRepository(IUserRepository):
+class UserRepository(UserRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
@@ -132,7 +114,7 @@ class UserRepository(IUserRepository):
         return self.db.query(MagicToken).filter(MagicToken.token_hash == token_hash).first()
 
     def mark_magic_token_used(self, mt: MagicToken) -> None:
-        mt.used_at = datetime.utcnow()
+        mt.used_at = datetime.now(timezone.utc)
         self.db.commit()
 
     # ─── Reset tokens ─────────────────────────────────────────────────────────
@@ -152,7 +134,7 @@ class UserRepository(IUserRepository):
         return self.db.query(ResetToken).filter(ResetToken.token_hash == token_hash).first()
 
     def mark_reset_token_used(self, rt: ResetToken) -> None:
-        rt.used_at = datetime.utcnow()
+        rt.used_at = datetime.now(timezone.utc)
         self.db.commit()
 
     # ─── Usage stats ──────────────────────────────────────────────────────────
@@ -161,8 +143,7 @@ class UserRepository(IUserRepository):
         return self.db.query(Library).filter(Library.user_id == user_id).count()
 
     def count_queries_today(self, user_id: int) -> int:
-        from sqlalchemy import func
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         return (
             self.db.query(Message)
             .join(Conversation, Message.conversation_id == Conversation.id)
@@ -175,6 +156,5 @@ class UserRepository(IUserRepository):
         )
 
     def sum_storage_bytes(self, user_id: int) -> int:
-        from sqlalchemy import func
         result = self.db.query(func.sum(Library.size)).filter(Library.user_id == user_id).scalar()
         return int(result or 0)

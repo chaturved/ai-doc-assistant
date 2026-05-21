@@ -1,36 +1,34 @@
-from abc import abstractmethod
+import logging
 from typing import Protocol
+
+_log = logging.getLogger(__name__)
 
 from fastapi import Depends, UploadFile
 
 from src.core.enums import Plan
 from src.core.exceptions import NotFoundError
 from src.models import Library, LibraryChunk
-from src.repositories.library_repository import ILibraryRepository, LibraryRepository
+from src.repositories.library_repository import LibraryRepositoryProtocol, LibraryRepository
 from src.schemas.library import LibraryDocResponse, LibraryResponse, UploadErrorResponse, UploadItemResponse, UploadResponse
 from src.schemas.user import MessageResponse
-from src.services.tier_service import ITierService, TierService
+from src.services.tier_service import TierServiceProtocol, TierService
 from src.utils.hugging_face import get_embeddings
 from src.utils.storage_utils import delete_file, save_raw_file
 from src.utils.text_utils import chunk_text, extract_text_from_bytes
 
 
-class ILibraryService(Protocol):
-    @abstractmethod
+class LibraryServiceProtocol(Protocol):
     def get_library_data(self, user_id: int) -> LibraryResponse: ...
-    @abstractmethod
     async def save_files(self, user_id: int, plan: Plan, files: list[UploadFile]) -> UploadResponse: ...
-    @abstractmethod
     def delete_document(self, doc_id: int, user_id: int) -> MessageResponse: ...
-    @abstractmethod
     def clear_all(self, user_id: int) -> MessageResponse: ...
 
 
-class LibraryService(ILibraryService):
+class LibraryService(LibraryServiceProtocol):
     def __init__(
         self,
-        repo: ILibraryRepository = Depends(LibraryRepository),
-        tier: ITierService = Depends(TierService),
+        repo: LibraryRepositoryProtocol = Depends(LibraryRepository),
+        tier: TierServiceProtocol = Depends(TierService),
     ):
         self.repo = repo
         self.tier = tier
@@ -102,6 +100,6 @@ class LibraryService(ILibraryService):
                 if lib.path:
                     delete_file(lib.path)
             except Exception:
-                pass
+                _log.warning("Failed to delete file %s", lib.path, exc_info=True)
         self.repo.clear_user_library(user_id)
         return MessageResponse(message="Library cleared")

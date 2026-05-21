@@ -1,10 +1,9 @@
-from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
 
 from src.models.user import User
-from src.repositories.user_repository import IUserRepository, UserRepository
+from src.repositories.user_repository import UserRepositoryProtocol, UserRepository
 from src.schemas.user import MessageResponse, ProfileResponse, UsageItemResponse, UsageResponse, UserCreate
 from src.core.exceptions import BadRequestError, NotFoundError, UnprocessableEntityError
 from src.utils.security import hash_password, verify_password
@@ -18,27 +17,19 @@ def _make_initials(full_name: str) -> str:
     return full_name[:2].upper()
 
 
-class IUserService(Protocol):
-    @abstractmethod
+class UserServiceProtocol(Protocol):
     def create_user(self, user_in: UserCreate) -> User: ...
-    @abstractmethod
     def create_user_oauth(self, email: str, full_name: str) -> User: ...
-    @abstractmethod
     def update_profile(self, user_id: int, full_name: str) -> ProfileResponse: ...
-    @abstractmethod
     def change_password(self, user_id: int, current_password: str, new_password: str) -> MessageResponse: ...
-    @abstractmethod
     def set_password(self, user_id: int, new_password: str) -> MessageResponse: ...
-    @abstractmethod
     def remove_account(self, user_id: int, confirmation: str) -> MessageResponse: ...
-    @abstractmethod
     def complete_onboarding(self, user_id: int) -> MessageResponse: ...
-    @abstractmethod
     def get_usage(self, user_id: int) -> UsageResponse: ...
 
 
-class UserService(IUserService):
-    def __init__(self, repo: IUserRepository = Depends(UserRepository)):
+class UserService(UserServiceProtocol):
+    def __init__(self, repo: UserRepositoryProtocol = Depends(UserRepository)):
         self.repo = repo
 
     def create_user(self, user_in: UserCreate) -> User:

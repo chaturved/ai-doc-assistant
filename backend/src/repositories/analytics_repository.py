@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
@@ -11,20 +10,15 @@ from src.models import Library, MessageFeedback, RecentQuery
 from src.models.library_chunk import LibraryChunk
 
 
-class IAnalyticsRepository(Protocol):
-    @abstractmethod
+class AnalyticsRepositoryProtocol(Protocol):
     def get_overview(self, user_id: int) -> dict: ...
-    @abstractmethod
     def get_query_volume(self, user_id: int, days: int) -> list[dict]: ...
-    @abstractmethod
     def get_top_cited_docs(self, user_id: int, limit: int = 10) -> list[dict]: ...
-    @abstractmethod
     def upsert_feedback(self, message_id: int, user_id: int, value: str) -> MessageFeedback: ...
-    @abstractmethod
     def get_user_feedbacks(self, user_id: int, message_ids: list[int]) -> dict[int, str]: ...
 
 
-class AnalyticsRepository(IAnalyticsRepository):
+class AnalyticsRepository(AnalyticsRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 

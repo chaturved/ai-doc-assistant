@@ -1,5 +1,4 @@
-from abc import abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from fastapi import Depends
@@ -10,19 +9,17 @@ from src.database.db import get_db
 from src.models.query_usage_log import QueryUsageLog
 
 
-class ITierRepository(Protocol):
-    @abstractmethod
+class TierRepositoryProtocol(Protocol):
     def count_queries_24h(self, user_id: int) -> int: ...
-    @abstractmethod
     def log_query(self, user_id: int) -> None: ...
 
 
-class TierRepository(ITierRepository):
+class TierRepository(TierRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
     def count_queries_24h(self, user_id: int) -> int:
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
         stmt = (
             select(func.count())
             .select_from(QueryUsageLog)

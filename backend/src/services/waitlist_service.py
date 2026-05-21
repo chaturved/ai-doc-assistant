@@ -1,19 +1,17 @@
-from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
 
-from src.repositories.waitlist_repository import IWaitlistRepository, WaitlistRepository
+from src.repositories.waitlist_repository import WaitlistRepositoryProtocol, WaitlistRepository
 from src.schemas.user import MessageResponse
 
 
-class IWaitlistService(Protocol):
-    @abstractmethod
+class WaitlistServiceProtocol(Protocol):
     def join(self, email: str) -> MessageResponse: ...
 
 
-class WaitlistService(IWaitlistService):
-    def __init__(self, repo: IWaitlistRepository = Depends(WaitlistRepository)):
+class WaitlistService(WaitlistServiceProtocol):
+    def __init__(self, repo: WaitlistRepositoryProtocol = Depends(WaitlistRepository)):
         self.repo = repo
 
     def join(self, email: str) -> MessageResponse:

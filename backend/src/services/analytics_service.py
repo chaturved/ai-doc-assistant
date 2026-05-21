@@ -1,28 +1,22 @@
-from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
 
 from src.core.exceptions import BadRequestError
 from src.models.message_feedback import MessageFeedback
-from src.repositories.analytics_repository import AnalyticsRepository, IAnalyticsRepository
+from src.repositories.analytics_repository import AnalyticsRepository, AnalyticsRepositoryProtocol
 
 
-class IAnalyticsService(Protocol):
-    @abstractmethod
+class AnalyticsServiceProtocol(Protocol):
     def get_overview(self, user_id: int) -> dict: ...
-    @abstractmethod
     def get_query_volume(self, user_id: int, days: int) -> list[dict]: ...
-    @abstractmethod
     def get_top_cited_docs(self, user_id: int) -> list[dict]: ...
-    @abstractmethod
     def set_feedback(self, message_id: int, user_id: int, value: str) -> MessageFeedback: ...
-    @abstractmethod
     def get_feedbacks(self, user_id: int, message_ids: list[int]) -> dict[int, str]: ...
 
 
-class AnalyticsService(IAnalyticsService):
-    def __init__(self, repo: IAnalyticsRepository = Depends(AnalyticsRepository)):
+class AnalyticsService(AnalyticsServiceProtocol):
+    def __init__(self, repo: AnalyticsRepositoryProtocol = Depends(AnalyticsRepository)):
         self.repo = repo
 
     def get_overview(self, user_id: int) -> dict:

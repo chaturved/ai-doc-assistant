@@ -7,14 +7,14 @@ from unittest.mock import MagicMock
 
 from src.core.enums import Plan
 from src.core.exceptions import PlanLimitError
-from src.repositories.tier_repository import ITierRepository
+from src.repositories.tier_repository import TierRepositoryProtocol
 from src.services.tier_service import TierService
 
 
 class TestTierService:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
-        self.mock_repo = MagicMock(spec_set=ITierRepository)
+        self.mock_repo = MagicMock(spec_set=TierRepositoryProtocol)
         self.svc = TierService(repo=self.mock_repo)
 
     # ── check_upload ──────────────────────────────────────────────────────────

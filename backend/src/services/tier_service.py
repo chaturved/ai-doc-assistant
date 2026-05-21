@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from datetime import datetime, timezone
 from typing import Optional, Protocol, TypedDict
 
@@ -6,7 +5,7 @@ from fastapi import Depends, UploadFile
 
 from src.core.enums import Plan
 from src.core.exceptions import PlanLimitError
-from src.repositories.tier_repository import ITierRepository, TierRepository
+from src.repositories.tier_repository import TierRepositoryProtocol, TierRepository
 
 
 class PlanLimits(TypedDict):
@@ -35,17 +34,14 @@ LIMITS: dict[Plan, PlanLimits] = {
 }
 
 
-class ITierService(Protocol):
-    @abstractmethod
+class TierServiceProtocol(Protocol):
     def check_upload(self, plan: Plan, files: list[UploadFile], current_doc_count: int) -> None: ...
-    @abstractmethod
     def check_and_log_ask(self, plan: Plan, user_id: int) -> None: ...
-    @abstractmethod
     def check_history(self, plan: Plan, created_at: datetime) -> None: ...
 
 
-class TierService(ITierService):
-    def __init__(self, repo: ITierRepository = Depends(TierRepository)):
+class TierService(TierServiceProtocol):
+    def __init__(self, repo: TierRepositoryProtocol = Depends(TierRepository)):
         self.repo = repo
 
     def _limits(self, plan: Plan) -> PlanLimits:

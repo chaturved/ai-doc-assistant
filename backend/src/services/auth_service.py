@@ -1,24 +1,27 @@
 import hashlib
+import logging
 import secrets
-from abc import abstractmethod
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import Depends, Request, Response
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from src.config import settings
 from src.core.exceptions import BadRequestError, NotFoundError, UnauthorizedError
-from src.repositories.user_repository import IUserRepository, UserRepository
+from src.repositories.user_repository import UserRepositoryProtocol, UserRepository
 from src.schemas.user import AuthResponse, MessageResponse, TokenResponse, UserCreate, UserResponse
 from src.services.token_service import (
     create_access_token,
     create_refresh_token,
     validate_refresh_token,
 )
-from src.services.user_service import IUserService, UserService
-from src.utils.email_utils import send_magic_link_email, send_password_reset_email
+from src.services.user_service import UserServiceProtocol, UserService
+from src.utils.email_utils import send_magic_link_email, send_password_reset_email, send_welcome_email
 from src.utils.security import hash_password, verify_password
+
+_log = logging.getLogger(__name__)
 
 _oauth = OAuth()
 _oauth.register(
@@ -31,38 +34,26 @@ _oauth.register(
 )
 
 
-class IAuthService(Protocol):
-    @abstractmethod
+class AuthServiceProtocol(Protocol):
     def signup(self, user_in: UserCreate, response: Response) -> AuthResponse: ...
-    @abstractmethod
     def login(self, response: Response, form_data: OAuth2PasswordRequestForm) -> AuthResponse: ...
-    @abstractmethod
     def authorize_token(self, form_data: OAuth2PasswordRequestForm) -> TokenResponse: ...
-    @abstractmethod
     def refresh(self, request: Request, response: Response) -> MessageResponse: ...
-    @abstractmethod
     def logout(self, response: Response) -> MessageResponse: ...
-    @abstractmethod
     def get_me(self, user_id: int) -> UserResponse: ...
-    @abstractmethod
     async def google_redirect(self, request: Request) -> Any: ...
-    @abstractmethod
     async def google_callback(self, request: Request, response: Response) -> Any: ...
-    @abstractmethod
     def send_magic_link(self, email: str) -> MessageResponse: ...
-    @abstractmethod
     def verify_magic_link(self, token: str, response: Response) -> Any: ...
-    @abstractmethod
     def forgot_password(self, email: str) -> MessageResponse: ...
-    @abstractmethod
     def reset_password(self, token: str, new_password: str) -> MessageResponse: ...
 
 
-class AuthService(IAuthService):
+class AuthService(AuthServiceProtocol):
     def __init__(
         self,
-        repo: IUserRepository = Depends(UserRepository),
-        user_service: IUserService = Depends(UserService),
+        repo: UserRepositoryProtocol = Depends(UserRepository),
+        user_service: UserServiceProtocol = Depends(UserService),
     ):
         self.repo = repo
         self.user_service = user_service
@@ -77,10 +68,9 @@ class AuthService(IAuthService):
         user = self.user_service.create_user(user_in)
         self._set_auth_cookies(response, user.id)
         try:
-            from src.utils.email_utils import send_welcome_email
             send_welcome_email(user.email, user.full_name.split()[0])
         except Exception:
-            pass
+            _log.warning("Failed to send welcome email to %s", user.email, exc_info=True)
         return AuthResponse(user=UserResponse.model_validate(user))
 
     def login(self, response: Response, form_data: OAuth2PasswordRequestForm) -> AuthResponse:
@@ -121,7 +111,6 @@ class AuthService(IAuthService):
         return await _oauth.google.authorize_redirect(request, settings.GOOGLE_REDIRECT_URI)
 
     async def google_callback(self, request: Request, response: Response):
-        from fastapi.responses import RedirectResponse
         try:
             token = await _oauth.google.authorize_access_token(request)
             userinfo = token.get("userinfo") or await _oauth.google.userinfo(token=token)
@@ -140,18 +129,16 @@ class AuthService(IAuthService):
                 if not user:
                     user = self.user_service.create_user_oauth(email, full_name)
                     try:
-                        from src.utils.email_utils import send_welcome_email
                         send_welcome_email(user.email, user.full_name.split()[0])
                     except Exception:
-                        pass
+                        _log.warning("Failed to send welcome email to %s", user.email, exc_info=True)
                 self.repo.create_oauth_account(user.id, "google", provider_user_id, None, None)
 
             self._set_auth_cookies(response, user.id)
             redirect_to = settings.APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
             return RedirectResponse(redirect_to)
         except Exception:
-            import logging
-            logging.getLogger(__name__).exception("Unexpected error in google_callback")
+            _log.exception("Unexpected error in google_callback")
             return RedirectResponse(settings.APP_URL + "/login?error=oauth_failed")
 
     # ─── Magic link ───────────────────────────────────────────────────────────
@@ -165,11 +152,10 @@ class AuthService(IAuthService):
         try:
             send_magic_link_email(email, raw_token)
         except Exception:
-            pass
+            _log.warning("Failed to send magic link email to %s", email, exc_info=True)
         return MessageResponse(message="If an account exists, a link has been sent.")
 
     def verify_magic_link(self, token: str, response: Response):
-        from fastapi.responses import RedirectResponse
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         mt = self.repo.get_magic_token(token_hash)
 
@@ -197,7 +183,7 @@ class AuthService(IAuthService):
             try:
                 send_password_reset_email(email, raw_token)
             except Exception:
-                pass
+                _log.warning("Failed to send password reset email to %s", email, exc_info=True)
         return MessageResponse(message="If an account exists, a reset link has been sent.")
 
     def reset_password(self, token: str, new_password: str) -> MessageResponse:

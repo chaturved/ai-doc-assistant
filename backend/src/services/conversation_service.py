@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from datetime import datetime, timezone
 from typing import AsyncGenerator, Protocol
 
@@ -6,11 +5,11 @@ from fastapi import Depends
 
 from src.core.enums import Plan
 from src.core.exceptions import NotFoundError
-from src.repositories.conversation_repository import ConversationRepository, IConversationRepository
-from src.repositories.library_repository import ILibraryRepository, LibraryRepository
+from src.repositories.conversation_repository import ConversationRepository, ConversationRepositoryProtocol
+from src.repositories.library_repository import LibraryRepositoryProtocol, LibraryRepository
 from src.schemas.conversation import AskFilters, ConversationOut, DEFAULT_CONVERSATION_TITLE, MessageOut
 from src.schemas.user import MessageResponse
-from src.services.tier_service import ITierService, TierService
+from src.services.tier_service import TierServiceProtocol, TierService
 from src.utils.hugging_face import get_embedding
 from src.utils.query_utils import (
     build_context_text,
@@ -22,18 +21,12 @@ from src.utils.query_utils import (
 )
 
 
-class IConversationService(Protocol):
-    @abstractmethod
+class ConversationServiceProtocol(Protocol):
     def list_conversations(self, user_id: int) -> list[ConversationOut]: ...
-    @abstractmethod
     def new_conversation(self, user_id: int, title: str) -> ConversationOut: ...
-    @abstractmethod
     def rename_conversation(self, conv_id: int, user_id: int, title: str) -> ConversationOut: ...
-    @abstractmethod
     def remove_conversation(self, conv_id: int, user_id: int) -> MessageResponse: ...
-    @abstractmethod
     def list_messages(self, conv_id: int, user_id: int, plan: Plan) -> list[MessageOut]: ...
-    @abstractmethod
     def ask(
         self,
         conv_id: int,
@@ -45,12 +38,12 @@ class IConversationService(Protocol):
     ) -> AsyncGenerator[tuple[str, dict | str], None]: ...
 
 
-class ConversationService(IConversationService):
+class ConversationService(ConversationServiceProtocol):
     def __init__(
         self,
-        conv_repo: IConversationRepository = Depends(ConversationRepository),
-        lib_repo: ILibraryRepository = Depends(LibraryRepository),
-        tier: ITierService = Depends(TierService),
+        conv_repo: ConversationRepositoryProtocol = Depends(ConversationRepository),
+        lib_repo: LibraryRepositoryProtocol = Depends(LibraryRepository),
+        tier: TierServiceProtocol = Depends(TierService),
     ):
         self.conv_repo = conv_repo
         self.lib_repo = lib_repo

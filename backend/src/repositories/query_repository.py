@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -8,14 +7,12 @@ from src.database.db import get_db
 from src.models import RecentQuery
 
 
-class IQueryRepository(Protocol):
-    @abstractmethod
+class QueryRepositoryProtocol(Protocol):
     def add_recent_query(self, user_id: int, query: str) -> RecentQuery: ...
-    @abstractmethod
     def get_recent_queries(self, user_id: int, limit: int) -> list[RecentQuery]: ...
 
 
-class QueryRepository(IQueryRepository):
+class QueryRepository(QueryRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 

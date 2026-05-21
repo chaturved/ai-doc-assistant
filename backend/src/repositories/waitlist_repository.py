@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Protocol
 
 from fastapi import Depends
@@ -8,14 +7,12 @@ from src.database.db import get_db
 from src.models.waitlist import Waitlist
 
 
-class IWaitlistRepository(Protocol):
-    @abstractmethod
+class WaitlistRepositoryProtocol(Protocol):
     def add(self, email: str) -> Waitlist: ...
-    @abstractmethod
     def exists(self, email: str) -> bool: ...
 
 
-class WaitlistRepository(IWaitlistRepository):
+class WaitlistRepository(WaitlistRepositoryProtocol):
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
