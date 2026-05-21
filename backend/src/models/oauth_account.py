@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.db import Base
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class OAuthAccount(Base):
@@ -19,4 +24,4 @@ class OAuthAccount(Base):
     refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now())
 
-    user: Mapped["User"] = relationship("User", back_populates="oauth_accounts")
+    user: Mapped[User] = relationship("User", back_populates="oauth_accounts")

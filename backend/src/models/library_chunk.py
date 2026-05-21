@@ -1,15 +1,21 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.db import Base
 
+if TYPE_CHECKING:
+    from .library import Library
+
 try:
     from pgvector.sqlalchemy import Vector
-    _has_vector = True
+    _EMBEDDING_COL = Vector(384)
 except ImportError:
-    _has_vector = False
+    from sqlalchemy import Text as _Text
+    _EMBEDDING_COL = _Text()
 
 
 class LibraryChunk(Base):
@@ -19,6 +25,6 @@ class LibraryChunk(Base):
     library_id: Mapped[int] = mapped_column(ForeignKey("libraries.id"))
     chunk_index: Mapped[int] = mapped_column(Integer)
     chunk_text: Mapped[str] = mapped_column(Text)
-    embedding = mapped_column(Vector(384) if _has_vector else Text, nullable=True)
+    embedding = mapped_column(_EMBEDDING_COL, nullable=True)
 
-    library: Mapped["Library"] = relationship("Library", back_populates="chunks")
+    library: Mapped[Library] = relationship("Library", back_populates="chunks")

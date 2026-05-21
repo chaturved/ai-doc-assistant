@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.db import Base
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class ResetToken(Base):
@@ -17,4 +22,4 @@ class ResetToken(Base):
     used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now())
 
-    user: Mapped["User"] = relationship("User", back_populates="reset_tokens")
+    user: Mapped[User] = relationship("User", back_populates="reset_tokens")

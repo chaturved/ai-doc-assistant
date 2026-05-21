@@ -69,7 +69,8 @@ def messages(
     conv = db.get(Conversation, conv_id)
     if conv is None or conv.user_id != user.id:
         raise NotFoundError("Conversation not found")
-    age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
+    created_at = conv.created_at or datetime.now(timezone.utc)
+    age_days = (datetime.now(timezone.utc) - created_at.replace(tzinfo=timezone.utc)).days
     tier.check_history(user.plan, age_days)
     return service.list_messages(conv_id, user.id)
 
@@ -87,7 +88,8 @@ async def ask_question(
     if conv is None or conv.user_id != user.id:
         raise NotFoundError("Conversation not found")
 
-    age_days = (datetime.now(timezone.utc) - conv.created_at.replace(tzinfo=timezone.utc)).days
+    created_at = conv.created_at or datetime.now(timezone.utc)
+    age_days = (datetime.now(timezone.utc) - created_at.replace(tzinfo=timezone.utc)).days
     tier.check_history(user.plan, age_days)
 
     count = tier.count_queries_24h(user.id)

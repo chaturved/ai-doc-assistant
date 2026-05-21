@@ -1,10 +1,20 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.db import Base
+
+if TYPE_CHECKING:
+    from .library import Library
+    from .conversation import Conversation
+    from .oauth_account import OAuthAccount
+    from .reset_token import ResetToken
+    from .recent_query import RecentQuery
+    from .query_usage_log import QueryUsageLog
 
 
 class User(Base):
@@ -20,9 +30,9 @@ class User(Base):
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    libraries: Mapped[list["Library"]] = relationship("Library", back_populates="user", cascade="all, delete-orphan")
-    conversations: Mapped[list["Conversation"]] = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
-    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
-    reset_tokens: Mapped[list["ResetToken"]] = relationship("ResetToken", back_populates="user", cascade="all, delete-orphan")
-    recent_queries: Mapped[list["RecentQuery"]] = relationship("RecentQuery", back_populates="user", cascade="all, delete-orphan")
-    query_usage_logs: Mapped[list["QueryUsageLog"]] = relationship("QueryUsageLog", back_populates="user", cascade="all, delete-orphan")
+    libraries: Mapped[list[Library]] = relationship("Library", back_populates="user", cascade="all, delete-orphan")
+    conversations: Mapped[list[Conversation]] = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
+    oauth_accounts: Mapped[list[OAuthAccount]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
+    reset_tokens: Mapped[list[ResetToken]] = relationship("ResetToken", back_populates="user", cascade="all, delete-orphan")
+    recent_queries: Mapped[list[RecentQuery]] = relationship("RecentQuery", back_populates="user", cascade="all, delete-orphan")
+    query_usage_logs: Mapped[list[QueryUsageLog]] = relationship("QueryUsageLog", back_populates="user", cascade="all, delete-orphan")
