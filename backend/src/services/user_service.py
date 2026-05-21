@@ -8,12 +8,7 @@ from src.repositories.user_repository import IUserRepository, UserRepository
 from src.schemas.user import MessageResponse, ProfileResponse, UsageItemResponse, UsageResponse, UserCreate
 from src.core.exceptions import BadRequestError, NotFoundError, UnprocessableEntityError
 from src.utils.security import hash_password, verify_password
-
-FREE_TIER = {
-    "max_documents": 5,
-    "max_queries_day": 20,
-    "max_storage_bytes": 52_428_800,  # 50 MB
-}
+from src.services.tier_service import LIMITS
 
 
 def _make_initials(full_name: str) -> str:
@@ -113,8 +108,13 @@ class UserService(IUserService):
         return MessageResponse(message="Onboarding complete")
 
     def get_usage(self, user_id: int) -> UsageResponse:
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            raise NotFoundError("User not found")
+        limits = LIMITS[user.plan]
+        max_bytes = limits["max_file_mb"] * 1024 * 1024 if limits["max_file_mb"] else None
         return UsageResponse(
-            documents=UsageItemResponse(used=self.repo.count_documents(user_id), limit=FREE_TIER["max_documents"]),
-            queries_today=UsageItemResponse(used=self.repo.count_queries_today(user_id), limit=FREE_TIER["max_queries_day"]),
-            storage_bytes=UsageItemResponse(used=self.repo.sum_storage_bytes(user_id), limit=FREE_TIER["max_storage_bytes"]),
+            documents=UsageItemResponse(used=self.repo.count_documents(user_id), limit=limits["max_docs"]),
+            queries_today=UsageItemResponse(used=self.repo.count_queries_today(user_id), limit=limits["max_queries_day"]),
+            storage_bytes=UsageItemResponse(used=self.repo.sum_storage_bytes(user_id), limit=max_bytes),
         )

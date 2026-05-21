@@ -67,7 +67,7 @@ class ProfileResponse(BaseModel):
 
 class UsageItemResponse(BaseModel):
     used: int
-    limit: int
+    limit: int | None
 
 
 class UsageResponse(BaseModel):
