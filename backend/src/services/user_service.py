@@ -10,13 +10,6 @@ from src.utils.security import hash_password, verify_password
 from src.services.tier_service import LIMITS
 
 
-def _make_initials(full_name: str) -> str:
-    parts = full_name.strip().split()
-    if len(parts) >= 2:
-        return (parts[0][0] + parts[-1][0]).upper()
-    return full_name[:2].upper()
-
-
 class UserServiceProtocol(Protocol):
     def create_user(self, user_in: UserCreate) -> User: ...
     def create_user_oauth(self, email: str, full_name: str) -> User: ...
@@ -37,7 +30,6 @@ class UserService(UserServiceProtocol):
             email=user_in.email,
             hashed_password=hash_password(user_in.password),
             full_name=user_in.full_name,
-            avatar_initials=_make_initials(user_in.full_name),
         )
         return self.repo.add(user)
 
@@ -46,7 +38,6 @@ class UserService(UserServiceProtocol):
             email=email,
             hashed_password=None,
             full_name=full_name,
-            avatar_initials=_make_initials(full_name),
         )
         return self.repo.add(user)
 
@@ -55,7 +46,6 @@ class UserService(UserServiceProtocol):
         if not user:
             raise NotFoundError("User not found")
         user.full_name = full_name
-        user.avatar_initials = _make_initials(full_name)
         self.repo.update(user)
         return ProfileResponse.model_validate(user)
 

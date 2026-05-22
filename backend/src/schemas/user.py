@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, computed_field
 
 
 # ─── Request schemas ──────────────────────────────────────────────────────────
@@ -45,13 +45,24 @@ class WaitlistRequest(BaseModel):
 
 # ─── Response schemas ─────────────────────────────────────────────────────────
 
+def _initials(full_name: str) -> str:
+    parts = full_name.strip().split()
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[-1][0]).upper()
+    return full_name[:2].upper()
+
+
 class UserResponse(BaseModel):
     id: int
     email: str
     full_name: str
     plan: str
-    avatar_initials: str
     onboarding_completed: bool
+
+    @computed_field
+    @property
+    def avatar_initials(self) -> str:
+        return _initials(self.full_name)
 
     model_config = {"from_attributes": True}
 
@@ -60,7 +71,11 @@ class ProfileResponse(BaseModel):
     id: int
     email: str
     full_name: str
-    avatar_initials: str
+
+    @computed_field
+    @property
+    def avatar_initials(self) -> str:
+        return _initials(self.full_name)
 
     model_config = {"from_attributes": True}
 

@@ -15,7 +15,6 @@ def _make_user(id=1, email="user@example.com", full_name="Test User", plan=Plan.
     user.email = email
     user.full_name = full_name
     user.plan = plan
-    user.avatar_initials = "TU"
     user.hashed_password = "hashed"
     user.onboarding_completed = False
     return user
@@ -29,27 +28,17 @@ class TestUserService:
 
     # ── create_user ───────────────────────────────────────────────────────────
 
-    def test_create_user_hashes_password_and_sets_initials(self):
+    def test_create_user_hashes_password(self):
         user_in = UserCreate(email="a@b.com", password="secret123", full_name="John Doe")
         self.mock_repo.add.return_value = _make_user(email="a@b.com", full_name="John Doe")
 
         with patch("src.services.user_service.hash_password", return_value="hashed") as mock_hash:
-            result = self.svc.create_user(user_in)
+            self.svc.create_user(user_in)
 
         mock_hash.assert_called_once_with("secret123")
         self.mock_repo.add.assert_called_once()
         added = self.mock_repo.add.call_args[0][0]
         assert added.hashed_password == "hashed"
-        assert added.avatar_initials == "JD"
-
-    def test_create_user_single_name_uses_first_two_chars(self):
-        user_in = UserCreate(email="a@b.com", password="secret123", full_name="Alice")
-
-        with patch("src.services.user_service.hash_password", return_value="hashed"):
-            self.svc.create_user(user_in)
-
-        added = self.mock_repo.add.call_args[0][0]
-        assert added.avatar_initials == "AL"
 
     # ── create_user_oauth ─────────────────────────────────────────────────────
 
@@ -60,7 +49,6 @@ class TestUserService:
 
         added = self.mock_repo.add.call_args[0][0]
         assert added.hashed_password is None
-        assert added.avatar_initials == "JD"
 
     # ── update_profile ────────────────────────────────────────────────────────
 
@@ -75,10 +63,9 @@ class TestUserService:
         self.mock_repo.get_by_id.return_value = user
         self.mock_repo.update.return_value = user
 
-        result = self.svc.update_profile(user_id=1, full_name="Jane Smith")
+        self.svc.update_profile(user_id=1, full_name="Jane Smith")
 
         assert user.full_name == "Jane Smith"
-        assert user.avatar_initials == "JS"
         self.mock_repo.update.assert_called_once_with(user)
 
     # ── change_password ───────────────────────────────────────────────────────

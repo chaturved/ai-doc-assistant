@@ -10,7 +10,7 @@ from src.services.user_service import UserServiceProtocol
 
 
 def _make_user(id=1, email="user@example.com", full_name="Test User", plan="free",
-               hashed_password="hashed", onboarding_completed=False, avatar_initials="TU"):
+               hashed_password="hashed", onboarding_completed=False):
     user = MagicMock()
     user.id = id
     user.email = email
@@ -18,7 +18,6 @@ def _make_user(id=1, email="user@example.com", full_name="Test User", plan="free
     user.plan = plan
     user.hashed_password = hashed_password
     user.onboarding_completed = onboarding_completed
-    user.avatar_initials = avatar_initials
     return user
 
 

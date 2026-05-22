@@ -25,7 +25,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     full_name: Mapped[str] = mapped_column(String(255))
     hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    avatar_initials: Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
     plan: Mapped[Plan] = mapped_column(String(20), default=Plan.FREE)
     onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now())
