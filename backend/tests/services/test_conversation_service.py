@@ -1,0 +1,221 @@
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from src.core.enums import Plan
+from src.core.exceptions import NotFoundError
+from src.repositories.conversation_repository import ConversationRepositoryProtocol
+from src.repositories.library_repository import LibraryRepositoryProtocol
+from src.services.conversation_service import ConversationService
+from src.services.tier_service import TierServiceProtocol
+
+
+def _make_conv(id=1, title="New conversation", days_old=0):
+    conv = MagicMock()
+    conv.id = id
+    conv.title = title
+    conv.created_at = datetime.now(timezone.utc) - timedelta(days=days_old)
+    return conv
+
+
+class TestConversationService:
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        self.mock_conv_repo = MagicMock(spec_set=ConversationRepositoryProtocol)
+        self.mock_lib_repo = MagicMock(spec_set=LibraryRepositoryProtocol)
+        self.mock_tier = MagicMock(spec_set=TierServiceProtocol)
+        self.svc = ConversationService(
+            conv_repo=self.mock_conv_repo,
+            lib_repo=self.mock_lib_repo,
+            tier=self.mock_tier,
+        )
+
+    # ── list_conversations ────────────────────────────────────────────────────
+
+    def test_list_conversations_returns_validated_list(self):
+        conv = _make_conv()
+        conv.updated_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.get_all.return_value = [conv]
+
+        result = self.svc.list_conversations(user_id=1)
+
+        self.mock_conv_repo.get_all.assert_called_once_with(1)
+        assert len(result) == 1
+
+    def test_list_conversations_empty(self):
+        self.mock_conv_repo.get_all.return_value = []
+
+        result = self.svc.list_conversations(user_id=1)
+
+        assert result == []
+
+    # ── new_conversation ──────────────────────────────────────────────────────
+
+    def test_new_conversation_creates_and_returns(self):
+        conv = _make_conv(title="Custom title")
+        conv.updated_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.create.return_value = conv
+
+        result = self.svc.new_conversation(user_id=1, title="Custom title")
+
+        self.mock_conv_repo.create.assert_called_once_with(1, "Custom title")
+        assert result.title == "Custom title"
+
+    # ── rename_conversation ───────────────────────────────────────────────────
+
+    def test_rename_conversation_raises_when_not_found(self):
+        self.mock_conv_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            self.svc.rename_conversation(conv_id=99, user_id=1, title="New")
+
+    def test_rename_conversation_updates_title(self):
+        conv = _make_conv(title="Old")
+        conv.updated_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.get_by_id.return_value = conv
+
+        renamed = _make_conv(title="New")
+        renamed.updated_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.update_title.return_value = renamed
+
+        result = self.svc.rename_conversation(conv_id=1, user_id=1, title="New")
+
+        self.mock_conv_repo.update_title.assert_called_once_with(conv, "New")
+        assert result.title == "New"
+
+    # ── remove_conversation ───────────────────────────────────────────────────
+
+    def test_remove_conversation_raises_when_not_found(self):
+        self.mock_conv_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            self.svc.remove_conversation(conv_id=99, user_id=1)
+
+    def test_remove_conversation_deletes_and_returns_message(self):
+        conv = _make_conv()
+        self.mock_conv_repo.get_by_id.return_value = conv
+
+        result = self.svc.remove_conversation(conv_id=1, user_id=1)
+
+        self.mock_conv_repo.delete.assert_called_once_with(conv)
+        assert result.message == "Conversation deleted"
+
+    # ── list_messages ─────────────────────────────────────────────────────────
+
+    def test_list_messages_raises_when_conv_not_found(self):
+        self.mock_conv_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            self.svc.list_messages(conv_id=99, user_id=1, plan=Plan.FREE)
+
+    def test_list_messages_calls_tier_history_check(self):
+        conv = _make_conv(days_old=3)
+        self.mock_conv_repo.get_by_id.return_value = conv
+        self.mock_conv_repo.get_messages.return_value = []
+
+        self.svc.list_messages(conv_id=1, user_id=1, plan=Plan.FREE)
+
+        self.mock_tier.check_history.assert_called_once_with(Plan.FREE, conv.created_at)
+
+    def test_list_messages_returns_messages(self):
+        conv = _make_conv()
+        msg = MagicMock()
+        msg.id = 1
+        msg.conversation_id = 1
+        msg.role = "user"
+        msg.content = "hello"
+        msg.meta = None
+        msg.created_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.get_by_id.return_value = conv
+        self.mock_conv_repo.get_messages.return_value = [msg]
+
+        result = self.svc.list_messages(conv_id=1, user_id=1, plan=Plan.FREE)
+
+        assert len(result) == 1
+
+    # ── ask ───────────────────────────────────────────────────────────────────
+
+    async def test_ask_raises_when_conv_not_found(self):
+        self.mock_conv_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            async for _ in self.svc.ask(1, 1, "question?", None, 5, Plan.FREE):
+                pass
+
+    async def test_ask_yields_meta_then_tokens(self):
+        conv = _make_conv(title="New conversation")
+        self.mock_conv_repo.get_by_id.return_value = conv
+
+        mock_vector = MagicMock()
+        mock_vector.tolist.return_value = [0.1, 0.2]
+        self.mock_lib_repo.get_top_k_chunks.return_value = []
+
+        async def fake_stream(ctx, question):
+            yield "hello"
+            yield " world"
+
+        with (
+            patch("src.services.conversation_service.get_embedding", AsyncMock(return_value=mock_vector)),
+            patch("src.services.conversation_service.get_library_chunks", return_value=[]),
+            patch("src.services.conversation_service.build_context_text", return_value="ctx"),
+            patch("src.services.conversation_service.generate_description_and_badges", AsyncMock(return_value=("desc", ["b1"]))),
+            patch("src.services.conversation_service.generate_snippets", return_value=[]),
+            patch("src.services.conversation_service.generate_sources", return_value=[]),
+            patch("src.services.conversation_service.stream_answer", fake_stream),
+        ):
+            events = []
+            async for event in self.svc.ask(1, 1, "question?", None, 5, Plan.FREE):
+                events.append(event)
+
+        assert events[0] == ("meta", {"description": "desc", "badges": ["b1"], "snippets": [], "sources": []})
+        assert ("token", "hello") in events
+        assert ("token", " world") in events
+
+    async def test_ask_auto_renames_new_conversation(self):
+        conv = _make_conv(title="New conversation")
+        self.mock_conv_repo.get_by_id.return_value = conv
+        mock_vector = MagicMock()
+        mock_vector.tolist.return_value = [0.1]
+        self.mock_lib_repo.get_top_k_chunks.return_value = []
+
+        async def fake_stream(ctx, question):
+            yield "answer"
+
+        with (
+            patch("src.services.conversation_service.get_embedding", AsyncMock(return_value=mock_vector)),
+            patch("src.services.conversation_service.get_library_chunks", return_value=[]),
+            patch("src.services.conversation_service.build_context_text", return_value=""),
+            patch("src.services.conversation_service.generate_description_and_badges", AsyncMock(return_value=("", []))),
+            patch("src.services.conversation_service.generate_snippets", return_value=[]),
+            patch("src.services.conversation_service.generate_sources", return_value=[]),
+            patch("src.services.conversation_service.stream_answer", fake_stream),
+        ):
+            async for _ in self.svc.ask(1, 1, "A long question here?", None, 5, Plan.FREE):
+                pass
+
+        self.mock_conv_repo.update_title.assert_called_once()
+
+    async def test_ask_touches_existing_conversation(self):
+        conv = _make_conv(title="My chat")
+        self.mock_conv_repo.get_by_id.return_value = conv
+        mock_vector = MagicMock()
+        mock_vector.tolist.return_value = [0.1]
+        self.mock_lib_repo.get_top_k_chunks.return_value = []
+
+        async def fake_stream(ctx, question):
+            yield "answer"
+
+        with (
+            patch("src.services.conversation_service.get_embedding", AsyncMock(return_value=mock_vector)),
+            patch("src.services.conversation_service.get_library_chunks", return_value=[]),
+            patch("src.services.conversation_service.build_context_text", return_value=""),
+            patch("src.services.conversation_service.generate_description_and_badges", AsyncMock(return_value=("", []))),
+            patch("src.services.conversation_service.generate_snippets", return_value=[]),
+            patch("src.services.conversation_service.generate_sources", return_value=[]),
+            patch("src.services.conversation_service.stream_answer", fake_stream),
+        ):
+            async for _ in self.svc.ask(1, 1, "question?", None, 5, Plan.FREE):
+                pass
+
+        self.mock_conv_repo.touch.assert_called_once_with(conv)

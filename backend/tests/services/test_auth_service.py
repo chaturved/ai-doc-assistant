@@ -1,0 +1,309 @@
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.core.exceptions import BadRequestError, NotFoundError, UnauthorizedError
+from src.repositories.user_repository import UserRepositoryProtocol
+from src.services.auth_service import AuthService
+from src.services.user_service import UserServiceProtocol
+
+
+def _make_user(id=1, email="user@example.com", full_name="Test User", plan="free",
+               hashed_password="hashed", onboarding_completed=False, avatar_initials="TU"):
+    user = MagicMock()
+    user.id = id
+    user.email = email
+    user.full_name = full_name
+    user.plan = plan
+    user.hashed_password = hashed_password
+    user.onboarding_completed = onboarding_completed
+    user.avatar_initials = avatar_initials
+    return user
+
+
+def _make_form(username="user@example.com", password="pass123"):
+    form = MagicMock()
+    form.username = username
+    form.password = password
+    return form
+
+
+class TestAuthService:
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        self.mock_repo = MagicMock(spec_set=UserRepositoryProtocol)
+        self.mock_user_svc = MagicMock(spec_set=UserServiceProtocol)
+        self.svc = AuthService(repo=self.mock_repo, user_service=self.mock_user_svc)
+        self.response = MagicMock()
+        self.request = MagicMock()
+
+    # ── signup ────────────────────────────────────────────────────────────────
+
+    def test_signup_raises_when_email_already_exists(self):
+        self.mock_repo.get_by_email.return_value = _make_user()
+
+        from src.schemas.user import UserCreate
+        user_in = UserCreate(email="user@example.com", password="pass123", full_name="Test")
+
+        with pytest.raises(BadRequestError):
+            self.svc.signup(user_in, self.response)
+
+    def test_signup_creates_user_and_sets_cookies(self):
+        self.mock_repo.get_by_email.return_value = None
+        user = _make_user()
+        self.mock_user_svc.create_user.return_value = user
+
+        from src.schemas.user import UserCreate
+        user_in = UserCreate(email="new@example.com", password="pass123", full_name="New User")
+
+        with (
+            patch("src.services.auth_service.create_access_token", return_value="access"),
+            patch("src.services.auth_service.create_refresh_token", return_value="refresh"),
+            patch("src.services.auth_service.send_welcome_email"),
+        ):
+            result = self.svc.signup(user_in, self.response)
+
+        self.mock_user_svc.create_user.assert_called_once_with(user_in)
+        self.response.set_cookie.assert_called()
+        assert result.user.id == 1
+
+    def test_signup_swallows_welcome_email_failure(self):
+        self.mock_repo.get_by_email.return_value = None
+        self.mock_user_svc.create_user.return_value = _make_user()
+
+        from src.schemas.user import UserCreate
+        user_in = UserCreate(email="new@example.com", password="pass123", full_name="New User")
+
+        with (
+            patch("src.services.auth_service.create_access_token", return_value="access"),
+            patch("src.services.auth_service.create_refresh_token", return_value="refresh"),
+            patch("src.services.auth_service.send_welcome_email", side_effect=Exception("smtp down")),
+        ):
+            result = self.svc.signup(user_in, self.response)
+
+        assert result.user.email == "user@example.com"
+
+    # ── login ─────────────────────────────────────────────────────────────────
+
+    def test_login_raises_when_user_not_found(self):
+        self.mock_repo.get_by_email.return_value = None
+
+        with pytest.raises(UnauthorizedError):
+            self.svc.login(self.response, _make_form())
+
+    def test_login_raises_when_password_wrong(self):
+        self.mock_repo.get_by_email.return_value = _make_user()
+
+        with (
+            patch("src.services.auth_service.verify_password", return_value=False),
+            pytest.raises(UnauthorizedError),
+        ):
+            self.svc.login(self.response, _make_form())
+
+    def test_login_success_sets_cookies(self):
+        user = _make_user()
+        self.mock_repo.get_by_email.return_value = user
+
+        with (
+            patch("src.services.auth_service.verify_password", return_value=True),
+            patch("src.services.auth_service.create_access_token", return_value="access"),
+            patch("src.services.auth_service.create_refresh_token", return_value="refresh"),
+        ):
+            result = self.svc.login(self.response, _make_form())
+
+        self.response.set_cookie.assert_called()
+        assert result.user.id == 1
+
+    # ── authorize_token ───────────────────────────────────────────────────────
+
+    def test_authorize_token_raises_when_credentials_wrong(self):
+        self.mock_repo.get_by_email.return_value = None
+
+        with pytest.raises(UnauthorizedError):
+            self.svc.authorize_token(_make_form())
+
+    def test_authorize_token_returns_access_token(self):
+        self.mock_repo.get_by_email.return_value = _make_user()
+
+        with (
+            patch("src.services.auth_service.verify_password", return_value=True),
+            patch("src.services.auth_service.create_access_token", return_value="tok123"),
+        ):
+            result = self.svc.authorize_token(_make_form())
+
+        assert result.access_token == "tok123"
+
+    # ── refresh ───────────────────────────────────────────────────────────────
+
+    def test_refresh_raises_when_cookie_missing(self):
+        self.request.cookies.get.return_value = None
+
+        with pytest.raises(UnauthorizedError):
+            self.svc.refresh(self.request, self.response)
+
+    def test_refresh_sets_new_access_token_cookie(self):
+        self.request.cookies.get.return_value = "refresh-token"
+
+        with (
+            patch("src.services.auth_service.validate_refresh_token", return_value=1),
+            patch("src.services.auth_service.create_access_token", return_value="new-access"),
+        ):
+            result = self.svc.refresh(self.request, self.response)
+
+        self.response.set_cookie.assert_called_once()
+        assert result.message == "Token refreshed"
+
+    # ── logout ────────────────────────────────────────────────────────────────
+
+    def test_logout_clears_both_cookies(self):
+        result = self.svc.logout(self.response)
+
+        assert self.response.delete_cookie.call_count == 2
+        assert result.message == "Logged out"
+
+    # ── get_me ────────────────────────────────────────────────────────────────
+
+    def test_get_me_raises_when_not_found(self):
+        self.mock_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            self.svc.get_me(user_id=99)
+
+    def test_get_me_returns_user_response(self):
+        self.mock_repo.get_by_id.return_value = _make_user()
+
+        result = self.svc.get_me(user_id=1)
+
+        assert result.email == "user@example.com"
+
+    # ── send_magic_link ───────────────────────────────────────────────────────
+
+    def test_send_magic_link_invalidates_old_and_creates_new(self):
+        with patch("src.services.auth_service.send_magic_link_email"):
+            result = self.svc.send_magic_link("user@example.com")
+
+        self.mock_repo.invalidate_magic_tokens.assert_called_once_with("user@example.com")
+        self.mock_repo.create_magic_token.assert_called_once()
+        assert "sent" in result.message.lower() or "link" in result.message.lower()
+
+    def test_send_magic_link_swallows_email_failure(self):
+        with patch("src.services.auth_service.send_magic_link_email", side_effect=Exception("smtp")):
+            result = self.svc.send_magic_link("user@example.com")
+
+        assert result.message is not None
+
+    # ── verify_magic_link ─────────────────────────────────────────────────────
+
+    def test_verify_magic_link_redirects_when_token_not_found(self):
+        self.mock_repo.get_magic_token.return_value = None
+
+        result = self.svc.verify_magic_link("bad-token", self.response)
+
+        assert "login" in result.headers["location"]
+        assert "invalid_link" in result.headers["location"]
+
+    def test_verify_magic_link_redirects_when_token_expired(self):
+        mt = MagicMock()
+        mt.used_at = None
+        mt.expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        self.mock_repo.get_magic_token.return_value = mt
+
+        result = self.svc.verify_magic_link("expired-token", self.response)
+
+        assert "invalid_link" in result.headers["location"]
+
+    def test_verify_magic_link_redirects_when_no_account(self):
+        mt = MagicMock()
+        mt.used_at = None
+        mt.expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+        mt.email = "ghost@example.com"
+        self.mock_repo.get_magic_token.return_value = mt
+        self.mock_repo.get_by_email.return_value = None
+
+        result = self.svc.verify_magic_link("valid-token", self.response)
+
+        assert "no_account" in result.headers["location"]
+
+    def test_verify_magic_link_success_sets_cookies_and_redirects(self):
+        mt = MagicMock()
+        mt.used_at = None
+        mt.expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+        mt.email = "user@example.com"
+        self.mock_repo.get_magic_token.return_value = mt
+        self.mock_repo.get_by_email.return_value = _make_user()
+
+        with (
+            patch("src.services.auth_service.create_access_token", return_value="access"),
+            patch("src.services.auth_service.create_refresh_token", return_value="refresh"),
+        ):
+            result = self.svc.verify_magic_link("valid-token", self.response)
+
+        self.mock_repo.mark_magic_token_used.assert_called_once_with(mt)
+        assert "dashboard" in result.headers["location"]
+
+    # ── forgot_password ───────────────────────────────────────────────────────
+
+    def test_forgot_password_returns_generic_message_when_no_account(self):
+        self.mock_repo.get_by_email.return_value = None
+
+        result = self.svc.forgot_password("nobody@example.com")
+
+        self.mock_repo.create_reset_token.assert_not_called()
+        assert result.message is not None
+
+    def test_forgot_password_creates_token_and_sends_email(self):
+        self.mock_repo.get_by_email.return_value = _make_user()
+
+        with patch("src.services.auth_service.send_password_reset_email"):
+            result = self.svc.forgot_password("user@example.com")
+
+        self.mock_repo.invalidate_reset_tokens.assert_called_once_with(1)
+        self.mock_repo.create_reset_token.assert_called_once()
+        assert result.message is not None
+
+    # ── reset_password ────────────────────────────────────────────────────────
+
+    def test_reset_password_raises_when_token_not_found(self):
+        self.mock_repo.get_reset_token.return_value = None
+
+        with pytest.raises(BadRequestError):
+            self.svc.reset_password("bad-token", "newpass123")
+
+    def test_reset_password_raises_when_token_expired(self):
+        rt = MagicMock()
+        rt.used_at = None
+        rt.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
+        self.mock_repo.get_reset_token.return_value = rt
+
+        with pytest.raises(BadRequestError):
+            self.svc.reset_password("expired", "newpass123")
+
+    def test_reset_password_raises_when_user_not_found(self):
+        rt = MagicMock()
+        rt.used_at = None
+        rt.expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        rt.user_id = 99
+        self.mock_repo.get_reset_token.return_value = rt
+        self.mock_repo.get_by_id.return_value = None
+
+        with pytest.raises(NotFoundError):
+            self.svc.reset_password("valid-token", "newpass123")
+
+    def test_reset_password_updates_hash_and_marks_token_used(self):
+        rt = MagicMock()
+        rt.used_at = None
+        rt.expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        rt.user_id = 1
+        self.mock_repo.get_reset_token.return_value = rt
+
+        user = _make_user()
+        self.mock_repo.get_by_id.return_value = user
+
+        with patch("src.services.auth_service.hash_password", return_value="new_hashed"):
+            result = self.svc.reset_password("valid-token", "newpass123")
+
+        assert user.hashed_password == "new_hashed"
+        self.mock_repo.mark_reset_token_used.assert_called_once_with(rt)
+        self.mock_repo.update.assert_called_once_with(user)
+        assert result.message == "Password updated successfully"
