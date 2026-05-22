@@ -15,6 +15,11 @@ const schema = z.object({
 }).refine((d) => d.new_password === d.confirm, { message: "Passwords don't match", path: ["confirm"] });
 type FormData = z.infer<typeof schema>;
 
+const inputStyle = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.1)",
+};
+
 export default function PasswordPage() {
   const [show, setShow] = useState(false);
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -40,25 +45,31 @@ export default function PasswordPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-6">Password</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
+      <h1 className="text-[22px] font-bold text-white mb-8">Password</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {fields.map((f) => (
           <div key={f.id}>
-            <label className="block text-xs font-semibold text-muted mb-1.5">{f.label}</label>
+            <label className="block text-[12px] font-medium text-white/40 mb-2">{f.label}</label>
             <div className="relative">
               <input
                 {...register(f.id)}
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full h-11 input-base px-4 pr-10 text-sm"
+                className="w-full px-4 py-3 rounded-[10px] text-[14px] text-white outline-none transition pr-11"
+                style={inputStyle}
               />
               {f.id === "current_password" && (
-                <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
+                <button
+                  type="button"
+                  onClick={() => setShow(!show)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               )}
             </div>
-            {errors[f.id] && <p className="mt-1 text-xs text-red-400">{errors[f.id]?.message}</p>}
+            {errors[f.id] && <p className="mt-1.5 text-xs text-red-400">{errors[f.id]?.message}</p>}
             {f.id === "new_password" && pw && (
               <div className="mt-2 flex gap-1">
                 {[1, 2, 3, 4].map((i) => (
@@ -68,7 +79,12 @@ export default function PasswordPage() {
             )}
           </div>
         ))}
-        <button type="submit" disabled={isSubmitting} className="btn-primary !h-10 !py-0 !rounded-btn-md disabled:opacity-50">
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-6 py-3 rounded-[10px] text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
+        >
           {isSubmitting ? "Updating…" : "Update password"}
         </button>
       </form>

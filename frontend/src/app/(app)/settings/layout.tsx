@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 const nav = [
   { label: "Profile",  href: "/settings/profile" },
   { label: "Password", href: "/settings/password" },
@@ -11,39 +12,44 @@ const nav = [
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-      <main
-        className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative overflow-y-auto thin-scroll"
-        style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" style={{ filter: "blur(72px)" }} />
-        <div className="absolute inset-0 pointer-events-none bg-amber-glow z-0" />
-        <div className="max-w-3xl mx-auto w-full px-8 py-10 relative z-10">
-          <div className="flex items-center gap-[9px] mb-8">
-            <span className="text-sm font-bold">Settings</span>
-          </div>
+    <main className="flex-1 min-w-0 flex flex-col overflow-hidden relative">
+      {/* Gradient background — same as dashboard */}
+      <div className="absolute inset-0 bg-hero-gradient opacity-50 pointer-events-none" style={{ filter: "blur(72px)" }} />
+      <div className="absolute inset-0 bg-amber-glow pointer-events-none" />
 
-          <div className="flex gap-8">
-            <nav className="w-36 flex-shrink-0">
-              <ul className="space-y-0.5">
-                {nav.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`block px-3 py-2 rounded-btn text-sm transition ${
-                        pathname === item.href
-                          ? "bg-white/[0.08] text-white font-medium"
-                          : "text-muted hover:text-white hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <div className="flex-1 min-w-0">{children}</div>
+      {/* Full-bleed glass card */}
+      <div
+        className="absolute inset-0 flex overflow-hidden"
+        style={{ background: "rgba(17,17,19,0.55)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
+      >
+        {/* Settings nav — inside the card */}
+        <nav className="w-[200px] flex-shrink-0 pt-10 pl-16 pr-4">
+          <p className="text-[13px] font-semibold text-white/85 mb-4">Settings</p>
+          <ul className="space-y-0.5">
+            {nav.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition ${
+                    pathname === item.href
+                      ? "bg-white/10 text-white"
+                      : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Page content */}
+        <div className="flex-1 overflow-y-auto thin-scroll py-10 pr-10 pl-16">
+          <div className="max-w-[520px]">
+            {children}
           </div>
         </div>
-      </main>
+      </div>
+    </main>
   );
 }
