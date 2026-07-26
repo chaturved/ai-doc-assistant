@@ -6,7 +6,7 @@ const AUTH_ONLY_PATHS = ["/login", "/signup"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("access_token")?.value;
+  const token = request.cookies.get("paperwise_access_token")?.value;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p)) || pathname === "/";
   const isAuthOnly = AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p));

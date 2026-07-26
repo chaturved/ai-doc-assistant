@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 
+from src.config import settings
 from src.core.dependencies import get_auth_service, get_current_user_id, get_user_service
 from src.schemas.user import DeleteAccount, PasswordChange, PasswordSet, UserUpdate
 from src.services.auth_service import AuthServiceProtocol
@@ -48,8 +49,8 @@ def delete_me(
     service: UserServiceProtocol = Depends(get_user_service),
 ):
     result = service.remove_account(user_id, body.confirmation)
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(settings.ACCESS_TOKEN_KEY)
+    response.delete_cookie(settings.REFRESH_TOKEN_KEY)
     return result
 
 

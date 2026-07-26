@@ -106,8 +106,8 @@ export default function PrivacyPage() {
           <P>We use two HttpOnly cookies for authentication:</P>
           <ul className="space-y-2">
             {([
-              ["access_token", "short-lived JWT (15 minutes) used to authenticate API requests."],
-              ["refresh_token", "longer-lived token (7 days) used to issue new access tokens without requiring you to log in again."],
+              ["paperwise_access_token", "short-lived JWT (15 minutes) used to authenticate API requests."],
+              ["paperwise_refresh_token", "longer-lived token (7 days) used to issue new access tokens without requiring you to log in again."],
             ] as [string, string][]).map(([label, desc]) => (
               <li key={label} className="text-sm text-muted leading-relaxed flex gap-2">
                 <span className="text-faint flex-shrink-0 mt-[3px]">•</span>

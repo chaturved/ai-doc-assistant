@@ -34,11 +34,11 @@ class Settings(BaseSettings):
     SESSION_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
 
-    ACCESS_TOKEN_KEY: str = "access_token"
+    ACCESS_TOKEN_KEY: str = "paperwise_access_token"
     ACCESS_TOKEN_TYPE: str = "access"
     ACCESS_TOKEN_EXPIRE_MINUTES: float = 60.0
 
-    REFRESH_TOKEN_KEY: str = "refresh_token"
+    REFRESH_TOKEN_KEY: str = "paperwise_refresh_token"
     REFRESH_TOKEN_TYPE: str = "refresh"
     REFRESH_TOKEN_EXPIRE_DAYS: float = 7.0
 
