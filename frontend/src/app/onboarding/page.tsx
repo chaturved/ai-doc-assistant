@@ -169,29 +169,26 @@ export default function OnboardingPage() {
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
-                  onClick={() => goAsk(s)}
-                  className="text-left px-4 py-2.5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:border-primary/30 hover:text-white hover:bg-white/[0.07] transition"
+                  onClick={() => setQuestion(s)}
+                  className={`text-left px-4 py-2.5 rounded-[10px] border text-sm transition ${
+                    question === s
+                      ? "border-primary/50 bg-white/[0.08] text-white"
+                      : "border-system bg-white/[0.04] text-muted hover:border-primary/30 hover:text-white hover:bg-white/[0.07]"
+                  }`}
                 >
                   {s}
                 </button>
               ))}
             </div>
 
-            <div className="flex gap-2 mb-4">
+            <div className="mb-4">
               <input
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") goAsk(question); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && question.trim()) goAsk(question); }}
                 placeholder="Or type your own question…"
-                className="flex-1 h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
               />
-              <button
-                onClick={() => goAsk(question)}
-                disabled={!question.trim()}
-                className="btn-primary !h-11 !py-0 !rounded-[10px] disabled:opacity-40"
-              >
-                Ask
-              </button>
             </div>
 
             <div className="flex gap-3">
@@ -199,9 +196,9 @@ export default function OnboardingPage() {
                 className="h-11 px-5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:text-white transition flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
-              <button onClick={handleComplete}
+              <button onClick={() => (question.trim() ? goAsk(question) : handleComplete())}
                 className="btn-primary flex-1 !rounded-[10px]">
-                Open Paperwise <ArrowRight className="h-4 w-4" />
+                Start Conversation <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
