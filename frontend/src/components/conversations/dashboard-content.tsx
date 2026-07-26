@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { useSSEStream } from "@/hooks/useSSEStream";
@@ -22,6 +22,7 @@ const SUGGESTIONS = [
 
 function DashboardInner() {
   const params = useSearchParams();
+  const router = useRouter();
   const { setSidebarCallbacks } = useAppLayout();
 
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
@@ -30,6 +31,7 @@ function DashboardInner() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const chatEndRef  = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [initialQuestion] = useState(() => params.get("q"));
 
   const onStreamDone = useCallback((content: string, meta: Message["meta"]) => {
     setMessages((prev) => [
@@ -60,23 +62,24 @@ function DashboardInner() {
     setMessages([]);
   }, []);
 
+  const handleConvDelete = useCallback((id: number) => {
+    if (id === activeConvId) {
+      setActiveConvId(null);
+      setMessages([]);
+    }
+  }, [activeConvId]);
+
   useEffect(() => {
     setSidebarCallbacks({
       activeConvId,
       onConvSelect: setActiveConvId,
-      onConvDelete: (id: number) => {
-        if (id === activeConvId) {
-          setActiveConvId(null);
-          setMessages([]);
-        }
-      },
+      onConvDelete: handleConvDelete,
       onNewChat: handleNewChat,
       refreshKey: sidebarRefresh,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeConvId, sidebarRefresh]);
+  }, [activeConvId, sidebarRefresh, setSidebarCallbacks, handleNewChat, handleConvDelete]);
 
-  const handleSend = async (question?: string) => {
+  const handleSend = useCallback(async (question?: string) => {
     const q = (question ?? inputValue).trim();
     if (!q || isStreaming) return;
 
@@ -101,7 +104,17 @@ function DashboardInner() {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     await sendStream(convId, q);
-  };
+  }, [activeConvId, inputValue, isStreaming, sendStream]);
+
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+
+  useEffect(() => {
+    if (initialQuestion) {
+      router.replace("/dashboard");
+      handleSendRef.current(initialQuestion);
+    }
+  }, [initialQuestion, router]);
 
   const inChat = messages.length > 0;
 

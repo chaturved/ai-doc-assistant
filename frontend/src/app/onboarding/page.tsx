@@ -1,14 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { toast } from "sonner";
 import { Upload, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
-import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useAuth } from "@/context/AuthContext";
 import { completeOnboarding } from "@/lib/api/users";
-import { createConversation } from "@/lib/api/conversations";
-import { uploadFiles } from "@/lib/api/documents";
+import { getLibrary, uploadFiles } from "@/lib/api/documents";
 import type { LibraryDoc } from "@/types";
 
 
@@ -25,69 +24,48 @@ export default function OnboardingPage() {
   const [uploadedDoc, setUploadedDoc] = useState<LibraryDoc | null>(null);
   const [uploading, setUploading] = useState(false);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [streaming, setStreaming] = useState(false);
-  const [convId, setConvId] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    getLibrary()
+      .then((library) => {
+        if (library.sections[0]) {
+          setUploadedDoc(library.sections[0]);
+          setStep(3);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     try {
-      const docs = await uploadFiles([file]);
-      setUploadedDoc(docs[0]);
-    } catch {
-      toast.error("Upload failed. Try a PDF, TXT, or MD file under 10 MB.");
+      const { uploaded, errors } = await uploadFiles([file]);
+      if (uploaded[0]) setUploadedDoc(uploaded[0]);
+      else toast.error(errors[0]?.error || "Upload failed. Try a PDF, TXT, or MD file under 10 MB.");
+    } catch (err) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.errors?.[0]?.error : undefined;
+      toast.error(message || "Upload failed. Try a PDF, TXT, or MD file under 10 MB.");
     } finally {
       setUploading(false);
     }
   }, []);
 
-  const handleAsk = useCallback(async (q: string) => {
-    if (!q.trim() || streaming) return;
-    setAnswer("");
-    setStreaming(true);
+  const goAsk = useCallback(async (q: string) => {
+    if (!q.trim()) return;
     try {
-      let id = convId;
-      if (!id) {
-        const conv = await createConversation("My first conversation");
-        id = conv.id;
-        setConvId(id);
-      }
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api";
-      await fetchEventSource(`${backendUrl}/v1/conversations/${id}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          question: q,
-          filters: uploadedDoc ? { doc_id: uploadedDoc.id } : null,
-          top_k: 3,
-        }),
-        onmessage(ev) {
-          if (ev.data === "[DONE]") { setStreaming(false); return; }
-          try {
-            const parsed = JSON.parse(ev.data);
-            if (parsed.token) setAnswer((prev) => prev + parsed.token);
-          } catch { /* ignore */ }
-        },
-        onerror() { setStreaming(false); },
-      });
-    } catch {
-      setStreaming(false);
-      toast.error("Failed to get answer");
-    }
-  }, [convId, streaming, uploadedDoc]);
+      await completeOnboarding();
+    } catch { /* not fatal, still take them to the dashboard */ }
+    router.push(`/dashboard?q=${encodeURIComponent(q.trim())}`);
+  }, [router]);
 
   const handleComplete = async () => {
     try {
       await completeOnboarding();
-      if (convId) router.push(`/dashboard?conv=${convId}`);
-      else router.push("/dashboard");
-    } catch {
-      router.push("/dashboard");
-    }
+    } catch { /* not fatal, still take them to the dashboard */ }
+    router.push("/dashboard");
   };
 
   const steps = [
@@ -191,7 +169,7 @@ export default function OnboardingPage() {
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
-                  onClick={() => { setQuestion(s); handleAsk(s); }}
+                  onClick={() => goAsk(s)}
                   className="text-left px-4 py-2.5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:border-primary/30 hover:text-white hover:bg-white/[0.07] transition"
                 >
                   {s}
@@ -203,33 +181,26 @@ export default function OnboardingPage() {
               <input
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAsk(question); }}
+                onKeyDown={(e) => { if (e.key === "Enter") goAsk(question); }}
                 placeholder="Or type your own question…"
                 className="flex-1 h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
               />
               <button
-                onClick={() => handleAsk(question)}
-                disabled={streaming || !question.trim()}
+                onClick={() => goAsk(question)}
+                disabled={!question.trim()}
                 className="btn-primary !h-11 !py-0 !rounded-[10px] disabled:opacity-40"
               >
                 Ask
               </button>
             </div>
 
-            {(answer || streaming) && (
-              <div className="card p-4 mb-5 text-sm text-white/70 leading-relaxed">
-                {answer}
-                {streaming && <span className="inline-block w-0.5 h-4 rounded-sm align-text-bottom ml-0.5 animate-blink bg-violet-400" />}
-              </div>
-            )}
-
             <div className="flex gap-3">
               <button onClick={() => setStep(2)}
                 className="h-11 px-5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:text-white transition flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
-              <button onClick={handleComplete} disabled={streaming}
-                className="btn-primary flex-1 !rounded-[10px] disabled:opacity-40">
+              <button onClick={handleComplete}
+                className="btn-primary flex-1 !rounded-[10px]">
                 Open Paperwise <ArrowRight className="h-4 w-4" />
               </button>
             </div>
