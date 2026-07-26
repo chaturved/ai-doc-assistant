@@ -15,6 +15,7 @@ pgvector
 python-dotenv
 boto3
 huggingface_hub[inference]
+numpy
 authlib
 httpx
 jinja2

@@ -40,3 +40,9 @@ class PlanLimitError(AppError):
     def __init__(self, limit: str, message: str = "Plan limit exceeded"):
         super().__init__(message, "LIMIT_EXCEEDED", 402)
         self.limit = limit
+
+
+class UploadFailedError(AppError):
+    def __init__(self, errors: list, message: str = "All files failed to upload"):
+        super().__init__(message, "UPLOAD_FAILED", 422)
+        self.errors = errors

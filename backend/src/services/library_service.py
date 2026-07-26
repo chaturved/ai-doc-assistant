@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from typing import Protocol
 
@@ -6,7 +7,7 @@ _log = logging.getLogger(__name__)
 from fastapi import Depends, UploadFile
 
 from src.core.enums import Plan
-from src.core.exceptions import NotFoundError
+from src.core.exceptions import NotFoundError, UploadFailedError
 from src.models import Library, LibraryChunk
 from src.repositories.library_repository import LibraryRepositoryProtocol, LibraryRepository
 from src.schemas.library import LibraryDocResponse, LibraryResponse, UploadErrorResponse, UploadItemResponse, UploadResponse
@@ -50,10 +51,19 @@ class LibraryService(LibraryServiceProtocol):
 
         for f in files:
             try:
+                raw = await f.read()
+                content_hash = hashlib.sha256(raw).hexdigest()
+                if self.repo.get_by_content_hash(user_id, content_hash):
+                    raise ValueError("This file has already been uploaded")
+                f.file.seek(0)
+
                 file_url, contents = await save_raw_file(f, user_id)
                 size_bytes = len(contents)
                 ext = (f.filename or "").split(".")[-1].lower()
                 extracted_text = extract_text_from_bytes(contents, ext)
+
+                chunks = chunk_text(extracted_text)
+                embeddings = await get_embeddings(chunks)
 
                 library = Library(
                     user_id=user_id,
@@ -62,11 +72,9 @@ class LibraryService(LibraryServiceProtocol):
                     size=size_bytes,
                     path=file_url,
                     extracted_text=extracted_text,
+                    content_hash=content_hash,
                 )
                 library = self.repo.add(library)
-
-                chunks = chunk_text(extracted_text)
-                embeddings = await get_embeddings(chunks)
 
                 chunk_records = [
                     LibraryChunk(
@@ -81,7 +89,11 @@ class LibraryService(LibraryServiceProtocol):
                 f.file.seek(0)
                 uploaded.append(UploadItemResponse.model_validate(library))
             except Exception as e:
+                _log.exception("Failed to process upload %s", f.filename)
                 errors.append(UploadErrorResponse(file=f.filename or "", error=str(e)))
+
+        if not uploaded and errors:
+            raise UploadFailedError(errors=errors)
 
         return UploadResponse(uploaded=uploaded, errors=errors)
 

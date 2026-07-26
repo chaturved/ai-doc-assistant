@@ -11,3 +11,13 @@ export interface LibraryData {
   total_size_bytes: number;
   sections: LibraryDoc[];
 }
+
+export interface UploadError {
+  file: string;
+  error: string;
+}
+
+export interface UploadResult {
+  uploaded: LibraryDoc[];
+  errors: UploadError[];
+}
