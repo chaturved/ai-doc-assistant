@@ -417,7 +417,7 @@ Never create a component just to give a piece of markup a name.
 
 ## Dev Environment
 
-- Frontend: `http://localhost:3001`
+- Frontend: `http://localhost:3000`
 - Backend: `http://localhost:8000`
 - Backend API docs: `http://localhost:8000/docs`
 

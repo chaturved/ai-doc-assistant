@@ -944,7 +944,7 @@ created_at          TIMESTAMP DEFAULT NOW()
 
 Base URL: `/api/v1`
 
-All authenticated routes require a valid `access_token` cookie.
+All authenticated routes require a valid `paperwise_access_token` cookie.
 All responses follow: `{ data: ..., error: null }` on success, `{ data: null, error: { message, code } }` on failure.
 
 ---
@@ -955,14 +955,14 @@ All responses follow: `{ data: ..., error: null }` on success, `{ data: null, er
 ```json
 Request:  { "email": "...", "password": "...", "full_name": "..." }
 Response: { "user": { "id", "email", "full_name", "plan" } }
-Side effects: sets access_token + refresh_token cookies, sends welcome email
+Side effects: sets paperwise_access_token + paperwise_refresh_token cookies, sends welcome email
 ```
 
 #### `POST /auth/login`
 ```
 Request:  application/x-www-form-urlencoded  username=...&password=...
 Response: { "user": { "id", "email", "full_name", "plan" } }
-Side effects: sets access_token + refresh_token cookies
+Side effects: sets paperwise_access_token + paperwise_refresh_token cookies
 ```
 
 #### `POST /auth/logout`
@@ -974,7 +974,7 @@ Side effects: clears cookies
 #### `POST /auth/refresh`
 ```
 Response: { "message": "Token refreshed" }
-Side effects: rotates access_token cookie
+Side effects: rotates paperwise_access_token cookie
 ```
 
 #### `GET /auth/google`
@@ -1366,7 +1366,7 @@ Auth:         JWT (python-jose) + OAuth (authlib)
 Email:        smtplib (standard library)
 AI:           Hugging Face Inference API
   Embeddings: sentence-transformers/all-MiniLM-L6-v2 (384-dim)
-  LLM:        mistralai/Mistral-7B-Instruct-v0.2
+  LLM:        meta-llama/Llama-3.1-8B-Instruct
 Storage:      AWS S3-compatible (Supabase Storage, boto3)
 Migrations:   Alembic
 Server:       Uvicorn
@@ -1467,7 +1467,7 @@ SMTP_FROM_EMAIL=noreply@paperwise.ai
 # Hugging Face
 HF_API_KEY=
 HF_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-HF_CHAT_MODEL=mistralai/Mistral-7B-Instruct-v0.2
+HF_CHAT_MODEL=meta-llama/Llama-3.1-8B-Instruct
 
 # S3 / Supabase Storage
 S3_ENDPOINT=
@@ -1727,14 +1727,14 @@ This section tracks the current implementation state so a new session can resume
 - `src/context/AuthContext.tsx` — AuthProvider + useAuth()
 - `src/app/layout.tsx` — wraps AuthProvider + Toaster
 
-**Backend** — all code written, NOT yet run against a database.
+**Backend** — all code written and running against a real database.
 
 | Item | Status |
 |---|---|
-| All models (10 tables) | ✅ Written |
-| Alembic migrations 0001–0004 | ✅ Written — NOT yet applied (`alembic upgrade head` not run) |
-| All API routes (auth, users, conversations, library, misc) | ✅ Written |
-| All services (auth, user, library, conversation) | ✅ Written |
+| All models (12 tables, incl. `query_usage_log`, `message_feedback`, `recent_query`) | ✅ Written |
+| Alembic migrations 0001–0007 (plus 2 auto-named merge/feature revisions) | ✅ Written and applied |
+| All API routes (auth, users, conversations, library, analytics, misc) | ✅ Written |
+| All services (auth, user, library, conversation, tier, waitlist) | ✅ Written |
 | All repositories | ✅ Written |
 | `requirements.txt` updated | ✅ Done |
 | Backend packages installed | ✅ Done |
@@ -1743,27 +1743,27 @@ This section tracks the current implementation state so a new session can resume
 
 | Item | Status |
 |---|---|
-| `alembic upgrade head` (requires real DB connection) | ❌ Not run |
-| README.md | ❌ Not written |
-| Docker / docker-compose | ❌ Not written |
+| `alembic upgrade head` | ✅ Done |
+| README.md | ✅ Written |
+| Docker / docker-compose (backend, frontend, nginx reverse proxy) | ✅ Written |
 | `.env.example` | ✅ Done (backend + frontend) |
 | Tier limit enforcement (§13) | ✅ Done |
+| TLS for the Docker/nginx setup | ❌ Not set up — cookies are `Secure`, so HTTPS must be terminated externally before deploying past `localhost` |
 
 ### 16.2 Resuming a Session
 
-The product code is complete. Remaining work is infra/ops only:
-1. Set up `.env` with real credentials (DB, Supabase, HuggingFace, SMTP, Google OAuth)
-2. Run `alembic upgrade head` to apply all 4 migrations
+The product and infra are both in place. To run locally:
+1. Set up `.env` with real credentials (DB, Supabase, HuggingFace, SMTP, Google OAuth) — or `docker compose up --build` if you'd rather run it containerized
+2. Run `alembic upgrade head` to apply all migrations (the backend Docker image does this automatically on boot)
 3. Start backend: `uvicorn src.main:app --reload --port 8000`
-4. Start frontend: `npm run dev -- --port 3001`
-5. Write README.md and `.env.example`
-6. (Optional) Remove `backend/src/api/v1/query.py` — old deprecated endpoint
+4. Start frontend: `npm run dev` (runs on port 3000)
 
 ### 16.3 Environment
 
-- Dev server: `http://localhost:3001` (port 3000 was occupied at project start)
+- Dev server: `http://localhost:3000`
 - `pyright-langserver` installed globally via `npm install -g pyright`
 - Backend runs on `http://localhost:8000`
+- Dockerized stack (all three containers behind nginx) runs on `http://localhost` (port 80)
 
 ### 16.4 Active Plugins
 
