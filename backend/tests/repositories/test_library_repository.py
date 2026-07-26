@@ -56,7 +56,7 @@ class TestLibraryRepository:
     # ── add_chunks ────────────────────────────────────────────────────────────
 
     def test_add_chunks_bulk_saves_and_commits(self):
-        chunks = [MagicMock(spec=LibraryChunk), MagicMock(spec=LibraryChunk)]
+        chunks: list[LibraryChunk] = [MagicMock(spec=LibraryChunk), MagicMock(spec=LibraryChunk)]
 
         self.repo.add_chunks(chunks)
 
