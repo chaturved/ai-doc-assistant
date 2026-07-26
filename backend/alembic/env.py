@@ -4,9 +4,11 @@ import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from src.config import DATABASE_URL
+from src.config import settings
 from src.database.db import Base, engine
 from src.models import *  # noqa
+
+DATABASE_URL = settings.DATABASE_URL
 
 # Alembic Config object
 config = context.config
