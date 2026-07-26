@@ -133,7 +133,7 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
     }`;
 
   return (
-    <aside className="w-[248px] flex-shrink-0 flex flex-col bg-card rounded-[18px] border border-white/[0.08]">
+    <aside className="w-[290px] flex-shrink-0 flex flex-col rounded-[18px] border border-white/[0.06]" style={{ background: "#09090b" }}>
 
       {/* Header */}
       <div className="flex items-center px-4 py-4 mb-1">

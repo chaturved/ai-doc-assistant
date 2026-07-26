@@ -15,11 +15,6 @@ const schema = z.object({
 }).refine((d) => d.new_password === d.confirm, { message: "Passwords don't match", path: ["confirm"] });
 type FormData = z.infer<typeof schema>;
 
-const inputStyle = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.1)",
-};
-
 export default function PasswordPage() {
   const [show, setShow] = useState(false);
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -56,8 +51,7 @@ export default function PasswordPage() {
                 {...register(f.id)}
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-[10px] text-[14px] text-white outline-none transition pr-11"
-                style={inputStyle}
+                className="input-glass w-full px-4 py-3 text-[14px] pr-11"
               />
               {f.id === "current_password" && (
                 <button
@@ -83,7 +77,7 @@ export default function PasswordPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-[10px] text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
+          className="px-6 py-3 rounded-btn-md text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
         >
           {isSubmitting ? "Updating…" : "Update password"}
         </button>

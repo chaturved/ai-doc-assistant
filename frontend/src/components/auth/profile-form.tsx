@@ -49,10 +49,7 @@ export function ProfileForm() {
       {/* Avatar */}
       <div className="mb-8">
         <p className="text-[12px] font-medium text-white/40 mb-3">Avatar</p>
-        <div
-          className="logo-grad h-16 w-16 rounded-full flex items-center justify-center font-bold text-xl"
-          style={{ boxShadow: "0 0 0 3px rgba(245,158,11,0.25), 0 4px 20px rgba(245,158,11,0.25)" }}
-        >
+        <div className="logo-grad shadow-amber h-16 w-16 rounded-full flex items-center justify-center font-bold text-xl">
           {user?.avatar_initials || "??"}
         </div>
       </div>
@@ -63,8 +60,7 @@ export function ProfileForm() {
           <label className="block text-[12px] font-medium text-white/40 mb-2">Full name</label>
           <input
             {...register("full_name")}
-            className="w-full px-4 py-3 rounded-[10px] text-[14px] text-white outline-none transition"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+            className="input-glass w-full px-4 py-3 text-[14px]"
           />
           {errors.full_name && <p className="mt-1.5 text-xs text-red-400">{errors.full_name.message}</p>}
         </div>
@@ -75,38 +71,30 @@ export function ProfileForm() {
             <input
               value={user?.email || ""}
               readOnly
-              className="flex-1 px-4 py-3 rounded-[10px] text-[14px] cursor-not-allowed outline-none"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.28)" }}
+              className="flex-1 px-4 py-3 rounded-btn-md text-[14px] text-white/[0.28] cursor-not-allowed outline-none bg-white/[0.03] border border-white/[0.06]"
             />
-            <span className="text-[11px] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
-              style={{ background: "rgba(52,211,153,0.08)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>
-              Verified
-            </span>
+            <span className="badge-verified">Verified</span>
           </div>
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-[10px] text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
+          className="px-6 py-3 rounded-btn-md text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
         >
           {isSubmitting ? "Saving…" : "Save changes"}
         </button>
       </form>
 
       {/* Danger Zone */}
-      <div className="mt-10 pt-8" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="mt-10 pt-8 border-t-system">
         <h2 className="text-[16px] font-bold text-red-400 mb-2">Danger Zone</h2>
-        <p className="text-[13px] mb-5" style={{ color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+        <p className="text-[13px] text-white/30 leading-relaxed mb-5">
           Deleting your account permanently removes all your documents, conversations, and data.
         </p>
 
         {!showDelete ? (
-          <button
-            onClick={() => setShowDelete(true)}
-            className="px-5 py-2.5 rounded-[10px] text-[13px] font-semibold text-red-400 transition"
-            style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)" }}
-          >
+          <button onClick={() => setShowDelete(true)} className="btn-danger">
             Delete my account
           </button>
         ) : (
@@ -118,14 +106,12 @@ export function ProfileForm() {
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
               placeholder="DELETE"
-              className="w-full h-10 rounded-[10px] px-4 text-sm text-white outline-none transition"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(239,68,68,0.25)" }}
+              className="input-glass w-full h-10 px-4 text-sm border-red-500/25"
             />
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDelete(false)}
-                className="h-9 px-4 rounded-lg text-sm text-white/50 hover:text-white transition"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                className="h-9 px-4 rounded-lg text-sm text-white/50 hover:text-white transition bg-white/[0.04] border-system"
               >
                 Cancel
               </button>

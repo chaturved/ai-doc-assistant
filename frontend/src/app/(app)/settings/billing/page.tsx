@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { getUsage } from "@/lib/api/users";
 import { useAuth } from "@/context/AuthContext";
 import type { Usage } from "@/types";
@@ -8,39 +9,55 @@ import type { Usage } from "@/types";
 function UsageBar({ used, limit, label }: { used: number; limit: number | null; label: string }) {
   if (limit === null) return null;
   const pct = Math.min(100, Math.round((used / limit) * 100));
-  const barColor = pct > 85 ? "#ef4444" : "#f59e0b";
+  const barColor = pct > 85 ? "bg-red-500" : "bg-accent";
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-xs">
         <span className="text-white/40">{label}</span>
         <span className="text-white/25">{used} of {limit}</span>
       </div>
-      <div className="h-[5px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
+      <div className="h-[5px] rounded-full overflow-hidden bg-white/[0.06]">
+        <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
 }
 
-function formatStorage(bytes: number, limitBytes: number | null): string {
-  if (limitBytes === null) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} of ${(limitBytes / (1024 * 1024)).toFixed(0)} MB`;
+function StorageBar({ used, limit }: { used: number; limit: number | null }) {
+  const usedMB = (used / (1024 * 1024)).toFixed(1);
+  const limitMB = limit ? (limit / (1024 * 1024)).toFixed(0) : null;
+  const pct = limit ? Math.min(100, (used / limit) * 100) : 0;
+  const barColor = limit && (used / limit) > 0.85 ? "bg-red-500" : "bg-accent";
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-white/40">Storage</span>
+        <span className="text-white/25">{usedMB}{limitMB ? ` of ${limitMB} MB` : " MB"}</span>
+      </div>
+      {limit && (
+        <div className="h-[5px] rounded-full overflow-hidden bg-white/[0.06]">
+          <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+        </div>
+      )}
+    </div>
+  );
 }
+
+const FREE_FEATURES = [
+  "Up to 5 documents",
+  "20 queries / day",
+  "10 MB storage",
+  "PDF support",
+  "Email support",
+];
 
 const PRO_FEATURES = [
   "Unlimited documents",
   "Unlimited queries",
   "50 MB per file",
-  "DOCX support",
+  "PDF & DOCX support",
   "Conversation history forever",
   "Priority support",
-];
-
-const FREE_FEATURES = [
-  "5 documents",
-  "20 queries / day",
-  "10 MB storage",
-  "PDF support",
 ];
 
 export default function BillingPage() {
@@ -51,97 +68,77 @@ export default function BillingPage() {
     getUsage().then(setUsage).catch(() => {});
   }, []);
 
+  const isFree = user?.plan === "free";
+
   return (
     <div>
       <h1 className="text-[22px] font-bold text-white mb-8">Plan & Billing</h1>
 
-      {/* Usage */}
       {usage && (
         <div className="mb-10">
           <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.08em] mb-4">Usage this month</p>
           <div className="space-y-4">
             <UsageBar used={usage.documents.used} limit={usage.documents.limit} label="Documents" />
             <UsageBar used={usage.queries_today.used} limit={usage.queries_today.limit} label="Queries today" />
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/40">Storage</span>
-                <span className="text-white/25">{formatStorage(usage.storage_bytes.used, usage.storage_bytes.limit)}</span>
-              </div>
-              {usage.storage_bytes.limit && (
-                <div className="h-[5px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <div className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${Math.min(100, (usage.storage_bytes.used / usage.storage_bytes.limit) * 100)}%`,
-                      background: (usage.storage_bytes.used / usage.storage_bytes.limit) > 0.85 ? "#ef4444" : "#f59e0b",
-                    }} />
-                </div>
-              )}
-            </div>
+            <StorageBar used={usage.storage_bytes.used} limit={usage.storage_bytes.limit} />
           </div>
         </div>
       )}
 
-      {/* Plan comparison */}
       <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.08em] mb-4">Plans</p>
-      <div className="flex gap-4">
+      <div className="grid grid-cols-2 gap-4">
 
-        {/* Free plan */}
-        <div
-          className="flex-1 rounded-[14px] p-5"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: user?.plan === "free" ? "1px solid rgba(245,158,11,0.4)" : "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[13px] font-bold text-white">Free</span>
-            {user?.plan === "free" && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>
-                Current
-              </span>
-            )}
-          </div>
-          <p className="text-[22px] font-bold text-white mb-4">$0<span className="text-[13px] font-normal text-white/30">/mo</span></p>
-          <ul className="space-y-2">
+        {/* Free / Free */}
+        <div className="card shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-muted">Free</span>
+              {isFree && <span className="badge-accent">Current</span>}
+            </div>
+            <div className="mb-2">
+              <span className="text-[20px] font-black">$0</span>
+              <span className="text-sm text-muted"> per month</span>
+            </div>
+            <p className="text-[12px] text-muted leading-[1.5] mb-3">For individuals getting started with AI document chat.</p>
+            <div className="divider mb-3" />
+            <p className="text-[11px] font-bold text-faint uppercase tracking-[0.08em] mb-2">Features</p>
             {FREE_FEATURES.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[13px] text-white/50">
-                <span className="text-white/25">✓</span> {f}
-              </li>
+              <div key={f} className="flex items-center gap-2 mb-1.5">
+                <CheckCircle2 size={12} color="rgba(255,255,255,0.3)" />
+                <span className="text-[12px] text-muted">{f}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        {/* Pro plan */}
-        <div
-          className="flex-1 rounded-[14px] p-5"
-          style={{
-            background: "rgba(245,158,11,0.06)",
-            border: "1px solid rgba(245,158,11,0.25)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[13px] font-bold text-white">Pro</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b" }}>
-              Coming soon
-            </span>
-          </div>
-          <p className="text-[22px] font-bold text-white mb-4">$12<span className="text-[13px] font-normal text-white/30">/mo</span></p>
-          <ul className="space-y-2 mb-5">
+        {/* Pro / Pro */}
+        <div className="relative card shadow-[0_8px_40px_rgba(0,0,0,0.45)] border-amber-500/35">
+          <div className="absolute top-0 inset-x-0 h-px bg-shimmer-bar" />
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-muted">Pro</span>
+              <span className="text-[11px] font-bold bg-accent/20 text-accent rounded-full px-[10px] py-[3px]">Coming soon</span>
+            </div>
+            <div className="mb-2">
+              <span className="text-[20px] font-black">$12</span>
+              <span className="text-sm text-muted"> per month</span>
+            </div>
+            <p className="text-[12px] text-muted leading-[1.5] mb-3">For power users who need more documents and queries.</p>
+            <div className="divider mb-3" />
+            <p className="text-[11px] font-bold text-faint uppercase tracking-[0.08em] mb-2">Everything in Free plus...</p>
             {PRO_FEATURES.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[13px] text-white/70">
-                <span className="text-emerald-400">✓</span> {f}
-              </li>
+              <div key={f} className="flex items-center gap-2 mb-1.5">
+                <CheckCircle2 size={12} color="#f59e0b" />
+                <span className="text-[12px] text-white/75">{f}</span>
+              </div>
             ))}
-          </ul>
-          <button
-            disabled
-            className="w-full py-2.5 rounded-[10px] text-[13px] font-bold text-white/30 cursor-not-allowed"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-          >
-            Coming Soon
-          </button>
+            <button
+              disabled
+              className="btn-primary w-full mt-6 opacity-40 cursor-not-allowed"
+            >
+              Coming Soon
+            </button>
+          </div>
         </div>
 
       </div>
