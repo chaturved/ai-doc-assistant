@@ -74,6 +74,7 @@ A few decisions worth calling out, since they came from real bugs found and fixe
 - **React 18 Strict Mode-safe effects.** A couple of effects with real side effects (creating a conversation, sending a question) are guarded with refs rather than relying on dependency-array identity, since Strict Mode's dev-only double-invoke of effects will otherwise fire a network call twice and produce visibly duplicated/interleaved streamed output.
 - **Prompt-injection-adjacent bug**: documents that are themselves full of questions (e.g. a homework/quiz PDF) could get their embedded "Question: ..." text confused with the user's actual question by the LLM, since both looked identical in a naive prompt. Fixed by explicitly delimiting retrieved context and telling the model never to treat text inside it as the question to answer — verified against the live model with a reproduction before and after.
 - **Same-origin auth by construction.** Cookies are `httponly` + `SameSite=Lax`, which breaks across unrelated domains. Rather than relaxing cookie security or reaching for a token-in-header scheme, the Docker deployment puts an nginx reverse proxy in front of both services so the browser only ever sees one origin — this also means CORS is a non-issue for real browser traffic.
+- **Tests as a safety net, not a checkbox.** Adding the upload content-hash dedup check broke 4 existing service tests that mocked the uploaded file incompletely — they caught a real behavior change immediately rather than silently passing against stale assumptions. `pytest`/`pytest-asyncio` weren't actually declared in `requirements.txt` despite the suite depending on them; fixed alongside.
 
 ## Tech stack
 
@@ -171,7 +172,7 @@ cd backend
 pytest
 ```
 
-Unit tests cover services and repositories with mocked dependencies (auth, library, conversation, tier enforcement).
+153 unit tests covering services and repositories with mocked dependencies (auth, library, conversation, tier enforcement, dedup).
 
 ## Further reading
 

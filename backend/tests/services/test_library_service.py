@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.core.enums import Plan
-from src.core.exceptions import NotFoundError
+from src.core.exceptions import NotFoundError, UploadFailedError
 from src.repositories.library_repository import LibraryRepositoryProtocol
 from src.services.library_service import LibraryService
 from src.services.tier_service import TierServiceProtocol
@@ -22,10 +22,19 @@ def _make_lib(id=1, name="doc.pdf", type="pdf", size=1024, path: str | None = "/
     return lib
 
 
+def _make_file(filename: str, content: bytes):
+    file = MagicMock()
+    file.filename = filename
+    file.file = io.BytesIO(content)
+    file.read = AsyncMock(return_value=content)
+    return file
+
+
 class TestLibraryService:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.mock_repo = MagicMock(spec_set=LibraryRepositoryProtocol)
+        self.mock_repo.get_by_content_hash.return_value = None
         self.mock_tier = MagicMock(spec_set=TierServiceProtocol)
         self.svc = LibraryService(repo=self.mock_repo, tier=self.mock_tier)
 
@@ -59,9 +68,7 @@ class TestLibraryService:
         saved = _make_lib(id=10, name="new.pdf", type="pdf", size=512)
         self.mock_repo.add.return_value = saved
 
-        file = MagicMock()
-        file.filename = "new.pdf"
-        file.file = io.BytesIO(b"content")
+        file = _make_file("new.pdf", b"content")
 
         with (
             patch("src.services.library_service.save_raw_file", AsyncMock(return_value=("/url/new.pdf", b"content"))),
@@ -79,9 +86,7 @@ class TestLibraryService:
         saved = _make_lib(id=5, name="report.pdf", type="pdf", size=2048)
         self.mock_repo.add.return_value = saved
 
-        file = MagicMock()
-        file.filename = "report.pdf"
-        file.file = io.BytesIO(b"pdf bytes")
+        file = _make_file("report.pdf", b"pdf bytes")
 
         mock_emb = MagicMock()
         mock_emb.tolist.return_value = [0.1, 0.2]
@@ -102,28 +107,24 @@ class TestLibraryService:
     async def test_save_files_captures_per_file_error(self):
         self.mock_repo.get_all.return_value = []
 
-        file = MagicMock()
-        file.filename = "bad.pdf"
-        file.file = io.BytesIO(b"")
+        file = _make_file("bad.pdf", b"")
 
-        with patch("src.services.library_service.save_raw_file", AsyncMock(side_effect=RuntimeError("storage down"))):
-            result = await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[file])
+        with (
+            patch("src.services.library_service.save_raw_file", AsyncMock(side_effect=RuntimeError("storage down"))),
+            pytest.raises(UploadFailedError) as exc_info,
+        ):
+            await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[file])
 
-        assert result.uploaded == []
-        assert len(result.errors) == 1
-        assert result.errors[0].file == "bad.pdf"
-        assert "storage down" in result.errors[0].error
+        errors = exc_info.value.errors
+        assert len(errors) == 1
+        assert errors[0].file == "bad.pdf"
+        assert "storage down" in errors[0].error
 
     async def test_save_files_partial_errors_dont_abort_remaining(self):
         self.mock_repo.get_all.return_value = []
 
-        bad_file = MagicMock()
-        bad_file.filename = "bad.pdf"
-        bad_file.file = io.BytesIO(b"")
-
-        good_file = MagicMock()
-        good_file.filename = "good.pdf"
-        good_file.file = io.BytesIO(b"content")
+        bad_file = _make_file("bad.pdf", b"")
+        good_file = _make_file("good.pdf", b"content")
 
         saved = _make_lib(id=1, name="good.pdf")
         self.mock_repo.add.return_value = saved
@@ -145,6 +146,55 @@ class TestLibraryService:
 
         assert len(result.uploaded) == 1
         assert len(result.errors) == 1
+
+    async def test_save_files_rejects_duplicate_content_hash_without_touching_storage(self):
+        self.mock_repo.get_all.return_value = []
+        self.mock_repo.get_by_content_hash.return_value = _make_lib(id=1, name="existing.pdf")
+
+        file = _make_file("re-upload.pdf", b"same content")
+
+        with (
+            patch("src.services.library_service.save_raw_file", AsyncMock()) as mock_save_raw_file,
+            pytest.raises(UploadFailedError) as exc_info,
+        ):
+            await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[file])
+
+        errors = exc_info.value.errors
+        assert len(errors) == 1
+        assert errors[0].file == "re-upload.pdf"
+        assert "already been uploaded" in errors[0].error
+        mock_save_raw_file.assert_not_called()
+        self.mock_repo.add.assert_not_called()
+
+    async def test_save_files_second_file_can_still_succeed_when_first_is_duplicate(self):
+        self.mock_repo.get_all.return_value = []
+
+        def fake_get_by_hash(_user_id, content_hash):
+            import hashlib
+            return _make_lib(id=1) if content_hash == hashlib.sha256(b"dup").hexdigest() else None
+
+        self.mock_repo.get_by_content_hash.side_effect = fake_get_by_hash
+
+        dup_file = _make_file("dup.pdf", b"dup")
+        new_file = _make_file("new.pdf", b"new content")
+
+        saved = _make_lib(id=2, name="new.pdf")
+        self.mock_repo.add.return_value = saved
+        mock_emb = MagicMock()
+        mock_emb.tolist.return_value = [0.1]
+
+        with (
+            patch("src.services.library_service.save_raw_file", AsyncMock(return_value=("/url/new.pdf", b"new content"))),
+            patch("src.services.library_service.extract_text_from_bytes", return_value="text"),
+            patch("src.services.library_service.chunk_text", return_value=["chunk"]),
+            patch("src.services.library_service.get_embeddings", AsyncMock(return_value=[mock_emb])),
+        ):
+            result = await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[dup_file, new_file])
+
+        assert len(result.uploaded) == 1
+        assert result.uploaded[0].name == "new.pdf"
+        assert len(result.errors) == 1
+        assert "already been uploaded" in result.errors[0].error
 
     # ── delete_document ───────────────────────────────────────────────────────
 

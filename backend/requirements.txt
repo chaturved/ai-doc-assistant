@@ -23,3 +23,5 @@ certifi
 slowapi
 limits
 itsdangerous
+pytest
+pytest-asyncio
