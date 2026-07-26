@@ -108,9 +108,11 @@ function DashboardInner() {
 
   const handleSendRef = useRef(handleSend);
   handleSendRef.current = handleSend;
+  const hasSentInitialQuestion = useRef(false);
 
   useEffect(() => {
-    if (initialQuestion) {
+    if (initialQuestion && !hasSentInitialQuestion.current) {
+      hasSentInitialQuestion.current = true;
       router.replace("/dashboard");
       handleSendRef.current(initialQuestion);
     }

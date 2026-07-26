@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { sseClient } from "@/lib/api-client";
 import type { Meta } from "@/types";
 
@@ -15,9 +15,11 @@ const INITIAL: StreamState = { content: "", meta: null, isStreaming: false, erro
 
 export function useSSEStream(onDone?: (content: string, meta: Meta | null) => void) {
   const [state, setState] = useState<StreamState>(INITIAL);
+  const accumulated = useRef({ content: "", meta: null as Meta | null });
 
   const send = useCallback(
     async (conversationId: number, question: string) => {
+      accumulated.current = { content: "", meta: null };
       setState({ content: "", meta: null, isStreaming: true, error: null });
 
       try {
@@ -27,10 +29,8 @@ export function useSSEStream(onDone?: (content: string, meta: Meta | null) => vo
           body: JSON.stringify({ question, filters: null, top_k: 5 }),
           onmessage(ev) {
             if (ev.data === "[DONE]") {
-              setState((prev) => {
-                onDone?.(prev.content, prev.meta);
-                return { ...prev, isStreaming: false };
-              });
+              setState((prev) => ({ ...prev, isStreaming: false }));
+              onDone?.(accumulated.current.content, accumulated.current.meta);
               return;
             }
             if (ev.event === "error") {
@@ -39,11 +39,11 @@ export function useSSEStream(onDone?: (content: string, meta: Meta | null) => vo
             }
             try {
               const parsed = JSON.parse(ev.data);
-              setState((prev) => ({
-                ...prev,
-                meta: parsed.meta ?? prev.meta,
-                content: parsed.token ? prev.content + parsed.token : prev.content,
-              }));
+              accumulated.current = {
+                meta: parsed.meta ?? accumulated.current.meta,
+                content: parsed.token ? accumulated.current.content + parsed.token : accumulated.current.content,
+              };
+              setState((prev) => ({ ...prev, meta: accumulated.current.meta, content: accumulated.current.content }));
             } catch {
               /* ignore parse errors */
             }
