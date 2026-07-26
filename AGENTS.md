@@ -46,6 +46,7 @@ This is a resume-quality production project. It must feel like a real product an
 - authlib + httpx (Google OAuth)
 - boto3 (Supabase Storage / S3)
 - slowapi (rate limiting)
+- pytest + pytest-asyncio (unit tests, `backend/tests/`)
 
 Do not introduce new libraries without explaining the reason and asking first.
 
@@ -420,6 +421,7 @@ Never create a component just to give a piece of markup a name.
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:8000`
 - Backend API docs: `http://localhost:8000/docs`
+- Backend tests: `cd backend && pytest`
 
 ---
 

@@ -1371,6 +1371,7 @@ Storage:      AWS S3-compatible (Supabase Storage, boto3)
 Migrations:   Alembic
 Server:       Uvicorn
 Env:          python-dotenv
+Testing:      pytest + pytest-asyncio (153 unit tests, backend/tests/)
 ```
 
 ### Infrastructure
