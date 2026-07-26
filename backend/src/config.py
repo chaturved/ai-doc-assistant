@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     HF_API_BASE: str = "https://api-inference.huggingface.co/models"
     HF_API_KEY: str = ""
     HF_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    HF_CHAT_MODEL: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    HF_CHAT_MODEL: str = "meta-llama/Llama-3.1-8B-Instruct"
 
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "Paperwise"
     SMTP_FROM_EMAIL: str = "noreply@paperwise.ai"
 
-    APP_URL: str = "http://localhost:3001"
+    APP_URL: str = "http://localhost:3000"
 
     JWT_SECRET_KEY: str
     SESSION_SECRET_KEY: str
