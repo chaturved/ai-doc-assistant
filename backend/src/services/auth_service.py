@@ -134,9 +134,10 @@ class AuthService(AuthServiceProtocol):
                         _log.warning("Failed to send welcome email to %s", user.email, exc_info=True)
                 self.repo.create_oauth_account(user.id, "google", provider_user_id, None, None)
 
-            self._set_auth_cookies(response, user.id)
             redirect_to = settings.APP_URL + ("/onboarding" if not user.onboarding_completed else "/dashboard")
-            return RedirectResponse(redirect_to)
+            redirect_response = RedirectResponse(redirect_to)
+            self._set_auth_cookies(redirect_response, user.id)
+            return redirect_response
         except Exception:
             _log.exception("Unexpected error in google_callback")
             return RedirectResponse(settings.APP_URL + "/login?error=oauth_failed")
