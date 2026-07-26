@@ -45,6 +45,11 @@ backend/.env
 .vscode/
 *.bak
 *.tmp
+*.tsbuildinfo
+
+# Local tool/session state (not project deliverables — see docs/superpowers/ for the tracked equivalent)
+.claude/
+.superpowers/
 
 # -------------------------
 # OS / Editor
