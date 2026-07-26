@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -7,6 +8,8 @@ from src.core.dependencies import get_conversation_service, get_current_user, ge
 from src.models.user import User
 from src.schemas.conversation import AskRequest, ConversationCreate, ConversationRename
 from src.services.conversation_service import ConversationServiceProtocol
+
+_log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
@@ -70,8 +73,10 @@ async def ask_question(
                     yield f"data: {json.dumps({'meta': data})}\n\n"
                 elif event_type == "token":
                     yield f"data: {json.dumps({'token': data})}\n\n"
-            yield "data: [DONE]\n\n"
         except Exception as e:
+            _log.exception("Failed to answer question in conversation %s", conv_id)
             yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
 
     return StreamingResponse(streamer(), media_type="text/event-stream")
