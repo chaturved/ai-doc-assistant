@@ -1,0 +1,53 @@
+name: Build, Test & Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Skip tests and deploy anyway"
+        type: boolean
+        default: false
+
+jobs:
+  test:
+    if: ${{ !inputs.force_deploy }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt
+      - name: Run backend tests
+        run: pytest
+        working-directory: backend
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+  deploy:
+    needs: test
+    if: ${{ always() && (needs.test.result == 'success' || inputs.force_deploy) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: bash ~/ai-doc-assistant/deploy.sh
