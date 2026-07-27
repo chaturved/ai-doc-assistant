@@ -165,6 +165,18 @@ GOOGLE_REDIRECT_URI=http://localhost/api/v1/auth/google/callback
 
 Note nginx here terminates plain HTTP; since auth cookies are set `Secure`, you'll need TLS in front of it (a cloud load balancer, Cloudflare, or similar) before deploying this beyond `localhost`.
 
+### Production Deployment
+
+Runs on a single AWS EC2 instance (t3.small) via this same `docker-compose.yml`, plus a `certbot` service that issues and auto-renews a Let's Encrypt certificate for the production domain. nginx serves HTTP only for the ACME challenge path and redirects everything else to HTTPS.
+
+- Live at `https://paperwise.chaturved-sumanth-lakkaraju.com`
+- `deploy.sh` — pulls latest `main` and runs `docker compose up -d --build` on the instance
+- `.github/workflows/deploy.yml` — manually triggered from the Actions tab; runs backend `pytest` + frontend `lint`/`build`, then deploys via `deploy.sh` over SSH (a "skip tests" checkbox allows a force-deploy)
+- First-time cert issuance (already done for the current domain, only needed again for a new domain):
+  ```bash
+  docker compose run --rm --entrypoint certbot certbot certonly --webroot -w /var/www/certbot -d <domain> --email <email> --agree-tos --no-eff-email
+  ```
+
 ## Testing
 
 ```bash

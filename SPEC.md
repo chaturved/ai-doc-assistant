@@ -1749,7 +1749,7 @@ This section tracks the current implementation state so a new session can resume
 | Docker / docker-compose (backend, frontend, nginx reverse proxy) | ✅ Written |
 | `.env.example` | ✅ Done (backend + frontend) |
 | Tier limit enforcement (§13) | ✅ Done |
-| TLS for the Docker/nginx setup | ❌ Not set up — cookies are `Secure`, so HTTPS must be terminated externally before deploying past `localhost` |
+| TLS for the Docker/nginx setup | ✅ Done — Let's Encrypt via a `certbot` container, auto-renewing every 12h; production deploy runs on AWS EC2 behind `paperwise.chaturved-sumanth-lakkaraju.com` |
 
 ### 16.2 Resuming a Session
 
