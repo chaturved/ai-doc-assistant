@@ -101,7 +101,7 @@ backend/
 
 frontend/
   src/
-    app/                Next.js routes: (auth), (app)/dashboard, (app)/settings, (app)/analytics, onboarding, pricing, privacy, terms
+    app/                Next.js routes: (auth), (app)/dashboard, (app)/settings (including usage), onboarding, pricing, privacy, terms
     components/          UI components (conversations, sidebar, settings, etc.)
     hooks/                useSSEStream, useLibrary, etc.
     lib/api/              typed API client functions
@@ -146,6 +146,8 @@ npm run dev
 
 The app runs at `http://localhost:3000`.
 
+For Google sign-in while running the services directly, keep `APP_URL=http://localhost:3000` and `GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback` in `backend/.env`. Add that exact callback URL to the Google OAuth web client's **Authorized redirect URIs**. Google matches the scheme, host, port, and path exactly.
+
 > Both `.env.example` files exist as templates — copy them rather than editing in place, and never commit the real `.env`.
 
 ### Running with Docker
@@ -162,6 +164,8 @@ Requires `backend/.env` to exist locally (same as above) — `docker-compose.yml
 APP_URL=http://localhost
 GOOGLE_REDIRECT_URI=http://localhost/api/v1/auth/google/callback
 ```
+
+Add this Docker callback URL to the same OAuth client's **Authorized redirect URIs** if you also use Docker locally.
 
 Note nginx here terminates plain HTTP; since auth cookies are set `Secure`, you'll need TLS in front of it (a cloud load balancer, Cloudflare, or similar) before deploying this beyond `localhost`.
 
