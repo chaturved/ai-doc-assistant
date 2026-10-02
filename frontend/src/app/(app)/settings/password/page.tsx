@@ -40,7 +40,7 @@ export default function PasswordPage() {
 
   return (
     <div>
-      <h1 className="mb-8 font-display text-[32px] font-medium tracking-[-0.03em] text-ink">Password</h1>
+      <h1 className="mb-8 text-[32px] font-medium tracking-[-0.04em] text-ink">Password</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {fields.map((f) => (
@@ -51,7 +51,7 @@ export default function PasswordPage() {
                 {...register(f.id)}
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
-                className="input-glass w-full px-4 py-3 text-[14px] pr-11"
+                className="input-base w-full px-4 py-3 text-[14px] pr-11"
               />
               {f.id === "current_password" && (
                 <button

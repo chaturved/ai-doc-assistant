@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { Upload, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Upload, CheckCircle, ArrowRight, ArrowLeft, FileText, MessageSquareText, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { completeOnboarding } from "@/lib/api/users";
 import { getLibrary, uploadFiles } from "@/lib/api/documents";
@@ -76,9 +76,9 @@ export default function OnboardingPage() {
   ];
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
+    <div className="auth-page relative">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[520px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+      <div className="auth-panel !max-w-[520px]">
         {/* Logo */}
         <span className="mb-10 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></span>
 
@@ -86,7 +86,7 @@ export default function OnboardingPage() {
         <div className="flex items-center gap-2 mb-3">
           {steps.map((s) => (
             <div key={s.n} className="flex-1 h-[3px] rounded-full overflow-hidden bg-ink/[0.06]">
-              <div className="h-full rounded-full transition-all duration-500 bg-grad"
+              <div className="h-full rounded-full bg-accent transition-all duration-500"
                    style={{ width: step > s.n ? "100%" : step === s.n ? "60%" : "0%" }} />
             </div>
           ))}
@@ -96,17 +96,16 @@ export default function OnboardingPage() {
         {/* Step 1 — Welcome */}
         {step === 1 && (
           <div className="animate-fu">
-            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">
+            <h2 className="mb-2 text-[30px] font-medium leading-tight tracking-[-0.04em]">
               Welcome to Paperwise{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}
             </h2>
             <p className="text-sm text-muted mb-8">
               You&apos;re 3 steps away from chatting with your first document.
             </p>
-            <div className="card p-5 mb-8 flex items-center gap-4">
-              {["📄 Upload", "💬 Ask", "✅ Get answers"].map((item, i) => (
-                <div key={item} className="flex items-center gap-3 flex-1">
-                  <span className="text-sm text-ink/70">{item}</span>
-                  {i < 2 && <ArrowRight className="h-3.5 w-3.5 text-faint flex-shrink-0" />}
+            <div className="mb-8 grid gap-3 rounded-lg border border-ink/10 bg-card p-5 sm:grid-cols-3">
+              {[{ icon: FileText, label: "Upload" }, { icon: MessageSquareText, label: "Ask" }, { icon: ShieldCheck, label: "Check sources" }].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-2 text-[13px] text-ink/70">
+                  <Icon size={17} className="text-accent" /> {label}
                 </div>
               ))}
             </div>
@@ -119,7 +118,7 @@ export default function OnboardingPage() {
         {/* Step 2 — Upload */}
         {step === 2 && (
           <div className="animate-fu">
-            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Upload your first document</h2>
+            <h2 className="mb-2 text-[30px] font-medium leading-tight tracking-[-0.04em]">Upload your first document</h2>
             <p className="text-sm text-muted mb-6">Drop a PDF, TXT, or MD file to get started.</p>
 
             {uploadedDoc ? (
@@ -141,7 +140,7 @@ export default function OnboardingPage() {
                 ) : (
                   <Upload className="h-8 w-8 text-faint" />
                 )}
-                <span className="text-sm text-muted">{uploading ? "Uploading…" : "Drop a file here or click to browse"}</span>
+                <span className="text-sm text-muted">{uploading ? "Uploading…" : "Choose a file to upload"}</span>
                 <span className="text-xs text-faint">PDF · TXT · MD · Max 10 MB</span>
               </button>
             )}
@@ -164,7 +163,7 @@ export default function OnboardingPage() {
         {/* Step 3 — Ask */}
         {step === 3 && (
           <div className="animate-fu">
-            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Now ask something about it!</h2>
+            <h2 className="mb-2 text-[30px] font-medium leading-tight tracking-[-0.04em]">Now ask something about it!</h2>
             <p className="text-sm text-muted mb-6">Try one of these or write your own.</p>
 
             <div className="flex flex-col gap-2 mb-5">

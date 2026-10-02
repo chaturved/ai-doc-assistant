@@ -44,12 +44,12 @@ export function ProfileForm() {
 
   return (
     <div>
-      <h1 className="mb-8 font-display text-[32px] font-medium tracking-[-0.03em] text-ink">Profile</h1>
+      <h1 className="mb-8 text-[32px] font-medium tracking-[-0.04em] text-ink">Profile</h1>
 
       {/* Avatar */}
       <div className="mb-8">
         <p className="text-[12px] font-medium text-ink/40 mb-3">Avatar</p>
-        <div className="logo-grad shadow-amber h-16 w-16 rounded-full flex items-center justify-center font-bold text-xl">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-xl font-bold text-[#211608]">
           {user?.avatar_initials || "??"}
         </div>
       </div>
@@ -60,7 +60,7 @@ export function ProfileForm() {
           <label className="block text-[12px] font-medium text-ink/40 mb-2">Full name</label>
           <input
             {...register("full_name")}
-            className="input-glass w-full px-4 py-3 text-[14px]"
+            className="input-base w-full px-4 py-3 text-[14px]"
           />
           {errors.full_name && <p className="mt-1.5 text-xs text-red-400">{errors.full_name.message}</p>}
         </div>
@@ -71,7 +71,7 @@ export function ProfileForm() {
             <input
               value={user?.email || ""}
               readOnly
-              className="flex-1 px-4 py-3 rounded-btn-md text-[14px] text-ink/[0.28] cursor-not-allowed outline-none bg-ink/[0.03] border border-ink/[0.06]"
+              className="min-w-0 flex-1 cursor-not-allowed rounded-btn-md border border-ink/[0.08] bg-ink/[0.03] px-4 py-3 text-[14px] text-ink/50 outline-none"
             />
             <span className="badge-verified">Verified</span>
           </div>
@@ -88,8 +88,8 @@ export function ProfileForm() {
 
       {/* Danger Zone */}
       <div className="mt-10 pt-8 border-t-system">
-        <h2 className="text-[16px] font-bold text-red-400 mb-2">Danger Zone</h2>
-        <p className="text-[13px] text-ink/30 leading-relaxed mb-5">
+        <h2 className="mb-2 text-[16px] font-semibold text-red-500">Delete account</h2>
+        <p className="mb-5 text-[13px] leading-relaxed text-ink/55">
           Deleting your account permanently removes all your documents, conversations, and data.
         </p>
 
@@ -106,7 +106,7 @@ export function ProfileForm() {
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
               placeholder="DELETE"
-              className="input-glass w-full h-10 px-4 text-sm border-red-500/25"
+              className="input-base h-10 w-full border-red-500/25 px-4 text-sm"
             />
             <div className="flex gap-2">
               <button
@@ -118,7 +118,7 @@ export function ProfileForm() {
               <button
                 onClick={handleDelete}
                 disabled={deleteInput !== "DELETE" || deleting}
-                className="h-9 px-4 rounded-lg text-sm text-ink bg-red-600 disabled:opacity-40 transition"
+                className="h-9 rounded-md bg-red-600 px-4 text-sm text-white transition disabled:opacity-40"
               >
                 {deleting ? "Deleting…" : "Confirm delete"}
               </button>

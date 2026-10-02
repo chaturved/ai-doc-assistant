@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { useSSEStream } from "@/hooks/useSSEStream";
+import { useDocumentUpload } from "@/hooks/useDocumentUpload";
 import { createConversation, getMessages } from "@/lib/api/conversations";
 import type { Message } from "@/types";
 import { AIMessage } from "./ai-message";
@@ -17,12 +18,20 @@ function DashboardInner() {
   const router = useRouter();
   const { setSidebarCallbacks } = useAppLayout();
 
-  const [activeConvId, setActiveConvId] = useState<number | null>(null);
+  const [activeConvId, setActiveConvId] = useState<number | null>(() => {
+    const id = Number(params.get("conv"));
+    return Number.isInteger(id) && id > 0 ? id : null;
+  });
   const [messages, setMessages]         = useState<Message[]>([]);
+  const [loadingConversation, setLoadingConversation] = useState(Boolean(params.get("conv")));
   const [inputValue, setInputValue]     = useState("");
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
+  const { upload: uploadDocuments, uploading: isUploading } = useDocumentUpload();
   const chatEndRef  = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const newConversationIdRef = useRef<number | null>(null);
+  const activeConvIdRef = useRef(activeConvId);
+  activeConvIdRef.current = activeConvId;
   const [initialQuestion] = useState(() => params.get("q"));
 
   const onStreamDone = useCallback((content: string, meta: Message["meta"]) => {
@@ -33,16 +42,37 @@ function DashboardInner() {
     setSidebarRefresh((v) => v + 1);
   }, []);
 
-  const { content: streamingContent, meta: streamingMeta, isStreaming, send: sendStream } = useSSEStream(onStreamDone);
+  const { content: streamingContent, meta: streamingMeta, isStreaming, error: streamError, send: sendStream, reset: resetStream } = useSSEStream(onStreamDone);
+
+  useEffect(() => { if (streamError) toast.error(streamError); }, [streamError]);
 
   useEffect(() => {
-    const initConv = params.get("conv");
-    if (initConv) setActiveConvId(Number(initConv));
-  }, [params]);
+    const id = Number(params.get("conv"));
+    const nextId = Number.isInteger(id) && id > 0 ? id : null;
+    if (nextId === activeConvIdRef.current) return;
+    resetStream();
+    setMessages([]);
+    setLoadingConversation(nextId !== null);
+    setActiveConvId(nextId);
+  }, [params, resetStream]);
 
   useEffect(() => {
-    if (activeConvId) getMessages(activeConvId).then(setMessages).catch(() => {});
-    else setMessages([]);
+    if (!activeConvId) {
+      setMessages([]);
+      setLoadingConversation(false);
+      return;
+    }
+    if (newConversationIdRef.current === activeConvId) {
+      newConversationIdRef.current = null;
+      setLoadingConversation(false);
+      return;
+    }
+    let cancelled = false;
+    getMessages(activeConvId)
+      .then((items) => { if (!cancelled) setMessages(items); })
+      .catch(() => { if (!cancelled) toast.error("Could not load this conversation"); })
+      .finally(() => { if (!cancelled) setLoadingConversation(false); });
+    return () => { cancelled = true; };
   }, [activeConvId]);
 
   useEffect(() => {
@@ -50,26 +80,43 @@ function DashboardInner() {
   }, [messages, streamingContent]);
 
   const handleNewChat = useCallback(() => {
+    resetStream();
     setActiveConvId(null);
     setMessages([]);
-  }, []);
+    setLoadingConversation(false);
+    router.replace("/dashboard");
+  }, [resetStream, router]);
+
+  const handleConvSelect = useCallback((id: number) => {
+    if (id === activeConvId) return;
+    resetStream();
+    setMessages([]);
+    setLoadingConversation(true);
+    setActiveConvId(id);
+    router.replace(`/dashboard?conv=${id}`);
+  }, [activeConvId, resetStream, router]);
 
   const handleConvDelete = useCallback((id: number) => {
     if (id === activeConvId) {
+      resetStream();
       setActiveConvId(null);
       setMessages([]);
+      setLoadingConversation(false);
+      router.replace("/dashboard");
     }
-  }, [activeConvId]);
+  }, [activeConvId, resetStream, router]);
 
   useEffect(() => {
     setSidebarCallbacks({
       activeConvId,
-      onConvSelect: setActiveConvId,
+      onConvSelect: handleConvSelect,
       onConvDelete: handleConvDelete,
       onNewChat: handleNewChat,
       refreshKey: sidebarRefresh,
     });
-  }, [activeConvId, sidebarRefresh, setSidebarCallbacks, handleNewChat, handleConvDelete]);
+  }, [activeConvId, sidebarRefresh, setSidebarCallbacks, handleConvSelect, handleNewChat, handleConvDelete]);
+
+  useEffect(() => () => setSidebarCallbacks({}), [setSidebarCallbacks]);
 
   const handleSend = useCallback(async (question?: string) => {
     const q = (question ?? inputValue).trim();
@@ -80,7 +127,9 @@ function DashboardInner() {
       try {
         const conv = await createConversation();
         convId = conv.id;
+        newConversationIdRef.current = conv.id;
         setActiveConvId(conv.id);
+        router.replace(`/dashboard?conv=${conv.id}`);
         setSidebarRefresh((v) => v + 1);
       } catch {
         toast.error("Failed to start conversation");
@@ -96,7 +145,20 @@ function DashboardInner() {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     await sendStream(convId, q);
-  }, [activeConvId, inputValue, isStreaming, sendStream]);
+  }, [activeConvId, inputValue, isStreaming, router, sendStream]);
+
+  const handleAttach = async (files: File[]) => {
+    try {
+      const result = await uploadDocuments(files);
+      if (result.uploaded.length) {
+        setSidebarRefresh((value) => value + 1);
+        toast.success(`Added ${result.uploaded.length} document${result.uploaded.length === 1 ? "" : "s"} to your library`);
+      }
+      if (result.errors.length) toast.error(`${result.errors.length} file${result.errors.length === 1 ? "" : "s"} could not be uploaded`);
+    } catch {
+      toast.error("Could not upload your documents");
+    }
+  };
 
   const handleSendRef = useRef(handleSend);
   handleSendRef.current = handleSend;
@@ -110,18 +172,19 @@ function DashboardInner() {
     }
   }, [initialQuestion, router]);
 
-  const inChat = messages.length > 0;
+  const inChat = messages.length > 0 || activeConvId !== null;
 
   return (
-    <main
-      className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-ink/10 bg-bg"
-    >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-ink/10 px-5 text-xs font-medium text-ink/55 sm:px-8"><span>Workspace <span className="mx-2 text-ink/25">/</span> Chat</span><span className="flex items-center gap-2 text-ink/45"><span className="h-1.5 w-1.5 rounded-full bg-accent" /> Paperwise</span></div>
+    <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-workspace text-ink">
+      <div className="flex h-16 shrink-0 items-center px-5 sm:px-8">
+        <span className="text-[14px] font-medium text-ink/70">Chat</span>
+      </div>
 
       {inChat ? (
         <>
-          <div className="thin-scroll relative z-10 mx-auto w-full max-w-[740px] flex-1 space-y-8 overflow-y-auto px-4 py-6 sm:px-10 sm:py-8">
-            {messages.map((msg) =>
+          <div className="thin-scroll relative z-10 flex-1 overflow-y-auto px-4 py-8 sm:px-8 sm:py-10">
+            <div className="mx-auto w-full max-w-[780px] space-y-8">
+            {loadingConversation ? <p className="text-sm text-ink/50">Loading conversation…</p> : messages.map((msg) =>
               msg.role === "user"
                 ? <UserMessage key={msg.id} content={msg.content} timestamp={msg.created_at} />
                 : <AIMessage key={msg.id} messageId={msg.id} content={msg.content} meta={msg.meta} timestamp={msg.created_at} />
@@ -130,16 +193,22 @@ function DashboardInner() {
               <AIMessage content={streamingContent} meta={streamingMeta} streaming timestamp={new Date().toISOString()} />
             )}
             <div ref={chatEndRef} />
+            </div>
           </div>
 
-          <div className="border-t-system relative z-10 mx-auto w-full max-w-[740px] flex-shrink-0 px-4 pb-5 pt-3 sm:px-10">
+          <div className="relative z-10 w-full flex-shrink-0 bg-workspace px-4 pb-4 pt-3 sm:px-8 sm:pb-6">
+            <div className="mx-auto max-w-[780px]">
             <InputBox
               value={inputValue}
               onChange={setInputValue}
               onSend={() => handleSend()}
               isStreaming={isStreaming}
+              isUploading={isUploading}
+              onAttach={handleAttach}
               textareaRef={textareaRef}
             />
+            <p className="mt-2 text-center text-[11px] text-ink/40">Check sources before relying on an answer.</p>
+            </div>
           </div>
         </>
       ) : (
@@ -148,6 +217,8 @@ function DashboardInner() {
           onChange={setInputValue}
           onSend={handleSend}
           isStreaming={isStreaming}
+          isUploading={isUploading}
+          onAttach={handleAttach}
           textareaRef={textareaRef}
         />
       )}

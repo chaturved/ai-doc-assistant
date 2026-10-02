@@ -5,6 +5,10 @@ export interface Conversation {
   updated_at: string;
 }
 
+export interface ConversationSearchResult extends Conversation {
+  match_excerpt: string | null;
+}
+
 export interface Source {
   name: string;
   quote: string;

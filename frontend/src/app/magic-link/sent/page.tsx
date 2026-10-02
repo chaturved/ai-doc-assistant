@@ -29,16 +29,16 @@ function MagicLinkSentContent() {
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
+    <div className="auth-page relative">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 text-center shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+      <div className="auth-panel text-center">
         <Link href="/" className="mb-10 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
         <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5 bg-accent/10">
           <Mail className="h-6 w-6 text-accent" />
         </div>
 
-        <h2 className="mb-2 font-display text-[30px] font-medium tracking-[-0.03em]">Check your email</h2>
+        <h2 className="mb-2 text-[30px] font-medium tracking-[-0.04em]">Check your email</h2>
 
         {email && (
           <p className="text-sm text-muted mb-1">

@@ -56,20 +56,20 @@ export default function PricingPage() {
                 </Link>
               </article>
 
-              <article className="relative flex h-full flex-col overflow-hidden rounded-md border border-amber-500/35 bg-[#f6ead5] p-7 text-[#241a0f] dark:border-amber-500/30 dark:bg-[#2d261c] dark:text-[#faf7f2] sm:p-9 lg:p-11">
+              <article className="relative flex h-full flex-col overflow-hidden rounded-md border border-accent/35 bg-card p-7 text-ink sm:p-9 lg:p-11">
                 <div className="absolute inset-x-0 top-0 h-1 bg-amber-500" />
-                <div className="relative inline-flex w-fit items-center gap-2 rounded-full border border-[#38210b]/25 px-3 py-1.5 text-xs font-medium text-[#38210b]/80 dark:border-white/20 dark:text-amber-200">
+                <div className="relative inline-flex w-fit items-center gap-2 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70">
                   <Sparkles size={13} /> Coming soon
                 </div>
                 <h2 className="relative mt-8 font-display text-[32px] font-medium leading-tight tracking-[-0.03em]">Pro</h2>
-                <p className="relative mt-2 text-[15px] leading-7 text-[#38210b]/75 dark:text-white/65">More room for the documents and questions you work with every day.</p>
-                <div className="relative mt-7 border-b border-[#38210b]/20 pb-7 dark:border-white/15">
+                <p className="relative mt-2 text-[15px] leading-7 text-ink/60">More room for the documents and questions you work with every day.</p>
+                <div className="relative mt-7 border-b border-ink/10 pb-7">
                   <span className="font-display text-[32px] font-medium leading-tight tracking-[-0.03em]">Join the waitlist</span>
-                  <p className="mt-2 text-sm text-[#38210b]/65 dark:text-white/60">Pricing will be shared before launch.</p>
+                  <p className="mt-2 text-sm text-ink/55">Pricing will be shared before launch.</p>
                 </div>
                 <ul className="relative mt-7 flex-1 space-y-4">
                   {proFeatures.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm leading-6 text-[#38210b]/85 dark:text-white/80">
+                    <li key={feature} className="flex items-start gap-3 text-sm leading-6 text-ink/75">
                       <Check size={17} className="mt-1 shrink-0 text-accent" />{feature}
                     </li>
                   ))}

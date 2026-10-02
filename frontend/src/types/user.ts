@@ -9,7 +9,7 @@ export interface User {
 
 export interface UsageItem {
   used: number;
-  limit: number;
+  limit: number | null;
 }
 
 export interface Usage {

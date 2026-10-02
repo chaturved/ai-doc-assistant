@@ -28,15 +28,15 @@ export default function LandingPage() {
               <p className="mt-6 text-[13px] text-ink/45">Free to start · No payment details needed</p>
             </div>
 
-            <div className="relative isolate overflow-hidden rounded-lg border border-ink/10 bg-[#f6ead5] p-5 dark:bg-[#2d261c] sm:p-8 lg:min-h-[550px] lg:pt-16">
+            <div className="relative isolate overflow-hidden rounded-lg border border-ink/10 bg-card p-5 sm:p-8 lg:min-h-[550px] lg:pt-16">
               <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-amber-400/40 blur-3xl dark:bg-amber-500/20" />
               <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-orange-500/20 blur-3xl" />
-              <div className="relative mb-5 flex items-center justify-between gap-3 text-xs font-medium text-[#6b4b24] dark:text-amber-200/70">
+              <div className="relative mb-5 flex items-center justify-between gap-3 text-xs font-medium text-ink/55">
                 <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-orange-500" /> A workspace for your sources</span>
                 <span className="hidden sm:inline">PAPERWISE / 01</span>
               </div>
               <div className="relative w-full lg:translate-x-8"><ProductPreview /></div>
-              <div className="relative mt-5 flex items-center justify-end gap-2 text-xs font-medium text-[#6b4b24] dark:text-amber-200/70"><ShieldCheck size={15} /> Answers with a path back</div>
+              <div className="relative mt-5 flex items-center justify-end gap-2 text-xs font-medium text-ink/55"><ShieldCheck size={15} /> Answers with a path back</div>
             </div>
           </div>
         </section>
@@ -79,11 +79,11 @@ export default function LandingPage() {
               <p className="max-w-sm text-[15px] leading-7 text-ink/60">Less time hunting through tabs. More confidence in the answer you take away.</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <article className="relative min-h-[380px] overflow-hidden rounded-lg bg-[#f4ede1] p-7 text-[#241a0f] dark:bg-[#2d261c] dark:text-[#faf7f2] sm:p-10">
-                <div className="max-w-[340px]"><FileSearch size={26} className="text-accent" /><h3 className="mt-5 font-display text-[29px] font-medium tracking-[-0.03em]">Find the exact passage.</h3><p className="mt-3 text-sm leading-7 text-[#38210b]/70 dark:text-white/65">Go from a clear answer to the original document without losing your place.</p></div>
-                <div className="absolute -bottom-6 right-[-18px] w-[76%] max-w-[430px] rotate-[-4deg] rounded-lg border border-[#d7b98c] bg-white p-5 shadow-[0_20px_60px_rgba(71,42,13,0.16)] dark:border-white/10 dark:bg-[#25211c] sm:right-7">
-                  <div className="flex items-center justify-between text-xs font-medium"><span className="flex items-center gap-2"><FileText size={15} className="text-accent" /> Research report.pdf</span><span className="text-black/40 dark:text-white/40">Page 8</span></div>
-                  <div className="mt-5 space-y-2"><div className="h-2 w-full rounded-full bg-ink/10" /><div className="h-2 w-[85%] rounded-full bg-ink/10" /><div className="rounded-sm border-l-2 border-amber-500 bg-amber-100 px-3 py-2 text-xs leading-5 text-[#6b4b24] dark:bg-amber-500/15 dark:text-amber-200">Clear evidence helps teams reach better decisions.</div><div className="h-2 w-[60%] rounded-full bg-ink/10" /></div>
+              <article className="relative min-h-[380px] overflow-hidden rounded-lg border border-ink/10 bg-card p-7 text-ink sm:p-10">
+                <div className="max-w-[340px]"><FileSearch size={26} className="text-accent" /><h3 className="mt-5 font-display text-[29px] font-medium tracking-[-0.03em]">Find the exact passage.</h3><p className="mt-3 text-sm leading-7 text-ink/60">Go from a clear answer to the original document without losing your place.</p></div>
+                <div className="absolute -bottom-6 right-[-18px] w-[76%] max-w-[430px] rotate-[-4deg] rounded-lg border border-ink/10 bg-workspace p-5 shadow-[0_20px_60px_rgba(0,0,0,0.1)] sm:right-7">
+                  <div className="flex items-center justify-between text-xs font-medium"><span className="flex items-center gap-2"><FileText size={15} className="text-accent" /> Research report.pdf</span><span className="text-ink/40">Page 8</span></div>
+                  <div className="mt-5 space-y-2"><div className="h-2 w-full rounded-full bg-ink/10" /><div className="h-2 w-[85%] rounded-full bg-ink/10" /><div className="rounded-sm border-l-2 border-accent bg-accent/10 px-3 py-2 text-xs leading-5 text-ink/75">Clear evidence helps teams reach better decisions.</div><div className="h-2 w-[60%] rounded-full bg-ink/10" /></div>
                 </div>
               </article>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -95,9 +95,9 @@ export default function LandingPage() {
         </section>
 
         <section className="px-5 md:px-8">
-          <div className="mx-auto grid max-w-[1280px] gap-8 rounded-lg bg-[#29231c] px-8 py-12 text-[#faf7f2] dark:bg-[#f1e7d7] dark:text-[#241a0f] md:grid-cols-[1fr_auto] md:items-end md:px-12 md:py-16">
-            <div><p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-400 dark:text-[#92400e]">Ready when you are</p><h2 className="max-w-2xl font-display text-[34px] font-medium leading-[1.1] tracking-[-0.035em] md:text-[48px]">Your next answer starts with a document.</h2><p className="mt-4 text-[16px] leading-7 text-white/65 dark:text-[#38210b]/70">Start free and see what is already waiting in your files.</p></div>
-            <Link href="/signup" className="inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-amber-400 px-6 text-sm font-semibold text-[#241a0f] transition hover:opacity-85 dark:bg-[#241a0f] dark:text-white">Get started <ArrowUpRight size={16} /></Link>
+          <div className="mx-auto grid max-w-[1280px] gap-8 rounded-lg bg-[#1b1b1b] px-8 py-12 text-white dark:border dark:border-white/10 dark:bg-[#242424] md:grid-cols-[1fr_auto] md:items-end md:px-12 md:py-16">
+            <div><p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-400">Ready when you are</p><h2 className="max-w-2xl font-display text-[34px] font-medium leading-[1.1] tracking-[-0.035em] md:text-[48px]">Your next answer starts with a document.</h2><p className="mt-4 text-[16px] leading-7 text-white/65">Start free and see what is already waiting in your files.</p></div>
+            <Link href="/signup" className="inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-amber-400 px-6 text-sm font-semibold text-[#211608] transition hover:opacity-85">Get started <ArrowUpRight size={16} /></Link>
           </div>
         </section>
       </main>

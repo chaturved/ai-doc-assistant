@@ -1,100 +1,69 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { ChartNoAxesCombined, ChevronRight, CreditCard, FileText, LogOut, Pencil, Search, SquarePen, Trash2, Upload, UserRound } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Plus, Search, Settings, LogOut,
-  ChevronDown, ChevronRight, Trash2, Upload, BarChart2,
-} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { logout } from "@/lib/api/auth";
-import {
-  getConversations, deleteConversation, renameConversation,
-} from "@/lib/api/conversations";
-import { getLibrary, uploadFiles, deleteDocument } from "@/lib/api/documents";
+import { deleteConversation, getConversations, renameConversation } from "@/lib/api/conversations";
+import { deleteDocument, getLibrary, uploadFiles } from "@/lib/api/documents";
 import type { Conversation, LibraryDoc } from "@/types";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-
-function groupByDate(convs: Conversation[]) {
-  const now       = new Date();
-  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today.getTime() - 86400000);
-  const lastWeek  = new Date(today.getTime() - 7 * 86400000);
-  const groups: { label: string; items: Conversation[] }[] = [
-    { label: "Today",       items: [] },
-    { label: "Yesterday",   items: [] },
-    { label: "Last 7 days", items: [] },
-    { label: "Older",       items: [] },
-  ];
-  for (const c of convs) {
-    const d = new Date(c.updated_at);
-    if (d >= today)     groups[0].items.push(c);
-    else if (d >= yesterday) groups[1].items.push(c);
-    else if (d >= lastWeek)  groups[2].items.push(c);
-    else                     groups[3].items.push(c);
-  }
-  return groups.filter((g) => g.items.length > 0);
-}
-
-function DocIcon({ type }: { type: string }) {
-  const t = type.toLowerCase();
-  const label = t === "pdf" ? "PDF" : t === "docx" ? "DOC" : t.toUpperCase().slice(0, 3);
-  const color = t === "pdf" ? "text-red-400" : t === "docx" ? "text-amber-400" : "text-ink/50";
-  return <span className={`text-[9px] font-bold ${color} w-5 flex-shrink-0`}>{label}</span>;
-}
+import { ConversationSearchDialog } from "@/components/conversations/conversation-search-dialog";
 
 interface Props {
   activeConvId?: number | null;
   onConvSelect?: (id: number) => void;
   onConvDelete?: (id: number) => void;
   onNewChat?: () => void;
-  onConversationsChange?: (convs: Conversation[]) => void;
+  onConversationsChange?: (conversations: Conversation[]) => void;
   refreshKey?: number;
 }
 
 export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, onNewChat, onConversationsChange, refreshKey }: Props) {
-  const router   = useRouter();
-  const pathname = usePathname();
+  const router = useRouter();
   const { user, refetchUser } = useAuth();
-
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [library, setLibrary]             = useState<LibraryDoc[]>([]);
-  const [search, setSearch]               = useState("");
-  const [hoveredConv, setHoveredConv]     = useState<number | null>(null);
-  const [renamingId, setRenamingId]       = useState<number | null>(null);
-  const [renameValue, setRenameValue]     = useState("");
+  const [library, setLibrary] = useState<LibraryDoc[]>([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
   const [uploadingDocs, setUploadingDocs] = useState(false);
-  const [docsOpen, setDocsOpen]           = useState(true);
+  const [accountOpen, setAccountOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadConversations = useCallback(async () => {
     try {
-      const convs = await getConversations();
-      setConversations(convs);
-      onConversationsChange?.(convs);
-    } catch { /* silent */ }
+      const items = await getConversations();
+      setConversations(items);
+      onConversationsChange?.(items);
+    } catch { /* Keep local navigation available while the API recovers. */ }
   }, [onConversationsChange]);
 
   const loadLibrary = useCallback(async () => {
-    try { const data = await getLibrary(); setLibrary(data.sections); } catch { /* silent */ }
+    try {
+      const data = await getLibrary();
+      setLibrary(data.sections);
+    } catch { /* Keep local navigation available while the API recovers. */ }
   }, []);
 
   useEffect(() => { loadConversations(); loadLibrary(); }, [loadConversations, loadLibrary, refreshKey]);
 
   const handleNewChat = () => {
-    if (onNewChat) { onNewChat(); return; }
-    router.push("/dashboard");
+    if (onNewChat) onNewChat();
+    else router.push("/dashboard");
   };
 
   const handleConvSelect = (id: number) => {
-    if (onConvSelect) { onConvSelect(id); return; }
-    router.push(`/dashboard?conv=${id}`);
+    if (onConvSelect) onConvSelect(id);
+    else router.push(`/dashboard?conv=${id}`);
   };
 
-  const handleDeleteConv = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteConv = async (id: number) => {
     try {
       await deleteConversation(id);
       await loadConversations();
@@ -103,181 +72,139 @@ export default function AppSidebar({ activeConvId, onConvSelect, onConvDelete, o
   };
 
   const handleRenameSubmit = async (id: number) => {
-    if (!renameValue.trim()) { setRenamingId(null); return; }
-    try { await renameConversation(id, renameValue.trim()); await loadConversations(); } catch { /* silent */ }
+    const title = renameValue.trim();
     setRenamingId(null);
+    if (!title) return;
+    try {
+      await renameConversation(id, title);
+      await loadConversations();
+    } catch { toast.error("Failed to rename conversation"); }
   };
 
-  const handleUploadDocs = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const handleUploadDocs = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     if (!files.length) return;
     setUploadingDocs(true);
-    try { await uploadFiles(files); await loadLibrary(); toast.success(`Uploaded ${files.length} file(s)`); }
-    catch { toast.error("Upload failed"); }
-    finally { setUploadingDocs(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
+    try {
+      await uploadFiles(files);
+      await loadLibrary();
+      toast.success(`Uploaded ${files.length} file(s)`);
+    } catch { toast.error("Upload failed"); }
+    finally {
+      setUploadingDocs(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleDeleteDoc = async (id: number) => {
-    try { await deleteDocument(id); await loadLibrary(); } catch { toast.error("Delete failed"); }
+    try {
+      await deleteDocument(id);
+      await loadLibrary();
+    } catch { toast.error("Delete failed"); }
   };
 
   const handleLogout = async () => {
-    await logout(); await refetchUser(); router.push("/login");
+    try {
+      await logout();
+      await refetchUser();
+      router.push("/login");
+    } catch { toast.error("Could not log out. Please try again."); }
   };
 
-  const filteredConvs = conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
-  const grouped = groupByDate(filteredConvs);
-
-  const navItem = (active: boolean) =>
-    `w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-[13px] font-medium transition ${
-      active ? "text-accent bg-accent/10" : "text-ink/70 hover:text-ink hover:bg-ink/[0.06]"
-    }`;
-
   return (
-    <aside className="flex h-full w-[290px] flex-shrink-0 flex-col rounded-lg border border-ink/10 bg-card">
-
-      {/* Header */}
-      <div className="mb-3 flex items-center justify-between border-b border-ink/10 px-5 py-4">
-        <span className="font-display text-xl font-medium tracking-[-0.05em] text-ink">paperwise<span className="text-accent">.</span></span>
-        <ThemeToggle />
+    <aside className="flex h-full w-full flex-col overflow-hidden border-r border-ink/10 bg-rail text-ink">
+      <ConversationSearchDialog open={searchOpen} onOpenChange={setSearchOpen} recentConversations={conversations} onSelect={handleConvSelect} />
+      <div className="flex h-[72px] shrink-0 items-center justify-between gap-2 px-5">
+        <Link href="/dashboard" className="font-display text-[21px] font-medium tracking-[-0.045em]">paperwise<span className="text-accent">.</span></Link>
+        <div className="flex items-center gap-1 pr-5 md:pr-0">
+          <button type="button" onClick={() => setSearchOpen((open) => !open)} aria-label="Search conversations" aria-expanded={searchOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-md text-ink/55 transition hover:bg-ink/[0.07] hover:text-ink"><Search size={18} strokeWidth={1.8} /></button>
+          <span className="hidden md:block"><ThemeToggle /></span>
+        </div>
       </div>
 
-      {/* Nav */}
-      <div className="space-y-1 px-3">
-        <button onClick={handleNewChat}
-          className="mb-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-bg transition hover:opacity-85">
-          <Plus size={15} /> New conversation
+      <nav aria-label="Workspace navigation" className="shrink-0 space-y-1 px-2 pt-2">
+        <button type="button" onClick={handleNewChat}
+          className="flex h-11 w-full items-center gap-3 rounded-md bg-ink/[0.08] px-4 text-left text-[14px] font-medium transition hover:bg-ink/[0.12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+          <SquarePen size={19} strokeWidth={1.8} /> New chat
         </button>
-        <Link href="/analytics" className={navItem(pathname === "/analytics")}>
-          <BarChart2 size={14} className="flex-shrink-0" /> Analytics
-        </Link>
-      </div>
-
-      {/* Library */}
-      <div className="mt-7 px-3">
-        <button onClick={() => setDocsOpen((v) => !v)} className="mb-1 flex w-full items-center gap-1.5 px-3 py-1.5 text-ink/55 transition-colors hover:text-ink">
-          <span className="flex-1 text-left text-[11px] font-semibold uppercase tracking-[0.12em]">Your library</span>
-          {library.length > 0 && <span className="text-[10px]">{library.length}</span>}
-          {docsOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        <button type="button" onClick={() => setLibraryOpen((open) => !open)} aria-expanded={libraryOpen}
+          className={`flex h-11 w-full items-center gap-3 rounded-md px-4 text-left text-[14px] text-ink/75 transition hover:bg-ink/[0.06] hover:text-ink ${libraryOpen ? "bg-ink/[0.05]" : ""}`}>
+          <FileText size={19} strokeWidth={1.7} /> Library
+          <ChevronRight size={15} className={`ml-auto text-ink/40 transition-transform ${libraryOpen ? "rotate-90" : ""}`} />
         </button>
-        {docsOpen && (
-          <div className="space-y-px">
-            <button onClick={() => fileInputRef.current?.click()} disabled={uploadingDocs}
-              className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-[13px] text-ink/65 transition-colors hover:bg-ink/[0.05] hover:text-ink disabled:opacity-40">
-              {uploadingDocs
-                ? <span className="h-3 w-3 rounded-full border border-ink/20 border-t-white/60 animate-spin" />
-                : <Upload size={13} className="opacity-60" />}
-              Upload document
-            </button>
-            <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
-            {library.length === 0
-              ? <p className="px-3 py-1.5 text-[12px] text-ink/45">No documents yet.</p>
-              : library.slice(0, 8).map((doc) => (
-                <div key={doc.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-btn hover:bg-ink/[0.05] transition-colors cursor-default">
-                  <DocIcon type={doc.type} />
-                  <span className="flex-1 text-[12.5px] font-medium text-ink/85 truncate group-hover:text-ink transition-colors">{doc.name}</span>
-                  <button onClick={() => handleDeleteDoc(doc.id)}
-                    className="opacity-0 group-hover:opacity-100 text-ink/25 hover:text-red-400 transition p-0.5 rounded">
-                    <Trash2 size={11} />
-                  </button>
-                </div>
-              ))
-            }
-            {library.length > 8 && <p className="px-3 py-1 text-[11px] text-ink/28">+{library.length - 8} more</p>}
-          </div>
-        )}
-      </div>
+      </nav>
 
-      {/* Recents */}
-      <div className="flex-1 overflow-y-auto thin-scroll px-2 pb-2 mt-6">
-        <div className="mb-1 flex items-center gap-1.5 px-3 py-1.5">
-          <span className="flex-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/55">Conversations</span>
-        </div>
-        <div className="relative mb-1.5">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/22" size={11} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…"
-            className="w-full h-7 input-base rounded-btn pl-7 pr-3 text-[12px]" />
-        </div>
+      {libraryOpen && (
+        <section aria-label="Your documents" className="shrink-0 px-4 pb-1 pt-3">
+          <div className="mb-2 flex items-center justify-between px-2 text-[12px] font-medium text-ink/50"><span>Your files</span><span>{library.length}</span></div>
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingDocs}
+            className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-[13px] font-medium text-accent transition hover:bg-accent/10 disabled:opacity-50">
+            {uploadingDocs ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-accent/25 border-t-accent" /> : <Upload size={15} />}
+            {uploadingDocs ? "Uploading…" : "Upload a document"}
+          </button>
+          <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={handleUploadDocs} />
+          <div className="thin-scroll max-h-32 overflow-y-auto">
+            {library.length === 0 ? <p className="px-2 py-2 text-xs text-ink/45">No files yet</p> : library.map((document) => (
+              <div key={document.id} className="group flex h-9 items-center gap-2 rounded-md px-2 hover:bg-ink/[0.05]">
+                <FileText size={14} className="shrink-0 text-ink/45" />
+                <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink/75" title={document.name}>{document.name}</span>
+                <button type="button" onClick={() => handleDeleteDoc(document.id)} aria-label={`Delete ${document.name}`}
+                  className="rounded p-1 text-ink/40 hover:text-red-500 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"><Trash2 size={13} /></button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-        {grouped.length === 0
-          ? <p className="px-3 py-2 text-[12px] text-ink/45">No conversations yet.</p>
-          : grouped.map(({ label, items }) => (
-            <div key={label} className="mb-4">
-              <div className="px-3 pb-1 text-[9.5px] font-medium text-ink/22 uppercase tracking-widest">{label}</div>
-              {items.map((conv) => (
-                <div key={conv.id}
-                  onClick={() => handleConvSelect(conv.id)}
-                  onMouseEnter={() => setHoveredConv(conv.id)}
-                  onMouseLeave={() => setHoveredConv(null)}
-                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-btn cursor-pointer mb-px transition-colors ${
-                    activeConvId === conv.id ? "bg-ink/[0.07]" : "hover:bg-ink/[0.04]"
-                  }`}
-                >
-                  {renamingId === conv.id ? (
-                    <input autoFocus value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onBlur={() => handleRenameSubmit(conv.id)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleRenameSubmit(conv.id); if (e.key === "Escape") setRenamingId(null); }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 text-[13px] bg-transparent text-ink outline-none border-b border-ink/30"
-                    />
-                  ) : (
-                    <span
-                      className={`text-[13px] font-medium truncate flex-1 transition-colors ${activeConvId === conv.id ? "text-ink" : "text-ink/85"}`}
-                      onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(conv.id); setRenameValue(conv.title); }}
-                    >
-                      {conv.title}
-                    </span>
-                  )}
-                  {hoveredConv === conv.id && renamingId !== conv.id && (
-                    <button onClick={(e) => handleDeleteConv(conv.id, e)}
-                      className="flex-shrink-0 text-ink/30 hover:text-red-400 transition p-0.5 rounded">
-                      <Trash2 size={11} />
-                    </button>
-                  )}
-                </div>
-              ))}
+      <section aria-label="Recent conversations" className="flex min-h-0 flex-1 flex-col px-2 pt-8">
+        <div className="mb-2 flex items-center justify-between px-4 text-[12px] font-medium text-ink/50"><span>Recents</span><span className="tabular-nums">{conversations.length}</span></div>
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto pb-4">
+          {conversations.length === 0 ? <p className="px-4 py-2 text-[13px] text-ink/45">No conversations yet</p> : conversations.map((conversation) => (
+            <div key={conversation.id} className={`group flex min-h-10 items-center gap-1 rounded-md pl-4 pr-2 transition-colors ${activeConvId === conversation.id ? "bg-ink/[0.08]" : "hover:bg-ink/[0.06]"}`}>
+              {renamingId === conversation.id ? (
+                <input autoFocus value={renameValue} onChange={(event) => setRenameValue(event.target.value)} onBlur={() => handleRenameSubmit(conversation.id)}
+                  onKeyDown={(event) => { if (event.key === "Enter") handleRenameSubmit(conversation.id); if (event.key === "Escape") setRenamingId(null); }}
+                  aria-label="Rename conversation" className="min-w-0 flex-1 border-b border-accent bg-transparent py-1 text-[13px] outline-none" />
+              ) : (
+                <button type="button" onClick={() => handleConvSelect(conversation.id)} title={conversation.title}
+                  className="min-w-0 flex-1 truncate py-2 text-left text-[13px] text-ink/75 focus-visible:outline-2 focus-visible:outline-accent">{conversation.title}</button>
+              )}
+              {renamingId !== conversation.id && <div className="flex shrink-0 items-center sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                <button type="button" onClick={() => { setRenamingId(conversation.id); setRenameValue(conversation.title); }} aria-label={`Rename ${conversation.title}`}
+                  className="rounded p-1 text-ink/45 hover:text-ink"><Pencil size={13} /></button>
+                <button type="button" onClick={() => handleDeleteConv(conversation.id)} aria-label={`Delete ${conversation.title}`}
+                  className="rounded p-1 text-ink/45 hover:text-red-500"><Trash2 size={13} /></button>
+              </div>}
             </div>
-          ))
-        }
-      </div>
-
-      {/* Footer */}
-      <div className="border-t border-ink/[0.05]">
-        {user?.plan === "free" && (
-          <div className="mx-3 mt-3 mb-2 rounded-btn-md p-3 bg-accent/[0.06] border border-accent/[0.15]">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent text-ink">Free</span>
-              <span className="text-[11px] text-ink/65">20 questions / 24 hours</span>
-            </div>
-            <Link href="/pricing" className="block w-full text-center text-[12px] font-semibold py-1.5 rounded-[7px] transition hover:opacity-85 bg-ink text-bg mt-2">
-              Explore plans
-            </Link>
-          </div>
-        )}
-        <div className="flex items-center gap-2.5 px-3 py-3">
-          <div className="logo-grad h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ring-2 ring-amber-500/20">
-            {user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "??"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold truncate">{user?.full_name}</div>
-            <div className="text-[11px] text-ink/40 truncate flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
-              {user?.plan === "free" ? "Free plan" : "Pro plan"}
-            </div>
-          </div>
-          <div className="flex items-center gap-0.5">
-            <button onClick={() => router.push("/settings/profile")}
-              className="p-1.5 rounded-[6px] text-ink/30 hover:text-ink/60 hover:bg-ink/[0.05] transition">
-              <Settings size={13} />
-            </button>
-            <button onClick={handleLogout}
-              className="p-1.5 rounded-[6px] text-ink/30 hover:text-red-400 hover:bg-red-500/10 transition">
-              <LogOut size={13} />
-            </button>
-          </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      <DropdownMenu.Root open={accountOpen} onOpenChange={setAccountOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button type="button" aria-label={`${user?.full_name || "Account"} menu`} className="flex h-[74px] w-full shrink-0 items-center gap-3 border-t border-ink/10 px-4 text-left transition hover:bg-ink/[0.05] data-[state=open]:bg-ink/[0.06]">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-[#211608]">{user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "PW"}</span>
+            <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{user?.full_name || "Account"}</span><span className="block text-[11px] text-ink/50">{user?.plan === "pro" ? "Pro" : "Free"}</span></span>
+            <ChevronRight size={16} className={`text-ink/40 transition-transform ${accountOpen ? "-rotate-90" : ""}`} />
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content side="top" align="start" sideOffset={10} collisionPadding={12}
+            className="z-[100] w-[288px] max-w-[calc(100vw-24px)] rounded-lg border border-ink/10 bg-card p-2 text-ink shadow-[0_20px_60px_rgba(0,0,0,0.18)] outline-none dark:shadow-black/50">
+            <div className="flex items-center gap-3 rounded-md bg-ink/[0.04] px-3 py-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-[#211608]">{user?.avatar_initials || user?.full_name?.slice(0, 2).toUpperCase() || "PW"}</span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-semibold">{user?.full_name || "Account"}</span><span className="block truncate text-[11px] text-ink/50">{user?.email}</span></span>
+            </div>
+            <DropdownMenu.Label className="px-3 pb-1 pt-3 text-[11px] font-medium text-ink/45">Account</DropdownMenu.Label>
+            <DropdownMenu.Item asChild><Link href="/settings/profile" className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[13px] outline-none data-[highlighted]:bg-ink/[0.07]"><UserRound size={17} className="text-ink/60" /> Profile</Link></DropdownMenu.Item>
+            <DropdownMenu.Item asChild><Link href="/settings/usage" className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[13px] outline-none data-[highlighted]:bg-ink/[0.07]"><ChartNoAxesCombined size={17} className="text-ink/60" /> Usage &amp; analytics</Link></DropdownMenu.Item>
+            <DropdownMenu.Item asChild><Link href="/settings/billing" className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[13px] outline-none data-[highlighted]:bg-ink/[0.07]"><CreditCard size={17} className="text-ink/60" /> Plan &amp; billing</Link></DropdownMenu.Item>
+            <DropdownMenu.Separator className="my-2 h-px bg-ink/10" />
+            <DropdownMenu.Item onSelect={handleLogout} className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[13px] outline-none data-[highlighted]:bg-ink/[0.07]"><LogOut size={17} className="text-ink/60" /> Log out</DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
     </aside>
   );
 }

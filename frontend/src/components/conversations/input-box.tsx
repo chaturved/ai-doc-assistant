@@ -1,79 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { Send } from "lucide-react";
+import { useRef } from "react";
+import { ArrowUp, Plus } from "lucide-react";
 
 interface Props {
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   onSend: () => void;
   isStreaming: boolean;
+  isUploading: boolean;
+  onAttach: (files: File[]) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-  large?: boolean;
 }
 
-export function InputBox({ value, onChange, onSend, isStreaming, textareaRef, large = false }: Props) {
-  const [focused, setFocused] = useState(false);
-  const active = focused || value.length > 0;
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
-    e.target.style.height = "auto";
-    e.target.style.height = Math.min(e.target.scrollHeight, large ? 200 : 180) + "px";
+export function InputBox({ value, onChange, onSend, isStreaming, isUploading, onAttach, textareaRef }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(event.target.value);
+    event.target.style.height = "auto";
+    event.target.style.height = Math.min(event.target.scrollHeight, 180) + "px";
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); }
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      onSend();
+    }
   };
 
   return (
-    <div
-      className={`rounded-lg border bg-card transition-all duration-150 ${active ? "border-accent/50 shadow-[0_0_0_3px_rgba(180,83,9,0.07)]" : "border-ink/15"}`}
-    >
-      {large && (
-        <textarea
-          ref={textareaRef}
-          rows={3}
-          value={value}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask anything about your documents…"
-          className="w-full bg-transparent px-5 pt-4 pb-2 text-[14px] text-ink placeholder:text-ink/35 resize-none outline-none overflow-hidden min-h-[72px]"
-        />
-      )}
-      <div className="flex items-center gap-3 px-4 py-3">
-        {!large && (
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={value}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask anything about your documents…"
-            className="flex-1 bg-transparent text-[14px] text-ink placeholder:text-ink/35 resize-none outline-none overflow-hidden min-h-[24px]"
-          />
-        )}
-        {large && <p className="flex-1 text-xs text-ink/45">Answers are grounded in your library</p>}
-        <button
-          type="button"
-          aria-label="Send question"
-          onClick={onSend}
-          disabled={isStreaming || !value.trim()}
-          className={`h-[32px] w-[32px] rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-            value.trim() && !isStreaming
-              ? "bg-primary text-bg hover:opacity-85"
-              : "bg-ink/[0.08] text-ink/25 cursor-not-allowed"
-          }`}
-        >
-          {isStreaming
-            ? <span className="h-3.5 w-3.5 rounded-full border-2 border-ink/20 border-t-white/60 animate-spin" />
-            : <Send size={13} />}
-        </button>
-      </div>
+    <div className="flex min-h-[64px] items-end gap-3 rounded-[28px] border border-ink/[0.06] bg-composer px-5 py-3 shadow-sm transition focus-within:border-accent/50">
+      <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} aria-label="Add documents"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/65 transition hover:bg-ink/[0.07] hover:text-ink disabled:opacity-40">
+        {isUploading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/20 border-t-ink" /> : <Plus size={20} />}
+      </button>
+      <input ref={fileInputRef} type="file" multiple accept=".pdf,.docx,.txt,.md" className="hidden" aria-label="Choose documents"
+        onChange={(event) => {
+          const files = Array.from(event.target.files ?? []);
+          if (files.length) onAttach(files);
+          event.target.value = "";
+        }} />
+      <textarea
+        ref={textareaRef}
+        rows={1}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        aria-label="Ask Paperwise"
+        placeholder="Ask Paperwise"
+        className="max-h-[180px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-1.5 text-[15px] leading-6 text-ink outline-none placeholder:text-ink/45"
+      />
+      <button type="button" onClick={onSend} disabled={isStreaming || !value.trim()} aria-label="Send question"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white transition hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-ink/10 disabled:text-ink/35 dark:text-[#211608]">
+        {isStreaming ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <ArrowUp size={18} strokeWidth={2.2} />}
+      </button>
     </div>
   );
 }

@@ -1,8 +1,13 @@
 import apiClient from "@/lib/api-client";
-import type { Conversation, Message } from "@/types";
+import type { Conversation, ConversationSearchResult, Message } from "@/types";
 
 export const getConversations = async (): Promise<Conversation[]> => {
   const res = await apiClient.get("/v1/conversations");
+  return res.data;
+};
+
+export const searchConversations = async (query: string): Promise<ConversationSearchResult[]> => {
+  const res = await apiClient.get("/v1/conversations/search", { params: { q: query } });
   return res.data;
 };
 

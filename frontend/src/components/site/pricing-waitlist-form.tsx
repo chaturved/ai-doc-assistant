@@ -39,13 +39,13 @@ export function PricingWaitlistForm() {
           aria-describedby={errors.email ? "waitlist-email-error" : undefined}
           disabled={joined}
           {...register("email")}
-          className="min-h-12 min-w-0 flex-1 rounded-full border border-[#38210b]/25 bg-white/75 px-4 text-sm text-[#38210b] placeholder:text-[#38210b]/55 focus:border-[#92400e] focus:outline-none focus:ring-2 focus:ring-[#92400e]/20 disabled:opacity-60"
+          className="min-h-12 min-w-0 flex-1 rounded-full border border-ink/15 bg-workspace px-4 text-sm text-ink outline-none placeholder:text-ink/45 focus:border-accent/60 disabled:opacity-60"
         />
-        <button type="submit" disabled={isSubmitting || joined} className="min-h-12 rounded-full bg-[#241a0f] px-6 text-sm font-semibold text-white transition hover:opacity-85 disabled:opacity-60">
+        <button type="submit" disabled={isSubmitting || joined} className="min-h-12 rounded-full bg-ink px-6 text-sm font-semibold text-bg transition hover:opacity-85 disabled:opacity-60">
           {joined ? "You're on the list" : isSubmitting ? "Joining…" : "Notify me"}
         </button>
       </div>
-      {errors.email && <p id="waitlist-email-error" role="alert" className="mt-2 text-xs font-medium text-[#7c2d12]">{errors.email.message}</p>}
+      {errors.email && <p id="waitlist-email-error" role="alert" className="mt-2 text-xs font-medium text-red-500">{errors.email.message}</p>}
     </form>
   );
 }

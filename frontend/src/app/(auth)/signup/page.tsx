@@ -57,12 +57,12 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
+    <div className="auth-page relative">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+      <div className="auth-panel">
         <Link href="/" className="mb-8 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <h2 className="mb-1 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Create your account</h2>
+        <h2 className="mb-1 text-[30px] font-medium leading-tight tracking-[-0.04em]">Create your account</h2>
         <p className="text-sm text-muted mb-8">Start chatting with your documents for free.</p>
 
         <a

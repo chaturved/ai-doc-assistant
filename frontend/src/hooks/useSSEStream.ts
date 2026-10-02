@@ -16,24 +16,34 @@ const INITIAL: StreamState = { content: "", meta: null, isStreaming: false, erro
 export function useSSEStream(onDone?: (content: string, meta: Meta | null) => void) {
   const [state, setState] = useState<StreamState>(INITIAL);
   const accumulated = useRef({ content: "", meta: null as Meta | null });
+  const controllerRef = useRef<AbortController | null>(null);
 
   const send = useCallback(
     async (conversationId: number, question: string) => {
+      controllerRef.current?.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
       accumulated.current = { content: "", meta: null };
       setState({ content: "", meta: null, isStreaming: true, error: null });
 
       try {
         await sseClient(`/v1/conversations/${conversationId}/ask`, {
           method: "POST",
+          signal: controller.signal,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question, filters: null, top_k: 5 }),
           onmessage(ev) {
+            if (controllerRef.current !== controller) return;
             if (ev.data === "[DONE]") {
+              controllerRef.current = null;
+              controller.abort();
               setState((prev) => ({ ...prev, isStreaming: false }));
               onDone?.(accumulated.current.content, accumulated.current.meta);
               return;
             }
             if (ev.event === "error") {
+              controllerRef.current = null;
+              controller.abort();
               setState((prev) => ({ ...prev, isStreaming: false, error: "AI response failed" }));
               return;
             }
@@ -49,17 +59,27 @@ export function useSSEStream(onDone?: (content: string, meta: Meta | null) => vo
             }
           },
           onerror() {
-            setState((prev) => ({ ...prev, isStreaming: false }));
+            if (controllerRef.current !== controller) return;
+            controllerRef.current = null;
+            controller.abort();
+            setState((prev) => ({ ...prev, isStreaming: false, error: "AI response failed" }));
           },
         });
       } catch {
-        setState((prev) => ({ ...prev, isStreaming: false }));
+        if (controllerRef.current === controller) {
+          setState((prev) => ({ ...prev, isStreaming: false, error: "AI response failed" }));
+        }
+      } finally {
+        if (controllerRef.current === controller) controllerRef.current = null;
       }
     },
     [onDone]
   );
 
   const reset = useCallback(() => {
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    accumulated.current = { content: "", meta: null };
     setState(INITIAL);
   }, []);
 

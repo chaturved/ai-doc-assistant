@@ -30,9 +30,9 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center px-6 bg-bg overflow-hidden">
+      <div className="auth-page relative">
         <AuthBackground />
-        <div className="relative z-10 card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 text-center">
+        <div className="auth-panel text-center">
           <p className="text-muted mb-4">Invalid or missing reset token.</p>
           <Link href="/forgot-password" className="link-accent">Request a new link</Link>
         </div>
@@ -51,12 +51,12 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
+    <div className="auth-page relative">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+      <div className="auth-panel">
         <Link href="/" className="mb-8 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <h2 className="mb-1 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Set a new password</h2>
+        <h2 className="mb-1 text-[30px] font-medium leading-tight tracking-[-0.04em]">Set a new password</h2>
         <p className="text-sm text-muted mb-8">Choose a strong password for your account.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
