@@ -1,100 +1,27 @@
 import Link from "next/link";
 
-const FOOTER_COLS = [
-  {
-    label: "Product",
-    links: [
-      { label: "Features",     href: "/#features" },
-      { label: "How It Works", href: "/#how-it-works" },
-      { label: "Pricing",      href: "/pricing" },
-    ],
-  },
-  {
-    label: "Company",
-    links: [
-      { label: "FAQ",     href: "/pricing#faq" },
-      { label: "Contact", href: "mailto:hello@paperwise.ai" },
-    ],
-  },
-  {
-    label: "Legal",
-    links: [
-      { label: "Privacy Policy",    href: "/privacy" },
-      { label: "Terms of Service",  href: "/terms" },
-    ],
-  },
-];
-
-const SOCIAL = [
-  { label: "X",  path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
-  { label: "in", path: "M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" },
-  { label: "gh", path: "M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" },
+const columns = [
+  { heading: "Product", links: [{ label: "Features", href: "/#technology" }, { label: "How it works", href: "/#how-it-works" }, { label: "Pricing", href: "/pricing" }] },
+  { heading: "Account", links: [{ label: "Get started", href: "/signup" }, { label: "Log in", href: "/login" }, { label: "Contact", href: "mailto:hello@paperwise.ai" }] },
+  { heading: "Legal", links: [{ label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
 ];
 
 interface SiteFooterProps {
   cta?: React.ReactNode;
-  showSocial?: boolean;
 }
 
-export function SiteFooter({ cta, showSocial = false }: SiteFooterProps) {
+export function SiteFooter({ cta }: SiteFooterProps) {
   return (
-    <footer className="relative overflow-hidden bg-bg">
-      <div className="absolute inset-0 pointer-events-none bg-footer-gradient opacity-50" />
-      <div className="absolute top-0 inset-x-0 h-[160px] pointer-events-none z-0 bg-gradient-to-b from-bg to-transparent" />
-
-      {cta && (
-        <div className="relative z-10">
-          <div className="max-w-[1100px] mx-auto px-9 py-20 text-center">{cta}</div>
-          <div className="border-t-system" />
-        </div>
-      )}
-
-      <div className={`relative z-10 max-w-[1100px] mx-auto px-9 pb-0 ${cta ? "pt-10" : "pt-20"}`}>
-        <div className="flex justify-between items-start mb-10">
-
-          {/* Brand */}
-          <div className="max-w-[240px]">
-            <span className="text-sm font-bold block mb-3">Paperwise</span>
-            <p className="text-[13px] text-muted leading-[1.7]">
-              Upload any document. Ask anything. Get cited answers instantly.
-            </p>
-            {showSocial && (
-              <div className="flex gap-2 mt-5">
-                {SOCIAL.map((s) => (
-                  <a key={s.label} href="#" className="w-[30px] h-[30px] rounded-full border-system flex items-center justify-center hover:border-white/20 transition">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
-                      <path d={s.path} />
-                    </svg>
-                  </a>
-                ))}
-              </div>
-            )}
+    <footer className="mt-[120px] bg-bg px-5 pb-8 text-ink md:px-8">
+      <div className="mx-auto max-w-[1280px]">
+        {cta && <div className="mb-16 rounded-md bg-ink/[0.04] px-8 py-[50px] text-center dark:bg-white/[0.06] md:py-[80px]">{cta}</div>}
+        <div className="grid gap-12 border-t border-ink/10 py-12 md:grid-cols-[minmax(260px,1fr)_auto]">
+          <div className="max-w-[320px]"><Link href="/" className="font-display text-2xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link><p className="mt-4 text-sm leading-7 text-ink/60">Ask better questions of your documents. Keep the source close.</p></div>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 sm:gap-16">
+            {columns.map((column) => <div key={column.heading}><h2 className="mb-4 text-[13px] font-semibold">{column.heading}</h2><ul className="space-y-2.5">{column.links.map((link) => <li key={link.label}><Link href={link.href} className="text-[13px] text-ink/60 transition hover:text-ink">{link.label}</Link></li>)}</ul></div>)}
           </div>
-
-          {/* Columns */}
-          <div className="flex gap-16">
-            {FOOTER_COLS.map((col) => (
-              <div key={col.label}>
-                <p className="text-[11px] font-bold text-faint uppercase tracking-[0.09em] mb-4">{col.label}</p>
-                <ul className="space-y-[10px]">
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      <Link href={l.href} className="text-[13px] text-muted hover:text-white transition">
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
         </div>
-      </div>
-
-      <div className="relative z-10 max-w-[1100px] mx-auto px-9 py-6 flex items-center justify-between border-t-system">
-        <span className="text-xs text-faint">© 2026 Paperwise. All rights reserved.</span>
-        <span className="text-xs text-faint">Made with care for document-heavy work.</span>
+        <div className="border-t border-ink/10 pt-6 text-xs text-ink/45">© {new Date().getFullYear()} Paperwise. All rights reserved.</div>
       </div>
     </footer>
   );

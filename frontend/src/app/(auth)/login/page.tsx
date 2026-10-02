@@ -72,17 +72,17 @@ function LoginContent() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
-        <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
+      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+        <Link href="/" className="mb-8 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <h2 className="text-2xl font-bold mb-1">Sign in</h2>
+        <h2 className="mb-1 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Sign in</h2>
         <p className="text-sm text-muted mb-8">Welcome back to Paperwise.</p>
 
         <a
           href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/auth/google`}
-          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
+          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-ink/[0.04] text-sm text-ink/80 hover:bg-ink/[0.07] transition-all mb-5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -94,9 +94,9 @@ function LoginContent() {
         </a>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
           <span className="text-xs text-faint">or</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -142,15 +142,15 @@ function LoginContent() {
             className="btn-primary w-full !rounded-btn-md disabled:opacity-50"
           >
             {isSubmitting
-              ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ? <span className="h-4 w-4 rounded-full border-2 border-ink/30 border-t-white animate-spin" />
               : <>Sign in <ArrowRight className="h-4 w-4" /></>}
           </button>
         </form>
 
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
           <span className="text-xs text-faint">magic link</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
         </div>
 
         <div className="flex gap-2">
@@ -164,7 +164,7 @@ function LoginContent() {
           <button
             onClick={handleMagicLink}
             disabled={magicLoading}
-            className="h-10 px-4 rounded-btn-md bg-white/[0.07] border-system text-sm text-white/70 hover:bg-white/[0.1] disabled:opacity-50 transition whitespace-nowrap"
+            className="h-10 px-4 rounded-btn-md bg-ink/[0.07] border-system text-sm text-ink/70 hover:bg-ink/[0.1] disabled:opacity-50 transition whitespace-nowrap"
           >
             {magicLoading ? "Sending…" : "Send link"}
           </button>
@@ -172,7 +172,7 @@ function LoginContent() {
 
         <p className="mt-8 text-center text-sm text-muted">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-white font-medium hover:opacity-80 transition">Sign up</Link>
+          <Link href="/signup" className="text-ink font-medium hover:opacity-80 transition">Sign up</Link>
         </p>
       </div>
     </div>

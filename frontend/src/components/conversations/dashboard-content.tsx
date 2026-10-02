@@ -9,16 +9,8 @@ import { createConversation, getMessages } from "@/lib/api/conversations";
 import type { Message } from "@/types";
 import { AIMessage } from "./ai-message";
 import { InputBox } from "./input-box";
+import { DashboardWelcome } from "./dashboard-welcome";
 import { UserMessage } from "./user-message";
-
-const SUGGESTIONS = [
-  { icon: "📄", label: "Summarize my Q3 report" },
-  { icon: "🔍", label: "Find key risks" },
-  { icon: "📋", label: "List action items" },
-  { icon: "💡", label: "What are the conclusions?" },
-  { icon: "⚖️", label: "Compare two documents" },
-  { icon: "🔗", label: "Extract all citations" },
-];
 
 function DashboardInner() {
   const params = useSearchParams();
@@ -122,14 +114,13 @@ function DashboardInner() {
 
   return (
     <main
-      className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative"
-      style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}
+      className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-ink/10 bg-bg"
     >
-      <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" style={{ filter: "blur(72px)" }} />
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-ink/10 px-5 text-xs font-medium text-ink/55 sm:px-8"><span>Workspace <span className="mx-2 text-ink/25">/</span> Chat</span><span className="flex items-center gap-2 text-ink/45"><span className="h-1.5 w-1.5 rounded-full bg-accent" /> Paperwise</span></div>
 
       {inChat ? (
         <>
-          <div className="relative z-10 flex-1 overflow-y-auto thin-scroll px-10 py-8 space-y-8 max-w-[740px] w-full mx-auto">
+          <div className="thin-scroll relative z-10 mx-auto w-full max-w-[740px] flex-1 space-y-8 overflow-y-auto px-4 py-6 sm:px-10 sm:py-8">
             {messages.map((msg) =>
               msg.role === "user"
                 ? <UserMessage key={msg.id} content={msg.content} timestamp={msg.created_at} />
@@ -141,7 +132,7 @@ function DashboardInner() {
             <div ref={chatEndRef} />
           </div>
 
-          <div className="relative z-10 flex-shrink-0 px-10 pb-5 pt-3 max-w-[740px] w-full mx-auto border-t-system">
+          <div className="border-t-system relative z-10 mx-auto w-full max-w-[740px] flex-shrink-0 px-4 pb-5 pt-3 sm:px-10">
             <InputBox
               value={inputValue}
               onChange={setInputValue}
@@ -152,42 +143,13 @@ function DashboardInner() {
           </div>
         </>
       ) : (
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-10">
-          <div className="w-full max-w-[600px] mx-auto">
-            <div className="mb-8 animate-fu">
-              <h1 className="text-[2.4rem] font-black text-white leading-[1.07] tracking-[-0.03em] mb-2.5">
-                What&apos;s on your mind today?
-              </h1>
-              <p className="text-[14px] text-white/75">
-                Ask anything — Paperwise searches your documents to find the answer.
-              </p>
-            </div>
-
-            <div className="animate-fu-1">
-              <InputBox
-                value={inputValue}
-                onChange={setInputValue}
-                onSend={() => handleSend()}
-                isStreaming={isStreaming}
-                textareaRef={textareaRef}
-                large
-              />
-            </div>
-
-            <div className="animate-fu-2 flex flex-wrap gap-2 mt-5">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s.label}
-                  onClick={() => { setInputValue(s.label); handleSend(s.label); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] text-[12px] text-white/85 border border-white/[0.15] hover:text-white hover:border-white/[0.28] hover:bg-white/[0.06] transition-all whitespace-nowrap"
-                >
-                  <span className="text-[11px]">{s.icon}</span>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <DashboardWelcome
+          value={inputValue}
+          onChange={setInputValue}
+          onSend={handleSend}
+          isStreaming={isStreaming}
+          textareaRef={textareaRef}
+        />
       )}
     </main>
   );

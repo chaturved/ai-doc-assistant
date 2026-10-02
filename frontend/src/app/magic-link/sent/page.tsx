@@ -29,20 +29,20 @@ function MagicLinkSentContent() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10 text-center">
-        <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
+      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 text-center shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+        <Link href="/" className="mb-10 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5 bg-violet-800/[0.12]">
-          <Mail className="h-6 w-6 text-violet-400" />
+        <div className="w-14 h-14 rounded-full border-system flex items-center justify-center mx-auto mb-5 bg-accent/10">
+          <Mail className="h-6 w-6 text-accent" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">Check your email</h2>
+        <h2 className="mb-2 font-display text-[30px] font-medium tracking-[-0.03em]">Check your email</h2>
 
         {email && (
           <p className="text-sm text-muted mb-1">
-            We sent a sign-in link to <span className="text-white font-medium">{email}</span>
+            We sent a sign-in link to <span className="text-ink font-medium">{email}</span>
           </p>
         )}
 
@@ -53,7 +53,7 @@ function MagicLinkSentContent() {
         <button
           onClick={handleResend}
           disabled={resending || !email}
-          className="text-sm text-muted hover:text-white disabled:opacity-50 transition mb-6 block mx-auto"
+          className="text-sm text-muted hover:text-ink disabled:opacity-50 transition mb-6 block mx-auto"
         >
           {resending ? "Sending…" : "Didn't get it? Resend"}
         </button>

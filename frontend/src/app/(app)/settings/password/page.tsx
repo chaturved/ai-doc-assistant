@@ -22,7 +22,7 @@ export default function PasswordPage() {
   });
   const pw = watch("new_password", "");
   const score = [pw.length >= 8, /[A-Z]/.test(pw), /[0-9]/.test(pw), /[^a-zA-Z0-9]/.test(pw)].filter(Boolean).length;
-  const strengthColors = ["", "bg-red-500", "bg-amber-500", "bg-yellow-400", "bg-emerald-500"];
+  const strengthColors = ["", "bg-red-500", "bg-accent", "bg-yellow-400", "bg-emerald-500"];
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -40,12 +40,12 @@ export default function PasswordPage() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-bold text-white mb-8">Password</h1>
+      <h1 className="mb-8 font-display text-[32px] font-medium tracking-[-0.03em] text-ink">Password</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {fields.map((f) => (
           <div key={f.id}>
-            <label className="block text-[12px] font-medium text-white/40 mb-2">{f.label}</label>
+            <label className="block text-[12px] font-medium text-ink/40 mb-2">{f.label}</label>
             <div className="relative">
               <input
                 {...register(f.id)}
@@ -57,7 +57,7 @@ export default function PasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60"
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -67,7 +67,7 @@ export default function PasswordPage() {
             {f.id === "new_password" && pw && (
               <div className="mt-2 flex gap-1">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= score ? strengthColors[score] : "bg-white/[0.08]"}`} />
+                  <div key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= score ? strengthColors[score] : "bg-ink/[0.08]"}`} />
                 ))}
               </div>
             )}
@@ -77,7 +77,7 @@ export default function PasswordPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-btn-md text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
+          className="px-6 py-3 rounded-btn-md text-[14px] font-bold bg-ink text-bg disabled:opacity-50 transition hover:opacity-90"
         >
           {isSubmitting ? "Updating…" : "Update password"}
         </button>

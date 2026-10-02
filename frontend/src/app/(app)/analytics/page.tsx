@@ -19,7 +19,7 @@ function StatCard({ icon, label, value, sub }: {
       <div className="flex items-center gap-1.5 text-[11px] font-bold text-accent uppercase tracking-[0.08em]">
         {icon} {label}
       </div>
-      <div className="text-[32px] font-black leading-none tracking-tight text-white">{value}</div>
+      <div className="text-[32px] font-display font-medium leading-none tracking-tight text-ink">{value}</div>
       {sub && <p className="text-xs text-muted">{sub}</p>}
     </div>
   );
@@ -30,7 +30,7 @@ const ChartTooltip = ({ active, payload, label }: { active?: boolean; payload?: 
   return (
     <div className="card px-3 py-2 text-xs">
       <p className="text-muted mb-0.5">{label}</p>
-      <p className="font-bold text-white">
+      <p className="font-bold text-ink">
         {payload[0].value} {payload[0].name === "count" ? "queries" : "citations"}
       </p>
     </div>
@@ -55,14 +55,11 @@ export default function AnalyticsPage() {
   const hasQuality = (overview?.thumbs_up ?? 0) + (overview?.thumbs_down ?? 0) > 0;
 
   return (
-      <main className="flex-1 min-w-0 rounded-[18px] flex flex-col overflow-hidden relative overflow-y-auto thin-scroll"
-        style={{ background: "#080810", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" style={{ filter: "blur(72px)" }} />
-        <div className="absolute inset-0 pointer-events-none bg-amber-glow z-0" />
-        <div className="max-w-4xl mx-auto px-8 py-10 relative z-10 w-full">
+      <main className="thin-scroll relative flex min-w-0 flex-1 flex-col overflow-y-auto rounded-lg border border-ink/10 bg-bg">
+        <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-7 sm:px-8 sm:py-10">
 
         <p className="section-label mb-2">Overview</p>
-        <h1 className="text-2xl font-black tracking-tight text-white mb-8">Analytics</h1>
+        <h1 className="mb-8 font-display text-[32px] font-medium tracking-[-0.03em] text-ink">Analytics</h1>
 
         {/* Stat cards */}
         {loading ? (
@@ -100,21 +97,21 @@ export default function AnalyticsPage() {
               ))}
             </div>
           ) : volume.length === 0 ? (
-            <div className="card p-8 flex items-center justify-center text-sm text-white/40 h-[200px]">
+            <div className="card p-8 flex items-center justify-center text-sm text-ink/40 h-[200px]">
               No queries yet
             </div>
           ) : (
             <div className="card p-5">
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={volume} barSize={10}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.22)" }}
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--color-ink)", opacity: 0.45 }}
                     tickLine={false} axisLine={false}
                     tickFormatter={(d) => new Date(d).toLocaleDateString([], { month: "short", day: "numeric" })}
                     interval="preserveStartEnd"
                   />
-                  <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.22)" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)", radius: 4 }} />
-                  <Bar dataKey="count" name="count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <YAxis tick={{ fontSize: 10, fill: "var(--color-ink)", opacity: 0.45 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-accent)", fillOpacity: 0.08, radius: 4 }} />
+                  <Bar dataKey="count" name="count" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -135,20 +132,20 @@ export default function AnalyticsPage() {
                 ))}
               </div>
             ) : citations.length === 0 ? (
-              <div className="card p-8 flex items-center justify-center text-sm text-white/40 h-[180px]">
+              <div className="card p-8 flex items-center justify-center text-sm text-ink/40 h-[180px]">
                 No citations yet
               </div>
             ) : (
               <div className="card p-5">
                 <ResponsiveContainer width="100%" height={Math.max(180, citations.length * 36)}>
                   <BarChart data={citations} layout="vertical" barSize={8}>
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.22)" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "var(--color-ink)", opacity: 0.45 }} tickLine={false} axisLine={false} allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={110}
-                      tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }} tickLine={false} axisLine={false}
+                      tick={{ fontSize: 10, fill: "var(--color-ink)", opacity: 0.65 }} tickLine={false} axisLine={false}
                       tickFormatter={(n: string) => n.length > 16 ? n.slice(0, 16) + "…" : n}
                     />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                    <Bar dataKey="citations" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-accent)", fillOpacity: 0.08 }} />
+                    <Bar dataKey="citations" fill="var(--color-accent)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -166,8 +163,8 @@ export default function AnalyticsPage() {
               </div>
             ) : !hasQuality ? (
               <div className="card p-8 flex flex-col items-center justify-center h-[240px] gap-2">
-                <p className="text-sm text-white/75">No feedback yet</p>
-                <p className="text-xs text-white/40">Rate answers in chat to see quality here</p>
+                <p className="text-sm text-ink/75">No feedback yet</p>
+                <p className="text-xs text-ink/40">Rate answers in chat to see quality here</p>
               </div>
             ) : (
               <div className="card p-5 flex flex-col items-center">
@@ -178,7 +175,7 @@ export default function AnalyticsPage() {
                     <Cell fill="#f87171" />
                   </Pie>
                 </PieChart>
-                <div className="flex items-center gap-4 mt-2 text-xs text-white/75">
+                <div className="flex items-center gap-4 mt-2 text-xs text-ink/75">
                   <span className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block" />
                     {overview?.thumbs_up} thumbs up
@@ -191,7 +188,7 @@ export default function AnalyticsPage() {
                 {overview?.quality_pct != null && (
                   <p className="text-2xl font-black mt-3 tracking-tight">
                     {overview.quality_pct}%
-                    <span className="text-sm font-normal text-white/40 ml-1">positive</span>
+                    <span className="text-sm font-normal text-ink/40 ml-1">positive</span>
                   </p>
                 )}
               </div>

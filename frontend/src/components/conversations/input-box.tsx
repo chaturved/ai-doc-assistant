@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Paperclip, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface Props {
   value: string;
@@ -28,8 +28,7 @@ export function InputBox({ value, onChange, onSend, isStreaming, textareaRef, la
 
   return (
     <div
-      className="rounded-[16px] transition-all duration-150 bg-white/[0.04]"
-      style={{ border: `1px solid ${active ? "rgba(245,158,11,0.35)" : "rgba(255,255,255,0.08)"}` }}
+      className={`rounded-lg border bg-card transition-all duration-150 ${active ? "border-accent/50 shadow-[0_0_0_3px_rgba(180,83,9,0.07)]" : "border-ink/15"}`}
     >
       {large && (
         <textarea
@@ -41,13 +40,10 @@ export function InputBox({ value, onChange, onSend, isStreaming, textareaRef, la
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="Ask anything about your documents…"
-          className="w-full bg-transparent px-5 pt-4 pb-2 text-[14px] text-white placeholder:text-white/35 resize-none outline-none overflow-hidden min-h-[72px]"
+          className="w-full bg-transparent px-5 pt-4 pb-2 text-[14px] text-ink placeholder:text-ink/35 resize-none outline-none overflow-hidden min-h-[72px]"
         />
       )}
       <div className="flex items-center gap-3 px-4 py-3">
-        <button className="text-white/30 hover:text-white/55 transition-colors flex-shrink-0">
-          <Paperclip size={17} />
-        </button>
         {!large && (
           <textarea
             ref={textareaRef}
@@ -58,21 +54,23 @@ export function InputBox({ value, onChange, onSend, isStreaming, textareaRef, la
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask anything about your documents…"
-            className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 resize-none outline-none overflow-hidden min-h-[24px]"
+            className="flex-1 bg-transparent text-[14px] text-ink placeholder:text-ink/35 resize-none outline-none overflow-hidden min-h-[24px]"
           />
         )}
-        {large && <div className="flex-1" />}
+        {large && <p className="flex-1 text-xs text-ink/45">Answers are grounded in your library</p>}
         <button
+          type="button"
+          aria-label="Send question"
           onClick={onSend}
           disabled={isStreaming || !value.trim()}
           className={`h-[32px] w-[32px] rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
             value.trim() && !isStreaming
-              ? "bg-primary text-black hover:opacity-85"
-              : "bg-white/[0.08] text-white/25 cursor-not-allowed"
+              ? "bg-primary text-bg hover:opacity-85"
+              : "bg-ink/[0.08] text-ink/25 cursor-not-allowed"
           }`}
         >
           {isStreaming
-            ? <span className="h-3.5 w-3.5 rounded-full border-2 border-white/20 border-t-white/60 animate-spin" />
+            ? <span className="h-3.5 w-3.5 rounded-full border-2 border-ink/20 border-t-white/60 animate-spin" />
             : <Send size={13} />}
         </button>
       </div>

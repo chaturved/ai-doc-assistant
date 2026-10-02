@@ -51,12 +51,12 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
-        <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
+      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+        <Link href="/" className="mb-8 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <h2 className="text-2xl font-bold mb-1">Set a new password</h2>
+        <h2 className="mb-1 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Set a new password</h2>
         <p className="text-sm text-muted mb-8">Choose a strong password for your account.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -85,7 +85,7 @@ function ResetPasswordContent() {
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-btn-md disabled:opacity-50">
             {isSubmitting
-              ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ? <span className="h-4 w-4 rounded-full border-2 border-ink/30 border-t-white animate-spin" />
               : <>Update password <ArrowRight className="h-4 w-4" /></>}
           </button>
         </form>

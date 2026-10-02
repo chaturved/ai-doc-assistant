@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { completeOnboarding } from "@/lib/api/users";
 import { getLibrary, uploadFiles } from "@/lib/api/documents";
 import type { LibraryDoc } from "@/types";
+import { AuthBackground } from "@/components/auth/auth-background";
 
 
 const SUGGESTIONS = [
@@ -75,15 +76,16 @@ export default function OnboardingPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-bg">
-      <div className="w-full max-w-[500px]">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
+      <AuthBackground />
+      <div className="relative z-10 w-full max-w-[520px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
         {/* Logo */}
-        <span className="text-[15px] font-bold mb-10 block">Paperwise</span>
+        <span className="mb-10 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></span>
 
         {/* Progress */}
         <div className="flex items-center gap-2 mb-3">
           {steps.map((s) => (
-            <div key={s.n} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/[0.06]">
+            <div key={s.n} className="flex-1 h-[3px] rounded-full overflow-hidden bg-ink/[0.06]">
               <div className="h-full rounded-full transition-all duration-500 bg-grad"
                    style={{ width: step > s.n ? "100%" : step === s.n ? "60%" : "0%" }} />
             </div>
@@ -94,7 +96,7 @@ export default function OnboardingPage() {
         {/* Step 1 — Welcome */}
         {step === 1 && (
           <div className="animate-fu">
-            <h2 className="text-2xl font-bold mb-2">
+            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">
               Welcome to Paperwise{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}
             </h2>
             <p className="text-sm text-muted mb-8">
@@ -103,12 +105,12 @@ export default function OnboardingPage() {
             <div className="card p-5 mb-8 flex items-center gap-4">
               {["📄 Upload", "💬 Ask", "✅ Get answers"].map((item, i) => (
                 <div key={item} className="flex items-center gap-3 flex-1">
-                  <span className="text-sm text-white/70">{item}</span>
+                  <span className="text-sm text-ink/70">{item}</span>
                   {i < 2 && <ArrowRight className="h-3.5 w-3.5 text-faint flex-shrink-0" />}
                 </div>
               ))}
             </div>
-            <button onClick={() => setStep(2)} className="btn-primary w-full !rounded-[10px]">
+            <button onClick={() => setStep(2)} className="btn-primary w-full !rounded-full">
               Let&apos;s go <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -117,14 +119,14 @@ export default function OnboardingPage() {
         {/* Step 2 — Upload */}
         {step === 2 && (
           <div className="animate-fu">
-            <h2 className="text-2xl font-bold mb-2">Upload your first document</h2>
+            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Upload your first document</h2>
             <p className="text-sm text-muted mb-6">Drop a PDF, TXT, or MD file to get started.</p>
 
             {uploadedDoc ? (
-              <div className="flex items-center gap-3 rounded-[10px] p-4 mb-6 bg-emerald-400/[0.08] border border-emerald-400/[0.18]">
+              <div className="flex items-center gap-3 rounded-md p-4 mb-6 bg-emerald-400/[0.08] border border-emerald-400/[0.18]">
                 <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-400" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{uploadedDoc.name}</p>
+                  <p className="text-sm font-medium text-ink truncate">{uploadedDoc.name}</p>
                   <p className="text-xs text-faint">{(uploadedDoc.size / 1024).toFixed(0)} KB</p>
                 </div>
               </div>
@@ -132,10 +134,10 @@ export default function OnboardingPage() {
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="w-full rounded-[10px] p-10 flex flex-col items-center gap-3 transition-all mb-6 disabled:opacity-50 border-2 border-dashed border-white/[0.08] bg-white/[0.02]"
+                className="w-full rounded-md p-10 flex flex-col items-center gap-3 transition-all mb-6 disabled:opacity-50 border-2 border-dashed border-ink/[0.08] bg-ink/[0.02]"
               >
                 {uploading ? (
-                  <span className="h-6 w-6 rounded-full border-2 border-white/10 border-t-white/50 animate-spin" />
+                  <span className="h-6 w-6 rounded-full border-2 border-ink/10 border-t-white/50 animate-spin" />
                 ) : (
                   <Upload className="h-8 w-8 text-faint" />
                 )}
@@ -148,11 +150,11 @@ export default function OnboardingPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setStep(1)}
-                className="h-11 px-5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:text-white transition flex items-center gap-2">
+                className="h-11 px-5 rounded-md border-system bg-ink/[0.04] text-sm text-muted hover:text-ink transition flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
               <button onClick={() => setStep(3)} disabled={!uploadedDoc}
-                className="btn-primary flex-1 !rounded-[10px] disabled:opacity-40">
+                className="btn-primary flex-1 !rounded-full disabled:opacity-40">
                 Continue <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -162,7 +164,7 @@ export default function OnboardingPage() {
         {/* Step 3 — Ask */}
         {step === 3 && (
           <div className="animate-fu">
-            <h2 className="text-2xl font-bold mb-2">Now ask something about it!</h2>
+            <h2 className="mb-2 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Now ask something about it!</h2>
             <p className="text-sm text-muted mb-6">Try one of these or write your own.</p>
 
             <div className="flex flex-col gap-2 mb-5">
@@ -170,10 +172,10 @@ export default function OnboardingPage() {
                 <button
                   key={s}
                   onClick={() => setQuestion(s)}
-                  className={`text-left px-4 py-2.5 rounded-[10px] border text-sm transition ${
+                  className={`text-left px-4 py-2.5 rounded-md border text-sm transition ${
                     question === s
-                      ? "border-primary/50 bg-white/[0.08] text-white"
-                      : "border-system bg-white/[0.04] text-muted hover:border-primary/30 hover:text-white hover:bg-white/[0.07]"
+                      ? "border-accent/50 bg-ink/[0.08] text-ink"
+                      : "border-system bg-ink/[0.04] text-muted hover:border-accent/30 hover:text-ink hover:bg-ink/[0.07]"
                   }`}
                 >
                   {s}
@@ -187,17 +189,17 @@ export default function OnboardingPage() {
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && question.trim()) goAsk(question); }}
                 placeholder="Or type your own question…"
-                className="w-full h-11 rounded-[10px] bg-white/[0.05] border border-white/[0.08] px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition"
+                className="w-full h-11 rounded-md bg-ink/[0.05] border border-ink/[0.08] px-4 text-sm text-ink placeholder:text-ink/20 outline-none focus:border-accent/50 transition"
               />
             </div>
 
             <div className="flex gap-3">
               <button onClick={() => setStep(2)}
-                className="h-11 px-5 rounded-[10px] border-system bg-white/[0.04] text-sm text-muted hover:text-white transition flex items-center gap-2">
+                className="h-11 px-5 rounded-md border-system bg-ink/[0.04] text-sm text-muted hover:text-ink transition flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
               <button onClick={() => (question.trim() ? goAsk(question) : handleComplete())}
-                className="btn-primary flex-1 !rounded-[10px]">
+                className="btn-primary flex-1 !rounded-full">
                 Start Conversation <ArrowRight className="h-4 w-4" />
               </button>
             </div>

@@ -22,13 +22,13 @@ type FormData = z.infer<typeof schema>;
 function PasswordStrength({ pw }: { pw: string }) {
   const score = [pw.length >= 8, /[A-Z]/.test(pw), /[0-9]/.test(pw), /[^a-zA-Z0-9]/.test(pw)].filter(Boolean).length;
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
-  const colors = ["", "bg-red-500", "bg-amber-500", "bg-yellow-400", "bg-emerald-500"];
+  const colors = ["", "bg-red-500", "bg-accent", "bg-yellow-400", "bg-emerald-500"];
   if (!pw) return null;
   return (
     <div className="mt-2">
       <div className="flex gap-1 mb-1">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= score ? colors[score] : "bg-white/[0.08]"}`} />
+          <div key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= score ? colors[score] : "bg-ink/[0.08]"}`} />
         ))}
       </div>
       <p className="text-[10px] text-faint">{labels[score]}</p>
@@ -57,17 +57,17 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-5 py-12 xl:pl-[45%]">
       <AuthBackground />
-      <div className="relative z-10 w-full max-w-[420px] card-lg shadow-[0_8px_40px_rgba(0,0,0,0.45)] p-8 sm:p-10">
-        <span className="text-[15px] font-bold mb-8 block">Paperwise</span>
+      <div className="relative z-10 w-full max-w-[440px] rounded-lg border border-ink/10 bg-bg p-7 shadow-[0_24px_70px_-55px_rgba(71,42,13,0.25)] sm:p-10">
+        <Link href="/" className="mb-8 block font-display text-xl font-medium tracking-[-0.05em]">paperwise<span className="text-accent">.</span></Link>
 
-        <h2 className="text-2xl font-bold mb-1">Create your account</h2>
+        <h2 className="mb-1 font-display text-[30px] font-medium leading-tight tracking-[-0.03em]">Create your account</h2>
         <p className="text-sm text-muted mb-8">Start chatting with your documents for free.</p>
 
         <a
           href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/auth/google`}
-          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-white/[0.04] text-sm text-white/80 hover:bg-white/[0.07] transition-all mb-5"
+          className="flex items-center justify-center gap-3 w-full h-11 rounded-btn-md border-system bg-ink/[0.04] text-sm text-ink/80 hover:bg-ink/[0.07] transition-all mb-5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -79,9 +79,9 @@ export default function SignupPage() {
         </a>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
           <span className="text-xs text-faint">or</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-ink/[0.06]" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -121,14 +121,14 @@ export default function SignupPage() {
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full !rounded-btn-md disabled:opacity-50">
             {isSubmitting
-              ? <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ? <span className="h-4 w-4 rounded-full border-2 border-ink/30 border-t-white animate-spin" />
               : <>Create account <ArrowRight className="h-4 w-4" /></>}
           </button>
         </form>
 
         <p className="mt-8 text-center text-sm text-muted">
           Already have an account?{" "}
-          <Link href="/login" className="text-white font-medium hover:opacity-80 transition">Sign in</Link>
+          <Link href="/login" className="text-ink font-medium hover:opacity-80 transition">Sign in</Link>
         </p>
       </div>
     </div>

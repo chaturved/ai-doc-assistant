@@ -3,8 +3,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 
 function Section({ title, children, first }: { title: string; children: React.ReactNode; first?: boolean }) {
   return (
-    <div className={`py-9 ${!first ? "border-t-system" : ""}`}>
-      <h2 className="flex items-center gap-3 text-[15px] font-semibold text-white mb-4">
+    <div className={`py-9 ${!first ? "border-t border-ink/10" : ""}`}>
+      <h2 className="mb-4 flex items-center gap-3 font-display text-[21px] font-medium tracking-[-0.02em] text-ink">
         <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
         {title}
       </h2>
@@ -14,15 +14,15 @@ function Section({ title, children, first }: { title: string; children: React.Re
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted leading-relaxed">{children}</p>;
+  return <p className="text-[15px] leading-8 text-ink/65">{children}</p>;
 }
 
 function Bullets({ items }: { items: string[] }) {
   return (
     <ul className="space-y-2">
       {items.map((item) => (
-        <li key={item} className="text-sm text-muted leading-relaxed flex gap-2">
-          <span className="text-faint flex-shrink-0 mt-[3px]">•</span>
+        <li key={item} className="flex gap-2 text-[15px] leading-8 text-ink/65">
+          <span className="mt-[3px] flex-shrink-0 text-accent">•</span>
           <span>{item}</span>
         </li>
       ))}
@@ -32,24 +32,21 @@ function Bullets({ items }: { items: string[] }) {
 
 export default function TermsPage() {
   return (
-    <div className="bg-bg text-white overflow-x-hidden min-h-screen">
+    <div className="min-h-screen overflow-x-hidden bg-bg text-ink">
       <SiteNav />
 
-      <section className="relative section-padding pt-[120px] pb-16 text-center border-b-system">
-        <div className="absolute inset-0 pointer-events-none bg-hero-gradient opacity-50" />
-        <div className="absolute inset-0 pointer-events-none bg-vignette" />
-        <div className="absolute bottom-0 inset-x-0 h-[80px] pointer-events-none bg-hero-fade" />
-        <div className="relative max-w-[800px] mx-auto">
-          <p className="section-label mb-[14px]">Legal</p>
-          <h1 className="heading-section mb-4">Terms of Service</h1>
-          <p className="text-[15px] text-muted max-w-[480px] mx-auto">
+      <section className="px-5 pb-14 pt-32 text-center md:px-8 md:pt-36">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-ink/20 px-3 py-1 text-xs font-medium text-ink/60"><span className="h-1.5 w-1.5 rounded-full bg-accent" /> Legal</div>
+          <h1 className="mx-auto max-w-4xl font-display text-[37px] font-medium leading-none tracking-[-0.03em] md:text-[56px] lg:text-[64px]">Terms of Service</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-ink/60 md:text-[20px] md:leading-8">
             These terms govern your access to and use of Paperwise. Please read them carefully.
           </p>
-          <p className="text-[13px] text-faint mt-4">Last updated: May 2026</p>
+          <p className="mt-5 text-[13px] text-ink/45">Last updated: May 2026</p>
         </div>
       </section>
 
-      <div className="max-w-[760px] mx-auto px-6 py-4 pb-16">
+      <div className="mx-auto max-w-[760px] px-5 pb-16 md:px-6">
 
         <Section title="Acceptance of terms" first>
           <P>By creating a Paperwise account or using the Paperwise service, you agree to these Terms of Service. If you do not agree, do not use the service.</P>
@@ -72,7 +69,7 @@ export default function TermsPage() {
           <P>The Free plan includes:</P>
           <Bullets items={[
             "5 documents stored simultaneously",
-            "20 AI queries per day (resets at midnight UTC)",
+            "20 AI queries in a rolling 24-hour window",
             "10 MB maximum file size",
             "PDF, TXT, and Markdown file formats",
             "7-day conversation history retention",

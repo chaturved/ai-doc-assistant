@@ -44,11 +44,11 @@ export function ProfileForm() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-bold text-white mb-8">Profile</h1>
+      <h1 className="mb-8 font-display text-[32px] font-medium tracking-[-0.03em] text-ink">Profile</h1>
 
       {/* Avatar */}
       <div className="mb-8">
-        <p className="text-[12px] font-medium text-white/40 mb-3">Avatar</p>
+        <p className="text-[12px] font-medium text-ink/40 mb-3">Avatar</p>
         <div className="logo-grad shadow-amber h-16 w-16 rounded-full flex items-center justify-center font-bold text-xl">
           {user?.avatar_initials || "??"}
         </div>
@@ -57,7 +57,7 @@ export function ProfileForm() {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-[12px] font-medium text-white/40 mb-2">Full name</label>
+          <label className="block text-[12px] font-medium text-ink/40 mb-2">Full name</label>
           <input
             {...register("full_name")}
             className="input-glass w-full px-4 py-3 text-[14px]"
@@ -66,12 +66,12 @@ export function ProfileForm() {
         </div>
 
         <div>
-          <label className="block text-[12px] font-medium text-white/40 mb-2">Email</label>
+          <label className="block text-[12px] font-medium text-ink/40 mb-2">Email</label>
           <div className="flex items-center gap-3">
             <input
               value={user?.email || ""}
               readOnly
-              className="flex-1 px-4 py-3 rounded-btn-md text-[14px] text-white/[0.28] cursor-not-allowed outline-none bg-white/[0.03] border border-white/[0.06]"
+              className="flex-1 px-4 py-3 rounded-btn-md text-[14px] text-ink/[0.28] cursor-not-allowed outline-none bg-ink/[0.03] border border-ink/[0.06]"
             />
             <span className="badge-verified">Verified</span>
           </div>
@@ -80,7 +80,7 @@ export function ProfileForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-btn-md text-[14px] font-bold bg-white text-black disabled:opacity-50 transition hover:opacity-90"
+          className="rounded-full bg-ink px-6 py-3 text-[14px] font-medium text-bg transition hover:opacity-90 disabled:opacity-50"
         >
           {isSubmitting ? "Saving…" : "Save changes"}
         </button>
@@ -89,7 +89,7 @@ export function ProfileForm() {
       {/* Danger Zone */}
       <div className="mt-10 pt-8 border-t-system">
         <h2 className="text-[16px] font-bold text-red-400 mb-2">Danger Zone</h2>
-        <p className="text-[13px] text-white/30 leading-relaxed mb-5">
+        <p className="text-[13px] text-ink/30 leading-relaxed mb-5">
           Deleting your account permanently removes all your documents, conversations, and data.
         </p>
 
@@ -99,8 +99,8 @@ export function ProfileForm() {
           </button>
         ) : (
           <div className="space-y-3 max-w-sm">
-            <p className="text-xs text-white/40">
-              Type <span className="font-mono text-white">DELETE</span> to confirm.
+            <p className="text-xs text-ink/40">
+              Type <span className="font-mono text-ink">DELETE</span> to confirm.
             </p>
             <input
               value={deleteInput}
@@ -111,14 +111,14 @@ export function ProfileForm() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDelete(false)}
-                className="h-9 px-4 rounded-lg text-sm text-white/50 hover:text-white transition bg-white/[0.04] border-system"
+                className="h-9 px-4 rounded-lg text-sm text-ink/50 hover:text-ink transition bg-ink/[0.04] border-system"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteInput !== "DELETE" || deleting}
-                className="h-9 px-4 rounded-lg text-sm text-white bg-red-600 disabled:opacity-40 transition"
+                className="h-9 px-4 rounded-lg text-sm text-ink bg-red-600 disabled:opacity-40 transition"
               >
                 {deleting ? "Deleting…" : "Confirm delete"}
               </button>
