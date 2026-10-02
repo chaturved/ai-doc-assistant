@@ -38,6 +38,7 @@ backend/.env
 # -------------------------
 .playwright-mcp/
 *.png
+!docs/images/app-preview.png
 .DS_Store
 *.swp
 *.swo
