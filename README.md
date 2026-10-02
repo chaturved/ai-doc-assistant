@@ -196,4 +196,4 @@ pytest
 
 ## License
 
-Private/unlicensed — all rights reserved.
+Copyright 2026 Chaturved Lakkaraju. All rights reserved. This project is proprietary; see [LICENSE](LICENSE) for terms.
