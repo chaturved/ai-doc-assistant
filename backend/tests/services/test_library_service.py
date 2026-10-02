@@ -9,6 +9,7 @@ from src.core.exceptions import NotFoundError, UploadFailedError
 from src.repositories.library_repository import LibraryRepositoryProtocol
 from src.services.library_service import LibraryService
 from src.services.tier_service import TierServiceProtocol
+from src.utils.storage_utils import S3Storage
 
 
 def _make_lib(id=1, name="doc.pdf", type="pdf", size=1024, path: str | None = "/tmp/doc.pdf"):
@@ -36,7 +37,8 @@ class TestLibraryService:
         self.mock_repo = MagicMock(spec_set=LibraryRepositoryProtocol)
         self.mock_repo.get_by_content_hash.return_value = None
         self.mock_tier = MagicMock(spec_set=TierServiceProtocol)
-        self.svc = LibraryService(repo=self.mock_repo, tier=self.mock_tier)
+        self.mock_storage = MagicMock(spec_set=S3Storage)
+        self.svc = LibraryService(repo=self.mock_repo, tier=self.mock_tier, storage=self.mock_storage)
 
     # ── get_library_data ──────────────────────────────────────────────────────
 
@@ -69,9 +71,9 @@ class TestLibraryService:
         self.mock_repo.add.return_value = saved
 
         file = _make_file("new.pdf", b"content")
+        self.mock_storage.save_raw_file.return_value = ("/url/new.pdf", b"content")
 
         with (
-            patch("src.services.library_service.save_raw_file", AsyncMock(return_value=("/url/new.pdf", b"content"))),
             patch("src.services.library_service.extract_text_from_bytes", return_value="extracted text"),
             patch("src.services.library_service.chunk_text", return_value=["chunk"]),
             patch("src.services.library_service.get_embeddings", AsyncMock(return_value=[MagicMock(tolist=MagicMock(return_value=[0.1]))])),
@@ -90,9 +92,9 @@ class TestLibraryService:
 
         mock_emb = MagicMock()
         mock_emb.tolist.return_value = [0.1, 0.2]
+        self.mock_storage.save_raw_file.return_value = ("/url/report.pdf", b"pdf bytes")
 
         with (
-            patch("src.services.library_service.save_raw_file", AsyncMock(return_value=("/url/report.pdf", b"pdf bytes"))),
             patch("src.services.library_service.extract_text_from_bytes", return_value="text"),
             patch("src.services.library_service.chunk_text", return_value=["chunk 1"]),
             patch("src.services.library_service.get_embeddings", AsyncMock(return_value=[mock_emb])),
@@ -108,11 +110,9 @@ class TestLibraryService:
         self.mock_repo.get_all.return_value = []
 
         file = _make_file("bad.pdf", b"")
+        self.mock_storage.save_raw_file.side_effect = RuntimeError("storage down")
 
-        with (
-            patch("src.services.library_service.save_raw_file", AsyncMock(side_effect=RuntimeError("storage down"))),
-            pytest.raises(UploadFailedError) as exc_info,
-        ):
+        with pytest.raises(UploadFailedError) as exc_info:
             await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[file])
 
         errors = exc_info.value.errors
@@ -136,8 +136,8 @@ class TestLibraryService:
                 raise RuntimeError("bad file")
             return ("/url/good.pdf", b"content")
 
+        self.mock_storage.save_raw_file.side_effect = fake_save
         with (
-            patch("src.services.library_service.save_raw_file", fake_save),
             patch("src.services.library_service.extract_text_from_bytes", return_value="text"),
             patch("src.services.library_service.chunk_text", return_value=["chunk"]),
             patch("src.services.library_service.get_embeddings", AsyncMock(return_value=[mock_emb])),
@@ -153,17 +153,14 @@ class TestLibraryService:
 
         file = _make_file("re-upload.pdf", b"same content")
 
-        with (
-            patch("src.services.library_service.save_raw_file", AsyncMock()) as mock_save_raw_file,
-            pytest.raises(UploadFailedError) as exc_info,
-        ):
+        with pytest.raises(UploadFailedError) as exc_info:
             await self.svc.save_files(user_id=1, plan=Plan.FREE, files=[file])
 
         errors = exc_info.value.errors
         assert len(errors) == 1
         assert errors[0].file == "re-upload.pdf"
         assert "already been uploaded" in errors[0].error
-        mock_save_raw_file.assert_not_called()
+        self.mock_storage.save_raw_file.assert_not_called()
         self.mock_repo.add.assert_not_called()
 
     async def test_save_files_second_file_can_still_succeed_when_first_is_duplicate(self):
@@ -182,9 +179,9 @@ class TestLibraryService:
         self.mock_repo.add.return_value = saved
         mock_emb = MagicMock()
         mock_emb.tolist.return_value = [0.1]
+        self.mock_storage.save_raw_file.return_value = ("/url/new.pdf", b"new content")
 
         with (
-            patch("src.services.library_service.save_raw_file", AsyncMock(return_value=("/url/new.pdf", b"new content"))),
             patch("src.services.library_service.extract_text_from_bytes", return_value="text"),
             patch("src.services.library_service.chunk_text", return_value=["chunk"]),
             patch("src.services.library_service.get_embeddings", AsyncMock(return_value=[mock_emb])),
@@ -208,10 +205,9 @@ class TestLibraryService:
         lib = _make_lib(path="/tmp/doc.pdf")
         self.mock_repo.get_by_id.return_value = lib
 
-        with patch("src.services.library_service.delete_file") as mock_delete:
-            result = self.svc.delete_document(doc_id=1, user_id=1)
+        result = self.svc.delete_document(doc_id=1, user_id=1)
 
-        mock_delete.assert_called_once_with("/tmp/doc.pdf")
+        self.mock_storage.delete_file.assert_called_once_with("/tmp/doc.pdf")
         self.mock_repo.delete.assert_called_once_with(lib)
         assert result.message == "Document deleted"
 
@@ -219,10 +215,9 @@ class TestLibraryService:
         lib = _make_lib(path=None)
         self.mock_repo.get_by_id.return_value = lib
 
-        with patch("src.services.library_service.delete_file") as mock_delete:
-            self.svc.delete_document(doc_id=1, user_id=1)
+        self.svc.delete_document(doc_id=1, user_id=1)
 
-        mock_delete.assert_not_called()
+        self.mock_storage.delete_file.assert_not_called()
         self.mock_repo.delete.assert_called_once_with(lib)
 
     # ── clear_all ─────────────────────────────────────────────────────────────
@@ -231,10 +226,9 @@ class TestLibraryService:
         libs = [_make_lib(id=1, path="/tmp/a.pdf"), _make_lib(id=2, path="/tmp/b.pdf")]
         self.mock_repo.get_all.return_value = libs
 
-        with patch("src.services.library_service.delete_file") as mock_delete:
-            result = self.svc.clear_all(user_id=1)
+        result = self.svc.clear_all(user_id=1)
 
-        assert mock_delete.call_count == 2
+        assert self.mock_storage.delete_file.call_count == 2
         self.mock_repo.clear_user_library.assert_called_once_with(1)
         assert result.message == "Library cleared"
 
@@ -242,8 +236,8 @@ class TestLibraryService:
         libs = [_make_lib(id=1, path="/tmp/a.pdf"), _make_lib(id=2, path="/tmp/b.pdf")]
         self.mock_repo.get_all.return_value = libs
 
-        with patch("src.services.library_service.delete_file", side_effect=OSError("disk error")):
-            result = self.svc.clear_all(user_id=1)
+        self.mock_storage.delete_file.side_effect = OSError("disk error")
+        result = self.svc.clear_all(user_id=1)
 
         self.mock_repo.clear_user_library.assert_called_once_with(1)
         assert result.message == "Library cleared"
@@ -252,7 +246,6 @@ class TestLibraryService:
         libs = [_make_lib(id=1, path=None), _make_lib(id=2, path="/tmp/b.pdf")]
         self.mock_repo.get_all.return_value = libs
 
-        with patch("src.services.library_service.delete_file") as mock_delete:
-            self.svc.clear_all(user_id=1)
+        self.svc.clear_all(user_id=1)
 
-        assert mock_delete.call_count == 1
+        assert self.mock_storage.delete_file.call_count == 1

@@ -9,12 +9,12 @@ from fastapi import Depends, UploadFile
 from src.core.enums import Plan
 from src.core.exceptions import NotFoundError, UploadFailedError
 from src.models import Library, LibraryChunk
-from src.repositories.library_repository import LibraryRepositoryProtocol, LibraryRepository
+from src.repositories.library_repository import LibraryRepository, LibraryRepositoryProtocol
 from src.schemas.library import LibraryDocResponse, LibraryResponse, UploadErrorResponse, UploadItemResponse, UploadResponse
 from src.schemas.user import MessageResponse
-from src.services.tier_service import TierServiceProtocol, TierService
+from src.services.tier_service import TierService, TierServiceProtocol
 from src.utils.hugging_face import get_embeddings
-from src.utils.storage_utils import delete_file, save_raw_file
+from src.utils.storage_utils import S3Storage
 from src.utils.text_utils import chunk_text, extract_text_from_bytes
 
 
@@ -30,9 +30,11 @@ class LibraryService(LibraryServiceProtocol):
         self,
         repo: LibraryRepositoryProtocol = Depends(LibraryRepository),
         tier: TierServiceProtocol = Depends(TierService),
-    ):
+        storage: S3Storage = Depends(S3Storage),
+    ) -> None:
         self.repo = repo
         self.tier = tier
+        self.storage = storage
 
     def get_library_data(self, user_id: int) -> LibraryResponse:
         rows = self.repo.get_all(user_id)
@@ -57,7 +59,7 @@ class LibraryService(LibraryServiceProtocol):
                     raise ValueError("This file has already been uploaded")
                 f.file.seek(0)
 
-                file_url, contents = await save_raw_file(f, user_id)
+                file_url, contents = await self.storage.save_raw_file(f, user_id)
                 size_bytes = len(contents)
                 ext = (f.filename or "").split(".")[-1].lower()
                 extracted_text = extract_text_from_bytes(contents, ext)
@@ -102,7 +104,7 @@ class LibraryService(LibraryServiceProtocol):
         if not lib:
             raise NotFoundError("Document not found")
         if lib.path:
-            delete_file(lib.path)
+            self.storage.delete_file(lib.path)
         self.repo.delete(lib)
         return MessageResponse(message="Document deleted")
 
@@ -110,7 +112,7 @@ class LibraryService(LibraryServiceProtocol):
         for lib in self.repo.get_all(user_id):
             try:
                 if lib.path:
-                    delete_file(lib.path)
+                    self.storage.delete_file(lib.path)
             except Exception:
                 _log.warning("Failed to delete file %s", lib.path, exc_info=True)
         self.repo.clear_user_library(user_id)
