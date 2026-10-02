@@ -10,7 +10,7 @@ alembic
 bcrypt
 PyMuPDF
 python-docx
-psycopg2-binary
+psycopg[binary]
 pgvector
 python-dotenv
 boto3
