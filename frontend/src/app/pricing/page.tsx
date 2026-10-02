@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Check, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { PricingWaitlistForm } from "@/components/site/pricing-waitlist-form";
 import { SiteNav } from "@/components/site/site-nav";
 import { SiteFooter } from "@/components/site/site-footer";
+import { AuthActionLink } from "@/components/site/auth-action-link";
 
 const freeFeatures = [
   "5 documents in your library",
@@ -51,9 +51,7 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/signup" className="mt-10 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80">
-                  Get started for free <ArrowUpRight size={16} />
-                </Link>
+                <AuthActionLink signedOutLabel="Get started for free" signedInLabel="Open your workspace" className="mt-10 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80" />
               </article>
 
               <article className="relative flex h-full flex-col overflow-hidden rounded-md border border-accent/35 bg-card p-7 text-ink sm:p-9 lg:p-11">
@@ -83,7 +81,7 @@ export default function PricingPage() {
         <section className="mt-8 px-5 md:px-8">
           <div className="mx-auto flex max-w-[1280px] flex-col gap-6 border-t border-ink/15 pt-10 md:flex-row md:items-center md:justify-between">
             <div><h2 className="font-display text-[28px] font-medium tracking-[-0.03em] md:text-[36px]">Ready to see what your files know?</h2><p className="mt-2 text-[15px] leading-7 text-ink/60">Open your workspace and start with a question.</p></div>
-            <Link href="/signup" className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80">Get started <ArrowRight size={16} /></Link>
+            <AuthActionLink signedOutLabel="Get started" signedInLabel="Open your workspace" arrow="right" className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80" />
           </div>
         </section>
       </main>

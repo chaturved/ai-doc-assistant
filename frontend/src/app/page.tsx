@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { ArrowRight, ArrowUpRight, FileSearch, FileText, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, FileSearch, FileText, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
 import { ProductPreview } from "@/components/site/product-preview";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteNav } from "@/components/site/site-nav";
+import { AuthActionLink } from "@/components/site/auth-action-link";
 
 const steps = [
   { number: "01", title: "Bring your sources", description: "Add the reports, notes, and documents you want to understand. Your library keeps them together.", icon: FileText },
@@ -22,10 +22,10 @@ export default function LandingPage() {
               <h1 className="font-display text-[44px] font-medium leading-[1.02] tracking-[-0.045em] sm:text-[58px] lg:text-[72px]">Make sense of the files that matter.</h1>
               <p className="mt-7 max-w-[500px] text-[17px] leading-8 text-ink/65 md:text-[19px]">Paperwise turns scattered documents into answers you can verify. Ask a question, see the source, and keep moving.</p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Link href="/signup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80">Start with your documents <ArrowUpRight size={16} /></Link>
+                <AuthActionLink signedOutLabel="Start with your documents" signedInLabel="Continue in your workspace" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-bg transition hover:opacity-80" />
                 <a href="#how-it-works" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-ink/20 px-6 text-sm font-medium transition hover:bg-ink/5">See how it works <ArrowRight size={16} /></a>
               </div>
-              <p className="mt-6 text-[13px] text-ink/45">Free to start · No payment details needed</p>
+              <p className="mt-6 text-[13px] text-ink/45">Your documents and conversations, all in one place.</p>
             </div>
 
             <div className="relative isolate overflow-hidden rounded-lg border border-ink/10 bg-card p-5 sm:p-8 lg:min-h-[550px] lg:pt-16">
@@ -58,7 +58,7 @@ export default function LandingPage() {
               <p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-accent">How Paperwise works</p>
               <h2 className="font-display text-[34px] font-medium leading-[1.1] tracking-[-0.035em] md:text-[48px]">A simple path from question to source.</h2>
               <p className="mt-5 text-[17px] leading-8 text-ink/60">The useful detail is already in your files. Paperwise helps you find it and see where it came from.</p>
-              <Link href="/signup" className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:opacity-70">Open your workspace <ArrowUpRight size={16} /></Link>
+              <AuthActionLink signedOutLabel="Create your workspace" signedInLabel="Open your workspace" className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:opacity-70" />
             </div>
             <div className="border-t border-ink/15">
               {steps.map(({ number, title, description, icon: Icon }) => (
@@ -96,8 +96,8 @@ export default function LandingPage() {
 
         <section className="px-5 md:px-8">
           <div className="mx-auto grid max-w-[1280px] gap-8 rounded-lg bg-[#1b1b1b] px-8 py-12 text-white dark:border dark:border-white/10 dark:bg-[#242424] md:grid-cols-[1fr_auto] md:items-end md:px-12 md:py-16">
-            <div><p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-400">Ready when you are</p><h2 className="max-w-2xl font-display text-[34px] font-medium leading-[1.1] tracking-[-0.035em] md:text-[48px]">Your next answer starts with a document.</h2><p className="mt-4 text-[16px] leading-7 text-white/65">Start free and see what is already waiting in your files.</p></div>
-            <Link href="/signup" className="inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-amber-400 px-6 text-sm font-semibold text-[#211608] transition hover:opacity-85">Get started <ArrowUpRight size={16} /></Link>
+            <div><p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-400">Ready when you are</p><h2 className="max-w-2xl font-display text-[34px] font-medium leading-[1.1] tracking-[-0.035em] md:text-[48px]">Your next answer starts with a document.</h2><p className="mt-4 text-[16px] leading-7 text-white/65">Bring your files together and ask your next question.</p></div>
+            <AuthActionLink signedOutLabel="Get started" signedInLabel="Go to workspace" className="inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-amber-400 px-6 text-sm font-semibold text-[#211608] transition hover:opacity-85" />
           </div>
         </section>
       </main>

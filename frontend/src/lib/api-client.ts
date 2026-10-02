@@ -1,5 +1,6 @@
 import axios from "axios";
 import { fetchEventSource, type EventSourceMessage } from "@microsoft/fetch-event-source";
+import { isProtectedRoute } from "@/lib/auth-routes";
 
 // ─── Axios base client ────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest.url?.includes("/v1/auth/login")) {
+    if (originalRequest.url?.includes("/v1/auth/login") || originalRequest.url?.includes("/v1/auth/refresh")) {
       return Promise.reject(error);
     }
 
@@ -46,7 +47,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (err) {
         processQueue(err, null);
-        window.location.href = "/login";
+        if (isProtectedRoute(window.location.pathname)) window.location.href = "/login";
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
