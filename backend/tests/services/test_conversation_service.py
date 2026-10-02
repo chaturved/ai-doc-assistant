@@ -50,6 +50,22 @@ class TestConversationService:
 
         assert result == []
 
+    def test_search_conversations_returns_message_excerpt(self):
+        conv = _make_conv(title="Quarterly report")
+        conv.updated_at = datetime.now(timezone.utc)
+        self.mock_conv_repo.search.return_value = [(conv, "The revenue grew in the third quarter.")]
+
+        result = self.svc.search_conversations(user_id=7, query="revenue")
+
+        self.mock_conv_repo.search.assert_called_once_with(7, "revenue")
+        assert len(result) == 1
+        assert result[0].title == "Quarterly report"
+        assert "revenue" in result[0].match_excerpt
+
+    def test_search_conversations_ignores_short_query(self):
+        assert self.svc.search_conversations(user_id=7, query=" ") == []
+        self.mock_conv_repo.search.assert_not_called()
+
     # ── new_conversation ──────────────────────────────────────────────────────
 
     def test_new_conversation_creates_and_returns(self):

@@ -22,6 +22,10 @@ class ConversationOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ConversationSearchResult(ConversationOut):
+    match_excerpt: str | None = None
+
+
 class MessageOut(BaseModel):
     id: int
     role: str

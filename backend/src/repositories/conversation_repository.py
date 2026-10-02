@@ -1,7 +1,7 @@
 from typing import Optional, Protocol
 
 from fastapi import Depends
-from sqlalchemy import func
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
@@ -12,6 +12,7 @@ from src.models.message import Message
 class ConversationRepositoryProtocol(Protocol):
     def create(self, user_id: int, title: str = "New conversation") -> Conversation: ...
     def get_all(self, user_id: int) -> list[Conversation]: ...
+    def search(self, user_id: int, query: str, limit: int = 25) -> list[tuple[Conversation, str | None]]: ...
     def get_by_id(self, conv_id: int, user_id: int) -> Optional[Conversation]: ...
     def update_title(self, conv: Conversation, title: str) -> Conversation: ...
     def touch(self, conv: Conversation) -> None: ...
@@ -37,6 +38,25 @@ class ConversationRepository(ConversationRepositoryProtocol):
             self.db.query(Conversation)
             .filter(Conversation.user_id == user_id)
             .order_by(Conversation.updated_at.desc())
+            .all()
+        )
+
+    def search(self, user_id: int, query: str, limit: int = 25) -> list[tuple[Conversation, str | None]]:
+        escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        pattern = f"%{escaped}%"
+        matching_message = (
+            select(Message.content)
+            .where(Message.conversation_id == Conversation.id, Message.content.ilike(pattern, escape="\\"))
+            .order_by(Message.created_at.desc(), Message.id.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
+        return (
+            self.db.query(Conversation, matching_message.label("match_content"))
+            .filter(Conversation.user_id == user_id)
+            .filter(or_(Conversation.title.ilike(pattern, escape="\\"), matching_message.is_not(None)))
+            .order_by(Conversation.updated_at.desc())
+            .limit(limit)
             .all()
         )
 

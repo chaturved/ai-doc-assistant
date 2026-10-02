@@ -44,6 +44,19 @@ class TestConversationRepository:
         assert result == expected
         self.db.query.assert_called_once_with(Conversation)
 
+    def test_search_scopes_results_to_user_and_limits_matches(self):
+        rows = [(MagicMock(spec=Conversation), "matching text")]
+        query = self.db.query.return_value
+        query.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = rows
+
+        result = self.repo.search(user_id=7, query="matching")
+
+        assert result == rows
+        user_filter = query.filter.call_args.args[0]
+        assert user_filter.left.compare(Conversation.__table__.c.user_id)
+        assert user_filter.right.value == 7
+        query.filter.return_value.filter.return_value.order_by.return_value.limit.assert_called_once_with(25)
+
     # ── get_by_id ─────────────────────────────────────────────────────────────
 
     def test_get_by_id_returns_matching(self):

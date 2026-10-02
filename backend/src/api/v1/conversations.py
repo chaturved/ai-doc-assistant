@@ -1,12 +1,12 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
 from src.core.dependencies import get_conversation_service, get_current_user, get_current_user_id
 from src.models.user import User
-from src.schemas.conversation import AskRequest, ConversationCreate, ConversationRename
+from src.schemas.conversation import AskRequest, ConversationCreate, ConversationRename, ConversationSearchResult
 from src.services.conversation_service import ConversationServiceProtocol
 
 _log = logging.getLogger(__name__)
@@ -29,6 +29,15 @@ def create_conversation(
     service: ConversationServiceProtocol = Depends(get_conversation_service),
 ):
     return service.new_conversation(user_id, body.title)
+
+
+@router.get("/search", response_model=list[ConversationSearchResult])
+def search_conversations(
+    q: str = Query(min_length=2, max_length=100),
+    user_id: int = Depends(get_current_user_id),
+    service: ConversationServiceProtocol = Depends(get_conversation_service),
+) -> list[ConversationSearchResult]:
+    return service.search_conversations(user_id, q.strip())
 
 
 @router.patch("/{conv_id}")

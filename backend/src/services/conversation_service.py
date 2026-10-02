@@ -7,7 +7,7 @@ from src.core.enums import Plan
 from src.core.exceptions import NotFoundError
 from src.repositories.conversation_repository import ConversationRepository, ConversationRepositoryProtocol
 from src.repositories.library_repository import LibraryRepositoryProtocol, LibraryRepository
-from src.schemas.conversation import AskFilters, ConversationOut, DEFAULT_CONVERSATION_TITLE, MessageOut
+from src.schemas.conversation import AskFilters, ConversationOut, ConversationSearchResult, DEFAULT_CONVERSATION_TITLE, MessageOut
 from src.schemas.user import MessageResponse
 from src.services.tier_service import TierServiceProtocol, TierService
 from src.utils.hugging_face import get_embedding
@@ -23,6 +23,7 @@ from src.utils.query_utils import (
 
 class ConversationServiceProtocol(Protocol):
     def list_conversations(self, user_id: int) -> list[ConversationOut]: ...
+    def search_conversations(self, user_id: int, query: str) -> list[ConversationSearchResult]: ...
     def new_conversation(self, user_id: int, title: str) -> ConversationOut: ...
     def rename_conversation(self, conv_id: int, user_id: int, title: str) -> ConversationOut: ...
     def remove_conversation(self, conv_id: int, user_id: int) -> MessageResponse: ...
@@ -51,6 +52,23 @@ class ConversationService(ConversationServiceProtocol):
 
     def list_conversations(self, user_id: int) -> list[ConversationOut]:
         return [ConversationOut.model_validate(c) for c in self.conv_repo.get_all(user_id)]
+
+    def search_conversations(self, user_id: int, query: str) -> list[ConversationSearchResult]:
+        if len(query) < 2:
+            return []
+        results = []
+        for conversation, matching_content in self.conv_repo.search(user_id, query):
+            excerpt = None
+            if matching_content:
+                match_at = matching_content.casefold().find(query.casefold())
+                start = max(0, match_at - 50)
+                end = min(len(matching_content), match_at + len(query) + 90)
+                excerpt = ("…" if start else "") + matching_content[start:end].strip() + ("…" if end < len(matching_content) else "")
+            results.append(ConversationSearchResult(
+                **ConversationOut.model_validate(conversation).model_dump(),
+                match_excerpt=excerpt,
+            ))
+        return results
 
     def new_conversation(self, user_id: int, title: str = DEFAULT_CONVERSATION_TITLE) -> ConversationOut:
         conv = self.conv_repo.create(user_id, title)
